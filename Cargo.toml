@@ -1,15 +1,15 @@
 [package]
 description = "A group of graphical interface description languages that separates style/class from behavior and layout"
-documentation = "https://docs.rs/styles-ui"
+documentation = "https://docs.rs/stylang"
 edition = "2024"
 license = "MIT"
-name = "styles-ui"
-repository = "https://github.com/styles-lab/styles-ui"
+name = "stylang"
+repository = "https://github.com/styles-lab/stylang"
 version = "0.1.0"
 
 [dependencies]
 log = {version = "^0.4"}
-parserc = {version = "^0.4"}
+parserc = {version = "^0.5"}
 thiserror = "^2"
 [dev-dependencies]
 divan = {version = "^0.1"}
