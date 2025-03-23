@@ -10,9 +10,14 @@ version = "0.1.0"
 [dependencies]
 log = {version = "^0.4"}
 parserc = {version = "^0.5"}
+serde = {version = "^1", optional = true}
 thiserror = "^2"
+
 [dev-dependencies]
 divan = {version = "^0.1"}
 pretty_env_logger = {version = "^0.5"}
 
 [features]
+default = ["serde"]
+
+serde = ["dep:serde"]
