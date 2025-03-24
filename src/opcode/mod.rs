@@ -6,8 +6,8 @@ pub use attrs::*;
 mod layout;
 pub use layout::*;
 
-mod value;
-pub use value::*;
+mod variable;
+pub use variable::*;
 
 mod nav;
 pub use nav::*;

@@ -1,4 +1,4 @@
-use super::Value;
+use super::Variable;
 
 /// The ZStack assigns each successive subview a higher z-axis value than the one before it,
 /// meaning later subviews appear “on top” of earlier ones.
@@ -11,9 +11,9 @@ pub struct ZStack;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Container<'a> {
     /// The fixed width of the container.
-    pub width: Value<'a, f32>,
+    pub width: Variable<'a, f32>,
     /// The fixed height of the container.
-    pub height: Value<'a, f32>,
+    pub height: Variable<'a, f32>,
 }
 
 /// A alias of Aligment.Center.
@@ -41,5 +41,5 @@ pub struct Expanded;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Flexible<'a>(
     /// The flex factor to use for this child.
-    pub Value<'a, usize>,
+    pub Variable<'a, usize>,
 );

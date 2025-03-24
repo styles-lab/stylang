@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::Value;
+use super::Variable;
 
 /// The widget display/search name.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -31,8 +31,10 @@ pub enum Handle<'a> {
     Hyperlink(Cow<'a, str>),
     /// (Solidity) A smart contract calling.
     Solidity(Cow<'a, str>),
-    /// Generic callback string,
-    Callback(Cow<'a, str>),
+    /// Inline closure fn.
+    Inline(Cow<'a, str>),
+    /// Generic callback method,
+    Generic(Cow<'a, str>),
 }
 
 ///An attribute that append an event handler to an element.
@@ -50,9 +52,9 @@ pub struct OnEvent<'a> {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Class<'a> {
     /// Class from theme scope.
-    Theme(Value<'a, Cow<'a, str>>),
+    Theme(Variable<'a, Cow<'a, str>>),
     /// Class from application scope.
-    App(Value<'a, Cow<'a, str>>),
+    App(Variable<'a, Cow<'a, str>>),
 }
 
 /// A direction along either the horizontal or vertical Axis in which the origin, or zero position, is determined.
