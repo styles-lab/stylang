@@ -1,16 +1,35 @@
 use parserc::{
-    AsBytes, Input, Parse, Parser, keyword, next,
+    AsBytes, Input, Parse, Parser, ParserExt, keyword, next,
     span::{Span, WithSpan},
     take_till, take_while,
 };
 
-use super::ParseError;
+use super::{ParseError, ParseKind};
 
-pub(super) fn skip_ws<I>(input: I) -> parserc::Result<(), I, ParseError>
+pub(super) fn skip_ws<I>(input: I) -> parserc::Result<I, I, ParseError>
 where
     I: Input<Item = u8>,
 {
-    let (_, input) = take_while(|c: u8| c.is_ascii_whitespace()).parse(input)?;
+    let (s, input) = take_while(|c: u8| c.is_ascii_whitespace()).parse(input)?;
+
+    Ok((s, input))
+}
+
+#[allow(unused)]
+pub(super) fn ensure_ws<I>(input: I) -> parserc::Result<(), I, ParseError>
+where
+    I: Input<Item = u8> + WithSpan,
+{
+    let (s, input) = skip_ws(input)?;
+
+    if s.is_empty() {
+        let mut span = input.span();
+        span.len = 0;
+        return Err(parserc::ControlFlow::Fatal(ParseError::Expect(
+            ParseKind::S,
+            span,
+        )));
+    }
 
     Ok(((), input))
 }
@@ -67,14 +86,35 @@ where
     }
 }
 
+/// Parse multiline comments.
+pub fn parse_comments<I>(mut input: I) -> parserc::Result<Vec<Comment<I>>, I, ParseError>
+where
+    I: Input<Item = u8> + AsBytes + WithSpan + Clone,
+{
+    let mut comments = vec![];
+
+    loop {
+        let comment;
+
+        (comment, input) = Comment::into_parser().ok().parse(input)?;
+
+        if let Some(comment) = comment {
+            comments.push(comment);
+            (_, input) = skip_ws(input)?;
+        } else {
+            return Ok((comments, input));
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::{Parse, span::Span};
 
-    use crate::lang::{Comment, Source};
+    use crate::lang::{Comment, Source, parse_comments};
 
     #[test]
-    fn test_comment_line() {
+    fn parse_comment() {
         assert_eq!(
             Comment::parse(Source::from("/// hello world  \n")),
             Ok((
@@ -83,6 +123,26 @@ mod tests {
                     span: Span { offset: 0, len: 17 }
                 },
                 Source::from((17, "\n"))
+            ))
+        );
+
+        assert_eq!(
+            parse_comments(Source::from("/// hello world  \n\t\n/// hello world  ")),
+            Ok((
+                vec![
+                    Comment {
+                        content: Source::from((3, " hello world  ")),
+                        span: Span { offset: 0, len: 17 }
+                    },
+                    Comment {
+                        content: Source::from((23, " hello world  ")),
+                        span: Span {
+                            offset: 20,
+                            len: 17
+                        }
+                    }
+                ],
+                Source::from((37, ""))
             ))
         );
     }

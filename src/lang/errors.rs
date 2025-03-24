@@ -22,4 +22,7 @@ pub enum ParseKind {
 
     #[error("`function return type.`")]
     ReturnType,
+
+    #[error("`white space`")]
+    S,
 }

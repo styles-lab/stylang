@@ -9,5 +9,8 @@ pub use input::*;
 mod types;
 pub use types::*;
 
+mod func;
+pub use func::*;
+
 mod s;
 pub use s::*;
