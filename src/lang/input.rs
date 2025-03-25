@@ -2,6 +2,9 @@ use std::{iter::Enumerate, str::Bytes};
 
 use parserc::{AsBytes, AsStr, Input, span::WithSpan};
 
+/// `Input` type used by stylang compiler.
+pub trait TokenStream: Input<Item = u8> + AsBytes + AsStr + Clone + WithSpan {}
+
 /// Input type used by stylang compiler.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Source<'a> {
@@ -86,3 +89,5 @@ impl<'a> WithSpan for Source<'a> {
         self.offset
     }
 }
+
+impl<'a> TokenStream for Source<'a> {}

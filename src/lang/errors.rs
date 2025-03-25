@@ -13,22 +13,20 @@ pub enum ParseError {
 pub enum ParseKind {
     #[error("`]`")]
     SliceEnd,
-
     #[error("`slice component type`")]
     SliceComponent,
-
-    #[error("`(`")]
-    ParamsStart,
-
-    #[error("`)`")]
-    ParamsEnd,
-
+    #[error("`delimiter({0})`")]
+    Delimiter(char),
     #[error("`->`")]
     ReturnTypeArrow,
-
+    #[error("`function input argument type.`")]
+    FnArgType,
     #[error("`function return type.`")]
     ReturnType,
-
     #[error("`white space`")]
     S,
+    #[error("`ident`")]
+    Ident,
+    #[error("`:`")]
+    Colon,
 }
