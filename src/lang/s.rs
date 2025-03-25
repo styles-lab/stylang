@@ -39,17 +39,26 @@ pub(super) fn parse_comma_sep<I>(input: I) -> parserc::Result<I, I, ParseError>
 where
     I: Input<Item = u8>,
 {
-    let (_, input) = skip_ws(input)?;
+    parse_punctuated_sep(b',').parse(input)
+}
 
-    let (comma, input) = next(b',').parse(input)?;
+pub(super) fn parse_punctuated_sep<I>(p: u8) -> impl Parser<I, Error = ParseError, Output = I>
+where
+    I: Input<Item = u8>,
+{
+    move |input: I| {
+        let (_, input) = skip_ws(input)?;
 
-    let (_, input) = skip_ws(input)?;
+        let (comma, input) = next(p).parse(input)?;
 
-    Ok((comma, input))
+        let (_, input) = skip_ws(input)?;
+
+        Ok((comma, input))
+    }
 }
 
 /// be like: `[S]->[S]`
-pub(super) fn parse_return_type_sep<I>(input: I) -> parserc::Result<I, I, ParseError>
+pub(super) fn parse_return_type_arrow<I>(input: I) -> parserc::Result<I, I, ParseError>
 where
     I: Input<Item = u8> + AsBytes,
 {
@@ -93,6 +102,8 @@ where
 {
     let mut comments = vec![];
 
+    (_, input) = skip_ws(input)?;
+
     loop {
         let comment;
 
@@ -103,6 +114,52 @@ where
             (_, input) = skip_ws(input)?;
         } else {
             return Ok((comments, input));
+        }
+    }
+}
+
+/// A punctuated sequence of syntax tree nodes of type T separated by punctuation of type P.
+#[derive(Debug, PartialEq)]
+pub struct Punctuated<I, T, const P: u8> {
+    items: Vec<(T, I)>,
+    last: Option<T>,
+}
+
+impl<I, T, const P: u8> Parse<I> for Punctuated<I, T, P>
+where
+    I: Input<Item = u8> + AsBytes + WithSpan + Clone,
+    T: Parse<I, Error = ParseError>,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut items = vec![];
+
+        let (_, mut input) = skip_ws(input)?;
+
+        loop {
+            let item;
+
+            (item, input) = T::into_parser().ok().parse(input)?;
+
+            if let Some(item) = item {
+                let punctuated;
+                (punctuated, input) = parse_punctuated_sep(P).ok().parse(input)?;
+
+                if let Some(punctuated) = punctuated {
+                    items.push((item, punctuated));
+                } else {
+                    return Ok((
+                        Punctuated {
+                            items,
+                            last: Some(item),
+                        },
+                        input,
+                    ));
+                }
+            } else {
+                return Ok((Punctuated { items, last: None }, input));
+            }
         }
     }
 }

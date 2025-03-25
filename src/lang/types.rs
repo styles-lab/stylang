@@ -5,7 +5,7 @@ use parserc::{
 
 use crate::lang::{
     ParseKind,
-    s::{parse_comma_sep, parse_return_type_sep},
+    s::{parse_comma_sep, parse_return_type_arrow},
 };
 
 use super::{ParseError, s::skip_ws};
@@ -115,16 +115,16 @@ where
     let (_, input) = skip_ws(input)?;
 
     let (_, input) = keyword(")")
-        .map_err(|_: Kind| ParseError::Expect(ParseKind::ParamsEnd, input.span()))
-        .parse(input.clone())?;
+        .map_err(|input: I, _: Kind| ParseError::Expect(ParseKind::ParamsEnd, input.span()))
+        .parse(input)?;
 
-    let (return_type_sep, input) = parse_return_type_sep.ok().parse(input)?;
+    let (return_type_sep, input) = parse_return_type_arrow.ok().parse(input)?;
 
     if let Some(_) = return_type_sep {
         let (output, input) = Type::into_parser()
-            .map_err(|_| ParseError::Expect(ParseKind::ReturnType, input.span()))
+            .map_err(|input: I, _| ParseError::Expect(ParseKind::ReturnType, input.span()))
             .fatal()
-            .parse(input.clone())?;
+            .parse(input)?;
 
         let span = start.span().extend_to_inclusive(output.span());
 
@@ -163,45 +163,19 @@ where
     let (_, input) = skip_ws(input)?;
 
     let (c, input) = Type::into_parser()
-        .map_err(|_| ParseError::Expect(ParseKind::SliceComponent, input.span()))
+        .map_err(|input: I, _| ParseError::Expect(ParseKind::SliceComponent, input.span()))
         .fatal()
-        .parse(input.clone())?;
+        .parse(input)?;
 
     let (_, input) = skip_ws(input)?;
 
     let (end, input) = keyword("]")
-        .map_err(|_: Kind| ParseError::Expect(ParseKind::SliceEnd, input.span()))
-        .parse(input.clone())?;
+        .map_err(|input: I, _: Kind| ParseError::Expect(ParseKind::SliceEnd, input.span()))
+        .parse(input)?;
 
     let span = start.span().extend_to_inclusive(end.span());
 
     Ok((Type::Slice(Box::new(c), span), input))
-}
-
-fn parse_int_type<I>(input: I) -> parserc::Result<Type, I, ParseError>
-where
-    I: Input<Item = u8> + AsBytes + WithSpan + Clone,
-{
-    keyword("i8")
-        .map(|v: I| Type::Int(Bits::L8, v.span()))
-        .or(keyword("i16").map(|v: I| Type::Int(Bits::L16, v.span())))
-        .or(keyword("i32").map(|v: I| Type::Int(Bits::L32, v.span())))
-        .or(keyword("i64").map(|v: I| Type::Int(Bits::L64, v.span())))
-        .or(keyword("i128").map(|v: I| Type::Int(Bits::L128, v.span())))
-        .parse(input)
-}
-
-fn parse_uint_type<I>(input: I) -> parserc::Result<Type, I, ParseError>
-where
-    I: Input<Item = u8> + AsBytes + WithSpan + Clone,
-{
-    keyword("u8")
-        .map(|v: I| Type::Uint(Bits::L8, v.span()))
-        .or(keyword("u16").map(|v: I| Type::Uint(Bits::L16, v.span())))
-        .or(keyword("u32").map(|v: I| Type::Uint(Bits::L32, v.span())))
-        .or(keyword("u64").map(|v: I| Type::Uint(Bits::L64, v.span())))
-        .or(keyword("u128").map(|v: I| Type::Uint(Bits::L128, v.span())))
-        .parse(input)
 }
 
 impl<I> Parse<I> for Type
@@ -211,8 +185,17 @@ where
     type Error = ParseError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        parse_int_type
-            .or(parse_uint_type)
+        keyword("i8")
+            .map(|v: I| Type::Int(Bits::L8, v.span()))
+            .or(keyword("i16").map(|v: I| Type::Int(Bits::L16, v.span())))
+            .or(keyword("i32").map(|v: I| Type::Int(Bits::L32, v.span())))
+            .or(keyword("i64").map(|v: I| Type::Int(Bits::L64, v.span())))
+            .or(keyword("i128").map(|v: I| Type::Int(Bits::L128, v.span())))
+            .or(keyword("u8").map(|v: I| Type::Uint(Bits::L8, v.span())))
+            .or(keyword("u16").map(|v: I| Type::Uint(Bits::L16, v.span())))
+            .or(keyword("u32").map(|v: I| Type::Uint(Bits::L32, v.span())))
+            .or(keyword("u64").map(|v: I| Type::Uint(Bits::L64, v.span())))
+            .or(keyword("u128").map(|v: I| Type::Uint(Bits::L128, v.span())))
             .or(keyword("f32").map(|v: I| Type::F32(v.span())))
             .or(keyword("f64").map(|v: I| Type::F64(v.span())))
             .or(keyword("string").map(|v: I| Type::String(v.span())))

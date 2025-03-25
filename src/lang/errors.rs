@@ -17,8 +17,14 @@ pub enum ParseKind {
     #[error("`slice component type`")]
     SliceComponent,
 
+    #[error("`(`")]
+    ParamsStart,
+
     #[error("`)`")]
     ParamsEnd,
+
+    #[error("`->`")]
+    ReturnTypeArrow,
 
     #[error("`function return type.`")]
     ReturnType,
