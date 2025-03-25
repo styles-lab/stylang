@@ -214,7 +214,7 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        Delimiter, FnArg, Ident, ItemExternFn, Punctuated, ReturnType, Source, Type,
+        Comment, Delimiter, FnArg, Ident, ItemExternFn, Punctuated, ReturnType, Source, Type,
     };
 
     use super::Signature;
@@ -263,51 +263,54 @@ mod tests {
     fn parse_extern_fn() {
         assert_eq!(
             ItemExternFn::parse(Source::from(
-                "extern fn _man-view ( content: () -> view,) -> view ;"
+                "/// The main entry of one stylang app.\n  extern fn _man-view ( content: () -> view,) -> view ;"
             )),
             Ok((
                 ItemExternFn {
-                    comments: vec![],
-                    extern_token: Source::from((0, "extern")),
+                    comments: vec![Comment(Source::from((
+                        3,
+                        " The main entry of one stylang app."
+                    )))],
+                    extern_token: Source::from((41, "extern")),
                     signature: Signature {
-                        keyword: Source::from((7, "fn")),
-                        ident: Ident(Source::from((10, "_man-view"))),
+                        keyword: Source::from((48, "fn")),
+                        ident: Ident(Source::from((51, "_man-view"))),
                         delimiter: Delimiter::Paren(
-                            Source::from((20, "(")),
-                            Source::from((42, ")"))
+                            Source::from((61, "(")),
+                            Source::from((83, ")"))
                         ),
                         params: Punctuated {
                             items: vec![(
                                 FnArg {
-                                    ident: Ident(Source::from((22, "content"))),
-                                    colon_token: Source::from((29, ":")),
+                                    ident: Ident(Source::from((63, "content"))),
+                                    colon_token: Source::from((70, ":")),
                                     ty: Type::Fn {
                                         delimiter: Delimiter::Paren(
-                                            Source::from((31, "(")),
-                                            Source::from((32, ")"))
+                                            Source::from((72, "(")),
+                                            Source::from((73, ")"))
                                         ),
                                         params: Punctuated {
                                             items: vec![],
                                             last: None
                                         },
                                         return_stmt: Some(ReturnType {
-                                            arrow_token: Source::from((34, "->")),
-                                            ty: Box::new(Type::View(Source::from((37, "view"))))
+                                            arrow_token: Source::from((75, "->")),
+                                            ty: Box::new(Type::View(Source::from((78, "view"))))
                                         }),
                                     }
                                 },
-                                Source::from((41, ","))
+                                Source::from((82, ","))
                             )],
                             last: None
                         },
                         return_type: Some(ReturnType {
-                            arrow_token: Source::from((44, "->")),
-                            ty: Box::new(Type::View(Source::from((47, "view"))))
+                            arrow_token: Source::from((85, "->")),
+                            ty: Box::new(Type::View(Source::from((88, "view"))))
                         })
                     },
-                    semi_token: Source::from((52, ";"))
+                    semi_token: Source::from((93, ";"))
                 },
-                Source::from((53, ""))
+                Source::from((94, ""))
             ))
         );
     }

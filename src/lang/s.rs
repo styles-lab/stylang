@@ -1,6 +1,5 @@
 use parserc::{
-    AsBytes, Input, Kind, Parse, Parser, ParserExt, keyword, next, satisfy,
-    span::{Span, WithSpan},
+    AsBytes, Input, Kind, Parse, Parser, ParserExt, keyword, next, satisfy, span::WithSpan,
     take_till, take_while,
 };
 
@@ -65,10 +64,7 @@ where
 
 /// Comment of the function, be like: `/// ...`
 #[derive(Debug, PartialEq, Clone)]
-pub struct Comment<I> {
-    pub content: I,
-    pub span: Span,
-}
+pub struct Comment<I>(pub I);
 
 impl<I> Parse<I> for Comment<I>
 where
@@ -77,13 +73,11 @@ where
     type Error = ParseError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (prefix, input) = keyword("///").parse(input)?;
+        let (_, input) = keyword("///").parse(input)?;
 
         let (content, input) = take_till(|c| c == b'\n').parse(input)?;
 
-        let span = prefix.span().extend_to(input.span());
-
-        Ok((Comment { content, span }, input))
+        Ok((Comment(content), input))
     }
 }
 
@@ -275,7 +269,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Parse, span::Span};
+    use parserc::Parse;
 
     use crate::lang::{Bits, Comment, Source, Type, parse_comments};
 
@@ -286,10 +280,7 @@ mod tests {
         assert_eq!(
             Comment::parse(Source::from("/// hello world  \n")),
             Ok((
-                Comment {
-                    content: Source::from((3, " hello world  ")),
-                    span: Span { offset: 0, len: 17 }
-                },
+                Comment(Source::from((3, " hello world  ")),),
                 Source::from((17, "\n"))
             ))
         );
@@ -298,17 +289,8 @@ mod tests {
             parse_comments(Source::from("/// hello world  \n\t\n/// hello world  ")),
             Ok((
                 vec![
-                    Comment {
-                        content: Source::from((3, " hello world  ")),
-                        span: Span { offset: 0, len: 17 }
-                    },
-                    Comment {
-                        content: Source::from((23, " hello world  ")),
-                        span: Span {
-                            offset: 20,
-                            len: 17
-                        }
-                    }
+                    Comment(Source::from((3, " hello world  ")),),
+                    Comment(Source::from((23, " hello world  ")),)
                 ],
                 Source::from((37, ""))
             ))
