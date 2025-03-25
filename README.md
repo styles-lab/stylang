@@ -5,4 +5,4 @@
 [!["docs.rs docs"](https://img.shields.io/badge/docs-latest-blue.svg)](https://docs.rs/stylang)
 
 
-High-level graphical interface description language for multiple application scenarios
+A fast, simple, compiled scripting language for GUI programming.
