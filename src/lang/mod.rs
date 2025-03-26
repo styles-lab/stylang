@@ -14,3 +14,6 @@ pub use func::*;
 
 mod s;
 pub use s::*;
+
+mod lit;
+pub use lit::*;
