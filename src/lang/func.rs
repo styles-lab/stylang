@@ -1,6 +1,6 @@
 use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 
-use crate::lang::{ParseKind, parse_comments, skip_ws};
+use crate::lang::{Token, parse_comments, skip_ws};
 
 use super::{
     Comment, Delimiter, Ident, ParseError, Punctuated, TokenStream, Type, parse_return_type_arrow,
@@ -61,14 +61,14 @@ where
         let (_, input) = skip_ws(input)?;
 
         let (colon_token, input) = next(b':')
-            .map_err(|input: I, _: Kind| ParseError::Expect(ParseKind::Colon, input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Colon, input.span()))
             .fatal()
             .parse(input)?;
 
         let (_, input) = skip_ws(input)?;
 
         let (ty, input) = Type::into_parser()
-            .map_err(|input: I, _| ParseError::Expect(ParseKind::FnArgType, input.span()))
+            .map_err(|input: I, _| ParseError::Expect(Token::FnArgType, input.span()))
             .fatal()
             .parse(input)?;
 

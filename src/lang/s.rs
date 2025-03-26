@@ -3,7 +3,7 @@ use parserc::{
     take_till, take_while,
 };
 
-use super::{ParseError, ParseKind, TokenStream};
+use super::{ParseError, Token, TokenStream};
 
 pub(super) fn skip_ws<I>(input: I) -> parserc::Result<I, I, ParseError>
 where
@@ -25,7 +25,7 @@ where
         let mut span = input.span();
         span.len = 0;
         return Err(parserc::ControlFlow::Fatal(ParseError::Expect(
-            ParseKind::S,
+            Token::S,
             span,
         )));
     }
@@ -170,7 +170,7 @@ where
 
         let (end, input) = next(end)
             .map_err(|input: I, _: Kind| {
-                ParseError::Expect(ParseKind::Delimiter(end as char), input.span())
+                ParseError::Expect(Token::Delimiter(end as char), input.span())
             })
             .fatal()
             .parse(input)?;
@@ -257,7 +257,7 @@ where
         let mut cloned = input.clone();
 
         let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|input: I, _: Kind| ParseError::Expect(ParseKind::Ident, input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Ident, input.span()))
             .parse(input)?;
 
         let (body, _) =
