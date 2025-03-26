@@ -49,6 +49,11 @@ mod tests {
     #[test]
     fn test_lit_str() {
         assert_eq!(
+            LitStr::parse(Source::from(r#""""#)),
+            Ok((LitStr(Source::from((1, ""))), Source::from((2, ""))))
+        );
+
+        assert_eq!(
             LitStr::parse(Source::from(r#""helo world""#)),
             Ok((
                 LitStr(Source::from((1, "helo world"))),
