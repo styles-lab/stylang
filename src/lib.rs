@@ -5,5 +5,3 @@
 #[cfg(feature = "lang")]
 #[cfg_attr(docsrs, doc(cfg(feature = "lang")))]
 pub mod lang;
-
-pub mod opcode;

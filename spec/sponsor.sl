@@ -1,6 +1,6 @@
 /// The main entry of one stylang app.
 fn main() -> view {
-    let stat msg = "hello world";
+    let stat err_msg = none;
 
     <navigation-stack>
         <center>
@@ -12,10 +12,19 @@ fn main() -> view {
                 }
                 
                 <row>
-                    <text-field id="donate" prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
-                    <button icon="assets://ethereum.svg" text="Donate" on-click.solidity="donate(${donate})"/>
+                    <text-field id="value" prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
+                    <button 
+                        icon="assets://ethereum.svg" 
+                        text="Donate" 
+                        on-click.throttled(10) = || donate(value);
+                        /// status value bind syntax.
+                        on-click.error = $err_msg
+                    />
                 </row>
             </column>
         </center>
     </navigation-stack>
 }
+
+/// extern fn declaration.
+extern fn donate(num: bignum) -> [u8;20] ?? data; 
