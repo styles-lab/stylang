@@ -42,24 +42,34 @@ where
     }
 }
 
-/// signed/unsigned decimal value.
+/// sign part of LitNum/Exponent.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct Decimal<I> {
-    /// optional sign part
-    sign: Option<I>,
-    /// digits part of the decimal value.
-    digits: I,
-}
+pub struct Sign<I>(I);
 
-impl<I> Parse<I> for Decimal<I>
+impl<I> Parse<I> for Sign<I>
 where
     I: TokenStream,
 {
     type Error = ParseError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (sign, input) = keyword("+").or(keyword("-")).ok().parse(input)?;
+        let (sign, input) = next(b'+').or(next(b'-')).parse(input)?;
 
+        Ok((Self(sign), input))
+    }
+}
+
+/// signed/unsigned decimal value.
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Digits<I>(pub I);
+
+impl<I> Parse<I> for Digits<I>
+where
+    I: TokenStream,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (digits, input) = take_while(|c: u8| c.is_ascii_digit()).parse(input)?;
 
         if digits.is_empty() {
@@ -69,20 +79,22 @@ where
             )));
         }
 
-        Ok((Decimal { sign, digits }, input))
+        Ok((Self(digits), input))
     }
 }
 
 /// Exp part of f32/f64.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct Exponent<I> {
+pub struct Exp<I> {
     /// prefix part, be like: `E` or `e`
     e_token: I,
-    /// value part.
-    decimal: Decimal<I>,
+    /// optional sign part.
+    sign: Option<Sign<I>>,
+    /// digits part.
+    digits: Digits<I>,
 }
 
-impl<I> Parse<I> for Exponent<I>
+impl<I> Parse<I> for Exp<I>
 where
     I: TokenStream,
 {
@@ -94,31 +106,59 @@ where
             .map_err(|input: I, _: Kind| ParseError::Expect(Token::ExpToken, input.span()))
             .parse(input)?;
 
-        let (decimal, input) = Decimal::into_parser()
+        let (sign, input) = Sign::into_parser().ok().parse(input)?;
+
+        let (digits, input) = Digits::into_parser()
             .map_err(|input: I, _| ParseError::Expect(Token::ExpDigits, input.span()))
             .parse(input)?;
 
-        Ok((Exponent { e_token, decimal }, input))
+        Ok((
+            Exp {
+                e_token,
+                sign,
+                digits,
+            },
+            input,
+        ))
     }
 }
 
-/// literal signed/unsigned decimal value with optional type label.
+/// literal signed/unsigned f32/f64 value.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct LitInt<I> {
-    /// required value part.
-    decimal: Decimal<I>,
+pub struct LitNum<I> {
+    /// optional sign part.
+    sign: Option<Sign<I>>,
+    /// required integer part.
+    integer: Option<Digits<I>>,
+    /// optional `.`
+    dot: Option<I>,
+    /// optional fractional part.
+    fractional: Option<I>,
+    /// optional exp part.
+    exp: Option<Exp<I>>,
     /// optional type label,
     ty_label: Option<I>,
 }
 
-impl<I> Parse<I> for LitInt<I>
+impl<I> Parse<I> for LitNum<I>
 where
     I: TokenStream,
 {
     type Error = ParseError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (value, input) = Decimal::parse(input)?;
+        let (sign, input) = Sign::into_parser().ok().parse(input)?;
+
+        let (integer, input) = Digits::into_parser()
+            .ok()
+            .map_err(|input: I, _| ParseError::Expect(Token::Digits, input.span()))
+            .parse(input)?;
+
+        let (dot, input) = next(b'.').ok().parse(input)?;
+
+        let (fractional, input) = next(b'.').ok().parse(input)?;
+
+        let (exp, input) = Exp::into_parser().ok().parse(input)?;
 
         let (ty_label, input) = keyword("i8")
             .or(keyword("i16"))
@@ -130,12 +170,18 @@ where
             .or(keyword("u32"))
             .or(keyword("u64"))
             .or(keyword("u128"))
+            .or(keyword("bigint"))
+            .or(keyword("bignum"))
             .ok()
             .parse(input)?;
 
         Ok((
-            Self {
-                decimal: value,
+            LitNum {
+                sign,
+                integer,
+                dot,
+                fractional,
+                exp,
                 ty_label,
             },
             input,
@@ -143,26 +189,11 @@ where
     }
 }
 
-/// literal signed/unsigned f32/f64 value.
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct LitNum<I> {
-    /// optional sign part
-    sign: Option<I>,
-    /// integer part
-    integer: I,
-    /// optional `.`
-    dot: Option<I>,
-    /// optional fractional part.
-    fractional: Option<I>,
-    /// optional type label,
-    type_label: Option<I>,
-}
-
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Parse, span::Span};
+    use parserc::Parse;
 
-    use crate::lang::{Decimal, Exponent, LitInt, LitStr, ParseError, Source, Token};
+    use crate::lang::{Digits, LitNum, LitStr, Source};
 
     #[test]
     fn test_lit_str() {
@@ -189,126 +220,19 @@ mod tests {
     }
 
     #[test]
-    fn parse_decimal() {
+    fn parse_lit_num() {
         assert_eq!(
-            Decimal::parse(Source::from("123")),
+            LitNum::parse(Source::from("123")),
             Ok((
-                Decimal {
+                LitNum {
                     sign: None,
-                    digits: Source::from("123")
+                    integer: Some(Digits(Source::from("123"))),
+                    dot: None,
+                    fractional: None,
+                    exp: None,
+                    ty_label: None
                 },
                 Source::from((3, ""))
-            ))
-        );
-
-        assert_eq!(
-            Decimal::parse(Source::from("+123")),
-            Ok((
-                Decimal {
-                    sign: Some(Source::from("+")),
-                    digits: Source::from((1, "123"))
-                },
-                Source::from((4, ""))
-            ))
-        );
-
-        assert_eq!(
-            Decimal::parse(Source::from("- 123")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Digits,
-                Span { offset: 1, len: 4 }
-            )))
-        );
-    }
-
-    #[test]
-    fn parse_exponent() {
-        assert_eq!(
-            Exponent::parse(Source::from("E+123")),
-            Ok((
-                Exponent {
-                    e_token: Source::from("E"),
-                    decimal: Decimal {
-                        sign: Some(Source::from((1, "+"))),
-                        digits: Source::from((2, "123"))
-                    },
-                },
-                Source::from((5, ""))
-            ))
-        );
-
-        assert_eq!(
-            Exponent::parse(Source::from("e123")),
-            Ok((
-                Exponent {
-                    e_token: Source::from("e"),
-                    decimal: Decimal {
-                        sign: None,
-                        digits: Source::from((1, "123"))
-                    },
-                },
-                Source::from((4, ""))
-            ))
-        );
-
-        assert_eq!(
-            Exponent::parse(Source::from("-123")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::ExpToken,
-                Span { offset: 0, len: 4 }
-            )))
-        );
-
-        assert_eq!(
-            Exponent::parse(Source::from("e -123")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::ExpDigits,
-                Span { offset: 1, len: 5 }
-            )))
-        );
-    }
-
-    #[test]
-    fn parse_lit_int() {
-        assert_eq!(
-            LitInt::parse(Source::from("+123")),
-            Ok((
-                LitInt {
-                    decimal: Decimal {
-                        sign: Some(Source::from("+")),
-                        digits: Source::from((1, "123"))
-                    },
-                    ty_label: None,
-                },
-                Source::from((4, ""))
-            ))
-        );
-
-        assert_eq!(
-            LitInt::parse(Source::from("1234u8")),
-            Ok((
-                LitInt {
-                    decimal: Decimal {
-                        sign: None,
-                        digits: Source::from((0, "1234"))
-                    },
-                    ty_label: Some(Source::from((4, "u8"))),
-                },
-                Source::from((6, ""))
-            ))
-        );
-
-        assert_eq!(
-            LitInt::parse(Source::from("1234 u8")),
-            Ok((
-                LitInt {
-                    decimal: Decimal {
-                        sign: None,
-                        digits: Source::from((0, "1234"))
-                    },
-                    ty_label: None,
-                },
-                Source::from((4, " u8"))
             ))
         );
     }

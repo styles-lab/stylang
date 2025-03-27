@@ -29,6 +29,10 @@ pub enum Type<I> {
         Bits,
         I,
     ),
+    /// bignum, be like: `100.0bigint`
+    BigInt(I),
+    /// bignum, be like: `100.0bignum`
+    BigNum(I),
     /// be like: `f32`,
     F32(I),
     /// be like: `f64`
@@ -98,6 +102,8 @@ where
             .or(keyword("u32").map(|v: I| Type::Uint(Bits::L32, v)))
             .or(keyword("u64").map(|v: I| Type::Uint(Bits::L64, v)))
             .or(keyword("u128").map(|v: I| Type::Uint(Bits::L128, v)))
+            .or(keyword("bigint").map(|v: I| Type::BigInt(v)))
+            .or(keyword("bignum").map(|v: I| Type::BigNum(v)))
             .or(keyword("f32").map(|v: I| Type::F32(v)))
             .or(keyword("f64").map(|v: I| Type::F64(v)))
             .or(keyword("string").map(|v: I| Type::String(v)))
@@ -133,6 +139,7 @@ mod tests {
 
         Type::parse(Source::from("[[string]]")).expect("[[string]]");
     }
+
     #[test]
     fn parse_fn_type() {
         Type::parse(Source::from("() -> view")).unwrap();
