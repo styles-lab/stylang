@@ -44,6 +44,12 @@ class TextLayout {
     direction: TextDirection,
 }
 
+/// Fill properties.
+class Fill {
+    foreground_color: color,
+    background_color: color,
+}
+
 /// All fields of a `state` are default required.
 state Label {
     /// The fields is a value object passed by value.
@@ -54,10 +60,11 @@ state Label {
 
 /// A platform provided view function to display a text characters
 @platform
-extern fn label(Label, TextLayout) -> view;
+extern fn label(Label, TextLayout, Fill) -> view;
 
 /// A platform provided view function to display a text characters.
 /// 
 /// The `text` parameter is a `StateObject` passed by reference.
 @platform
-extern fn text_field(text: @state string, TextLayout, content: @option fn() -> view) -> view;
+extern fn text_field(text: @state string, TextLayout, Fill, content: @option fn() -> view) -> view;
+
