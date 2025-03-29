@@ -39,8 +39,10 @@ enum WritingMode {
 /// bidirectional (e.g., Hebrew or Arabic) and vertical (e.g., Asian scripts).
 class TextLayout {
     /// See [`WritingMode`]
+    @inherit
     write_mode: WritingMode,
     /// See [`TextDirection`]
+    @inherit
     direction: TextDirection,
 }
 
@@ -51,11 +53,11 @@ class Fill {
 }
 
 /// All fields of a `state` are default required.
-state Label {
+data Label {
     /// The fields is a value object passed by value.
-    text: string,
+    @state text: string,
     /// optional content builder function.
-    content: @option fn() -> view,
+    @option content: fn() -> view,
 }
 
 /// A platform provided view function to display a text characters
@@ -66,5 +68,5 @@ extern fn label(Label, TextLayout, Fill) -> view;
 /// 
 /// The `text` parameter is a `StateObject` passed by reference.
 @platform
-extern fn text_field(text: @state string, TextLayout, Fill, content: @option fn() -> view) -> view;
+extern fn text_field(@state text: string, TextLayout, Fill, @option content: fn() -> view) -> view;
 

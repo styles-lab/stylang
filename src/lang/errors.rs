@@ -14,4 +14,10 @@ pub enum ParseError {
 pub enum Token {
     #[error("`whitespace`")]
     S,
+    #[error("`[0-9]+`")]
+    Digits,
+    #[error("`[0-9a-fA-F]+`")]
+    HexDigits,
+    #[error("`suffix({0})`")]
+    Suffix(&'static str),
 }
