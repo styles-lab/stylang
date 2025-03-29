@@ -4,11 +4,9 @@ use super::{ParseError, StylangInput, skip_ws};
 
 /// A token surround by `start` and `end` tokens.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct Delimiter<I, C> {
+pub struct Delimiter<I> {
     /// prefix token.
     pub prefix: I,
-    /// body token.
-    pub content: C,
     /// suffix token.
     pub suffix: I,
 }
@@ -18,7 +16,7 @@ pub fn delimited<I, P, C, S>(
     mut prefix: P,
     mut parser: C,
     mut suffix: S,
-) -> impl Parser<I, Output = Delimiter<I, C::Output>, Error = ParseError>
+) -> impl Parser<I, Output = (Delimiter<I>, C::Output), Error = ParseError>
 where
     I: StylangInput,
     P: Parser<I, Output = I, Error = ParseError>,
@@ -37,11 +35,13 @@ where
         let (end, input) = suffix.parse(input)?;
 
         Ok((
-            Delimiter {
-                prefix: start,
-                content: ty,
-                suffix: end,
-            },
+            (
+                Delimiter {
+                    prefix: start,
+                    suffix: end,
+                },
+                ty,
+            ),
             input,
         ))
     }
@@ -61,11 +61,14 @@ mod tests {
             delimited(next(b'('), keyword("hello world"), next(b')'))
                 .parse(TokenStream::from("(  hello world    )")),
             Ok((
-                Delimiter {
-                    prefix: TokenStream::from("("),
-                    content: TokenStream::from((3, "hello world")),
-                    suffix: TokenStream::from((18, ")"))
-                },
+                (
+                    Delimiter {
+                        prefix: TokenStream::from("("),
+
+                        suffix: TokenStream::from((18, ")"))
+                    },
+                    TokenStream::from((3, "hello world"))
+                ),
                 TokenStream::from((19, ""))
             ))
         );

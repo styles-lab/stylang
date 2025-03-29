@@ -3,7 +3,7 @@ use parserc::{Parse, Parser, ParserExt, next};
 use super::{ParseError, StylangInput, skip_ws};
 
 /// Parse `[S] punctuation [S]` ...
-pub fn parse_punctuated_sep<I>(p: u8) -> impl Parser<I, Error = ParseError, Output = I>
+pub fn parse_punctuation_sep<I>(p: u8) -> impl Parser<I, Error = ParseError, Output = I>
 where
     I: StylangInput,
 {
@@ -44,7 +44,7 @@ where
 
             if let Some(item) = item {
                 let punctuated;
-                (punctuated, input) = parse_punctuated_sep(P).ok().parse(input)?;
+                (punctuated, input) = parse_punctuation_sep(P).ok().parse(input)?;
 
                 if let Some(punctuated) = punctuated {
                     items.push((item, punctuated));
