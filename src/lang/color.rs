@@ -1,58 +1,10 @@
 //! lit exprs.
 
-use parserc::{ControlFlow, Kind, Parse, Parser, ParserExt, keyword, next, take_while};
+use parserc::{ControlFlow, Kind, Parse, Parser, ParserExt, keyword, next};
 
 use crate::lang::{parse_punctuation_sep, skip_ws};
 
-use super::{Delimiter, ParseError, StylangInput, Token};
-
-/// An ascii hex-digit characters sequence: [0-9a-f]+
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct HexDigits<I>(pub I);
-
-impl<I> Parse<I> for HexDigits<I>
-where
-    I: StylangInput,
-{
-    type Error = ParseError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (digits, input) = take_while(|c: u8| c.is_ascii_hexdigit()).parse(input)?;
-
-        if digits.is_empty() {
-            return Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::HexDigits,
-                input.span(),
-            )));
-        }
-
-        Ok((HexDigits(digits), input))
-    }
-}
-
-/// An ascii digit characters sequence: [0-9]+
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct Digits<I>(pub I);
-
-impl<I> Parse<I> for Digits<I>
-where
-    I: StylangInput,
-{
-    type Error = ParseError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (digits, input) = take_while(|c: u8| c.is_ascii_digit()).parse(input)?;
-
-        if digits.is_empty() {
-            return Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Digits,
-                input.span(),
-            )));
-        }
-
-        Ok((Digits(digits), input))
-    }
-}
+use super::{Delimiter, Digits, HexDigits, ParseError, StylangInput, Token};
 
 /// An ascii digit characters sequence + `%`.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -404,6 +356,14 @@ mod tests {
             Err(ControlFlow::Fatal(ParseError::Expect(
                 Token::HexDigits,
                 Span { offset: 1, len: 0 }
+            )))
+        );
+
+        assert_eq!(
+            LitColor::parse(TokenStream::from("")),
+            Err(ControlFlow::Recovable(ParseError::Expect(
+                Token::Color,
+                Span { offset: 0, len: 0 }
             )))
         );
     }
