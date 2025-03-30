@@ -1,4 +1,4 @@
-use parserc::{ControlFlow, Parse, Parser, ParserExt, next, take_while};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, keyword, next, take_while};
 
 use super::{ParseError, StylangInput, Token};
 
@@ -70,11 +70,11 @@ where
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Exp<I> {
     /// exp prefix, `E` or `e`
-    prefix: I,
+    pub prefix: I,
     /// sign character: `+` or `-`
-    sign: Option<Sign<I>>,
+    pub sign: Option<Sign<I>>,
     /// digits part.
-    digits: Digits<I>,
+    pub digits: Digits<I>,
 }
 
 impl<I> Parse<I> for Exp<I>
@@ -102,15 +102,15 @@ where
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct LitNum<I> {
     /// optional sign character: `+` or `-`
-    sign: Option<Sign<I>>,
+    pub sign: Option<Sign<I>>,
     /// optional trunc part.
-    trunc: Option<Digits<I>>,
+    pub trunc: Option<Digits<I>>,
     /// optional [S].[S]
-    comma: Option<I>,
+    pub comma: Option<I>,
     /// optional fractional part.
-    fract: Option<Digits<I>>,
+    pub fract: Option<Digits<I>>,
     /// optional exp part.
-    exp: Option<Exp<I>>,
+    pub exp: Option<Exp<I>>,
 }
 
 impl<I> Parse<I> for LitNum<I>
@@ -138,11 +138,48 @@ where
     }
 }
 
+/// literial hex integer num: `0x[0-9a-fA-F]+`
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct LitHexNum<I> {
+    /// The required hex prefix string: `0x`
+    pub prefix: I,
+    /// optional trunc part.
+    pub digits: HexDigits<I>,
+}
+
+impl<I> Parse<I> for LitHexNum<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (prefix, input) = keyword("0x").parse(input)?;
+        let (digits, input) = HexDigits::parse(input)?;
+
+        Ok((LitHexNum { prefix, digits }, input))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{Digits, Exp, LitNum, Sign, TokenStream};
+    use crate::lang::{Digits, Exp, HexDigits, LitHexNum, LitNum, Sign, TokenStream};
+
+    #[test]
+    fn test_lit_hex_num() {
+        assert_eq!(
+            LitHexNum::parse(TokenStream::from("0xf0a0B0")),
+            Ok((
+                LitHexNum {
+                    prefix: TokenStream::from("0x"),
+                    digits: HexDigits(TokenStream::from((2, "f0a0B0"))),
+                },
+                TokenStream::from((8, ""))
+            ))
+        );
+    }
 
     #[test]
     fn test_lit_num() {

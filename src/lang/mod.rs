@@ -12,7 +12,8 @@ pub use color::*;
 mod digits;
 pub use digits::*;
 
-mod length;
+mod unit;
+pub use unit::*;
 
 mod punctuated;
 pub use punctuated::*;
