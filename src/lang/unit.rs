@@ -63,20 +63,19 @@ where
             .or(keyword("i32"))
             .or(keyword("i64"))
             .or(keyword("i128"))
-            .or(keyword("ib"))
+            .or(keyword("bigint"))
             .or(keyword("u8"))
             .or(keyword("u16"))
             .or(keyword("u32"))
             .or(keyword("u64"))
             .or(keyword("u128"))
-            .or(keyword("ub"))
             .parse(input)?;
 
         Ok((Self(unit), input))
     }
 }
 
-/// literial length unit: f32,f64,fb,
+/// literial length unit: f32,f64,bignum,
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct UnitFloat<I>(pub I);
 
@@ -89,7 +88,7 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (unit, input) = keyword("f32")
             .or(keyword("f64"))
-            .or(keyword("fb"))
+            .or(keyword("bignum"))
             .parse(input)?;
 
         Ok((Self(unit), input))
