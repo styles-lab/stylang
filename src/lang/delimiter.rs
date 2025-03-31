@@ -1,4 +1,4 @@
-use parserc::Parser;
+use parserc::{Kind, Parser, ParserExt, keyword};
 
 use super::{ParseError, StylangInput, skip_ws};
 
@@ -12,19 +12,21 @@ pub struct Delimiter<I> {
 }
 
 /// Match a sequence parsers: prefix + content + suffix.
-pub fn delimited<I, P, C, S>(
-    mut prefix: P,
-    mut parser: C,
-    mut suffix: S,
-) -> impl Parser<I, Output = (Delimiter<I>, C::Output), Error = ParseError>
+pub fn delimited<I, P>(
+    prefix: &'static str,
+    mut parser: P,
+    suffix: &'static str,
+) -> impl Parser<I, Output = (Delimiter<I>, P::Output), Error = ParseError>
 where
     I: StylangInput,
-    P: Parser<I, Output = I, Error = ParseError>,
-    C: Parser<I, Error = ParseError>,
-    S: Parser<I, Output = I, Error = ParseError>,
+    P: Parser<I, Error = ParseError>,
 {
     move |input: I| {
-        let (start, input) = prefix.parse(input)?;
+        let (start, input) = keyword(prefix)
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(super::Token::Prefix(prefix), input.span())
+            })
+            .parse(input)?;
 
         let (_, input) = skip_ws(input)?;
 
@@ -32,7 +34,11 @@ where
 
         let (_, input) = skip_ws(input)?;
 
-        let (end, input) = suffix.parse(input)?;
+        let (end, input) = keyword(suffix)
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(super::Token::Suffix(suffix), input.span())
+            })
+            .parse(input)?;
 
         Ok((
             (
@@ -49,7 +55,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Parser, keyword, next};
+    use parserc::{Parser, keyword};
 
     use crate::lang::{Delimiter, TokenStream};
 
@@ -58,7 +64,7 @@ mod tests {
     #[test]
     fn parse_delimiter() {
         assert_eq!(
-            delimited(next(b'('), keyword("hello world"), next(b')'))
+            delimited("(", keyword("hello world"), ")")
                 .parse(TokenStream::from("(  hello world    )")),
             Ok((
                 (

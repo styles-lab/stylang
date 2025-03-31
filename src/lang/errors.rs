@@ -31,4 +31,6 @@ pub enum Token {
     Rgb(&'static str),
     #[error("`rgb(...)/#xxx/#xxxxxx`")]
     Color,
+    #[error("`ident`")]
+    Ident,
 }

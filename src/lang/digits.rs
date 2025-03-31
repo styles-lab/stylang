@@ -123,6 +123,14 @@ where
         let (trunc, input) = Digits::into_parser().ok().parse(input)?;
         let (comma, input) = next(b'.').ok().parse(input)?;
         let (fract, input) = Digits::into_parser().ok().parse(input)?;
+
+        if trunc.is_none() && fract.is_none() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                Token::Digits,
+                input.span(),
+            )));
+        }
+
         let (exp, input) = Exp::into_parser().ok().parse(input)?;
 
         Ok((
@@ -163,9 +171,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::Parse;
+    use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::{Digits, Exp, HexDigits, LitHexNum, LitNum, Sign, TokenStream};
+    use crate::lang::{
+        Digits, Exp, HexDigits, LitHexNum, LitNum, ParseError, Sign, Token, TokenStream,
+    };
 
     #[test]
     fn test_lit_hex_num() {
@@ -287,6 +297,17 @@ mod tests {
                 },
                 TokenStream::from((2, "ex"))
             ))
+        );
+    }
+
+    #[test]
+    fn test_num_error() {
+        assert_eq!(
+            LitNum::parse(TokenStream::from(".e10")),
+            Err(ControlFlow::Recovable(ParseError::Expect(
+                Token::Digits,
+                Span { offset: 1, len: 3 }
+            )))
         );
     }
 }

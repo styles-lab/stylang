@@ -1,4 +1,4 @@
-use parserc::{Parse, Parser, ParserExt, keyword, next};
+use parserc::{Parse, Parser, ParserExt, keyword};
 
 use crate::lang::{delimited, parse_punctuation_sep, skip_ws};
 
@@ -26,12 +26,8 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (prefix, input) = keyword("fn").parse(input)?;
 
-        let ((delimiter, inputs), input) = delimited(
-            next(b'('),
-            Punctuated::<I, Type<I>, b','>::into_parser(),
-            next(b')'),
-        )
-        .parse(input)?;
+        let ((delimiter, inputs), input) =
+            delimited("(", Punctuated::<I, Type<I>, b','>::into_parser(), ")").parse(input)?;
 
         let (output, input) = TypeReturn::into_parser().ok().parse(input)?;
 
@@ -98,7 +94,7 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let ((delimiter, ty), input) =
-            delimited(next(b'['), Type::<I>::into_parser(), next(b']')).parse(input)?;
+            delimited("[", Type::<I>::into_parser(), "]").parse(input)?;
         Ok((
             Self {
                 delimiter,
@@ -141,7 +137,7 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let ((delimiter, (ty, semi_colon, len)), input) =
-            delimited(next(b'['), parse_type_array_content, next(b']')).parse(input)?;
+            delimited("[", parse_type_array_content, "]").parse(input)?;
         Ok((
             Self {
                 delimiter,
