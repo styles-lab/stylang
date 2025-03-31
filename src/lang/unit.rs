@@ -95,6 +95,31 @@ where
     }
 }
 
+/// Unit for literial num.
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum Unit<I> {
+    Len(UnitLen<I>),
+    Angle(UnitAngle<I>),
+    Integer(UnitInteger<I>),
+    Float(UnitFloat<I>),
+}
+
+impl<I> Parse<I> for Unit<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        UnitLen::into_parser()
+            .map(|v| Unit::Len(v))
+            .or(UnitAngle::into_parser().map(|v| Unit::Angle(v)))
+            .or(UnitInteger::into_parser().map(|v| Unit::Integer(v)))
+            .or(UnitFloat::into_parser().map(|v| Unit::Float(v)))
+            .parse(input)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
