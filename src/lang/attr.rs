@@ -1,6 +1,25 @@
-use parserc::{Parse, Parser, ParserExt, next};
+use parserc::{Parse, Parser, ParserExt, keyword, next, take_till};
 
-use super::{Ident, LitCallBody, ParseError, StylangInput};
+use super::{Ident, LitCallBody, ParseError, StylangInput, skip_ws};
+
+/// Comment of the function, be like: `/// ...`
+#[derive(Debug, PartialEq, Clone)]
+pub struct Comment<I>(pub I);
+
+impl<I> Parse<I> for Comment<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (_, input) = keyword("///").parse(input)?;
+
+        let (content, input) = take_till(|c| c == b'\n').parse(input)?;
+
+        Ok((Comment(content), input))
+    }
+}
 
 /// Attribute, be like: `@option`,`@state`,...
 #[derive(Debug, PartialEq, Clone)]
@@ -37,14 +56,63 @@ where
     }
 }
 
+/// attr or comment.
+#[derive(Debug, PartialEq, Clone)]
+pub enum AttrOrComment<I> {
+    Comment(Comment<I>),
+    Attr(Attr<I>),
+}
+
+impl<I> Parse<I> for AttrOrComment<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        Comment::into_parser()
+            .map(|v| AttrOrComment::Comment(v))
+            .or(Attr::into_parser().map(|v| AttrOrComment::Attr(v)))
+            .parse(input)
+    }
+}
+
+/// parse attr or comment sequence.
+pub fn parse_attr_comment_list<I>(
+    mut input: I,
+) -> parserc::Result<Vec<AttrOrComment<I>>, I, ParseError>
+where
+    I: StylangInput,
+{
+    let mut result = vec![];
+
+    loop {
+        (_, input) = skip_ws(input)?;
+        let v;
+
+        (v, input) = AttrOrComment::into_parser().ok().parse(input)?;
+
+        if let Some(v) = v {
+            result.push(v);
+            continue;
+        }
+
+        break;
+    }
+
+    Ok((result, input))
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Attr, Delimiter, Ident, LitCallBody, LitExpr, LitStr, ParseError, Punctuated, Token,
-        TokenStream,
+        Attr, AttrOrComment, Comment, Delimiter, Ident, LitCallBody, LitExpr, LitStr, ParseError,
+        Punctuated, Token, TokenStream,
     };
+
+    use super::parse_attr_comment_list;
 
     #[test]
     fn test_attr() {
@@ -102,6 +170,30 @@ mod tests {
                 Token::Ident,
                 Span { offset: 1, len: 0 }
             )))
+        );
+    }
+
+    #[test]
+    fn test_attr_commnet() {
+        assert_eq!(
+            parse_attr_comment_list(TokenStream::from("/// hello\n@hello @world///hello")),
+            Ok((
+                vec![
+                    AttrOrComment::Comment(Comment(TokenStream::from((3, " hello")))),
+                    AttrOrComment::Attr(Attr {
+                        prefix: TokenStream::from((10, "@")),
+                        ident: Ident(TokenStream::from((11, "hello"))),
+                        body: None
+                    }),
+                    AttrOrComment::Attr(Attr {
+                        prefix: TokenStream::from((17, "@")),
+                        ident: Ident(TokenStream::from((18, "world"))),
+                        body: None
+                    }),
+                    AttrOrComment::Comment(Comment(TokenStream::from((26, "hello")))),
+                ],
+                TokenStream::from((31, ""))
+            ))
         );
     }
 }
