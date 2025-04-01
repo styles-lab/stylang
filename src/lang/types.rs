@@ -169,6 +169,7 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         keyword("void")
             .map(|input: I| Self::Primary(input))
+            .or(keyword("color").map(|input: I| Self::Primary(input)))
             .or(keyword("data").map(|input: I| Self::Primary(input)))
             .or(keyword("class").map(|input: I| Self::Primary(input)))
             .or(keyword("view").map(|input: I| Self::Primary(input)))
@@ -216,6 +217,17 @@ mod tests {
                     ty: Box::new(Type::Primary(TokenStream::from((1, "bignum"))))
                 }),
                 TokenStream::from((8, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_color() {
+        assert_eq!(
+            Type::parse(TokenStream::from("color,")),
+            Ok((
+                Type::Primary(TokenStream::from("color")),
+                TokenStream::from((5, ","))
             ))
         );
     }

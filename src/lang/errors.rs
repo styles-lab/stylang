@@ -33,4 +33,6 @@ pub enum Token {
     Color,
     #[error("`ident`")]
     Ident,
+    #[error("keyword `{0}`")]
+    Keyword(&'static str),
 }
