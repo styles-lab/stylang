@@ -1,10 +1,39 @@
 use parserc::{Kind, Parse, Parser, ParserExt, keyword};
 
-use crate::lang::{delimited, parse_attr_comment_list, parse_punctuation_sep, skip_ws};
+use crate::lang::{delimited, parse_attr_comment_list, parse_punctuation_sep, skip_ws, ws};
 
 use super::{AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Token, Type};
 
-/// Parsed attribute declaration.
+/// Parsed position field declaration.
+#[derive(Debug, PartialEq, Clone)]
+pub struct UnameField<I> {
+    /// optional attribute/comment list.
+    pub attr_comment_list: Vec<AttrOrComment<I>>,
+    /// required attribute type declaration.
+    pub ty: Type<I>,
+}
+
+impl<I> Parse<I> for UnameField<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+        let (ty, input) = Type::parse(input)?;
+
+        Ok((
+            Self {
+                attr_comment_list,
+                ty,
+            },
+            input,
+        ))
+    }
+}
+
+/// Parsed named field declaration.
 #[derive(Debug, PartialEq, Clone)]
 pub struct NamedField<I> {
     /// optional attribute/comment list.
@@ -69,11 +98,11 @@ where
             .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("class"), input.span()))
             .parse(input)?;
 
-        let (_, input) = skip_ws(input)?;
+        let (_, input) = ws(input)?;
 
         let (ident, input) = Ident::parse(input)?;
 
-        let (_, input) = skip_ws(input)?;
+        let (_, input) = ws(input)?;
 
         let ((delimiter, named_fields), input) =
             delimited("{", Punctuated::into_parser(), "}").parse(input)?;
@@ -119,11 +148,11 @@ where
             .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("data"), input.span()))
             .parse(input)?;
 
-        let (_, input) = skip_ws(input)?;
+        let (_, input) = ws(input)?;
 
         let (ident, input) = Ident::parse(input)?;
 
-        let (_, input) = skip_ws(input)?;
+        let (_, input) = ws(input)?;
 
         let ((delimiter, named_fields), input) =
             delimited("{", Punctuated::into_parser(), "}").parse(input)?;
@@ -141,16 +170,132 @@ where
     }
 }
 
+/// Parsed enum field body.
+#[derive(Debug, PartialEq, Clone)]
+pub enum VariantFields<I> {
+    Unamed {
+        /// delimiter `(...)`
+        delimiter: Delimiter<I>,
+        fields: Punctuated<I, UnameField<I>, b','>,
+    },
+
+    Named {
+        /// delimiter `{...}`
+        delimiter: Delimiter<I>,
+        fields: Punctuated<I, NamedField<I>, b','>,
+    },
+}
+
+impl<I> Parse<I> for VariantFields<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        delimited("(", Punctuated::into_parser(), ")")
+            .map(|(delimiter, fields)| Self::Unamed { delimiter, fields })
+            .or(delimited("{", Punctuated::into_parser(), "}")
+                .map(|(delimiter, fields)| Self::Named { delimiter, fields }))
+            .parse(input)
+    }
+}
+
+/// Parsed enum field.
+#[derive(Debug, PartialEq, Clone)]
+pub struct Variant<I> {
+    /// optional attribute/comment list.
+    pub attr_comment_list: Vec<AttrOrComment<I>>,
+    /// field name.
+    pub ident: Ident<I>,
+    /// variant fields: `(...)` or `{...}`
+    pub fields: Option<VariantFields<I>>,
+}
+
+impl<I> Parse<I> for Variant<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+
+        let (ident, input) = Ident::parse(input)?;
+
+        let (_, input) = skip_ws(input)?;
+
+        let (fields, input) = VariantFields::into_parser().ok().parse(input)?;
+
+        Ok((
+            Self {
+                attr_comment_list,
+                ident,
+                fields,
+            },
+            input,
+        ))
+    }
+}
+
+/// Parsed data type declaration.
+#[derive(Debug, PartialEq, Clone)]
+pub struct Enum<I> {
+    /// attribute/comment list.
+    pub attr_comment_list: Vec<AttrOrComment<I>>,
+    /// keyword: `enum`.
+    pub keyword: I,
+    /// the ident of the enum.
+    pub ident: Ident<I>,
+    /// body delimiter: `{...}`
+    pub delimiter: Delimiter<I>,
+    /// list.
+    pub variants: Punctuated<I, Variant<I>, b','>,
+}
+
+impl<I> Parse<I> for Enum<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+
+        let (keyword, input) = keyword("enum").parse(input)?;
+
+        let (_, input) = ws(input)?;
+
+        let (ident, input) = Ident::parse(input)?;
+
+        let (_, input) = ws(input)?;
+
+        let ((delimiter, variants), input) =
+            delimited("{", Punctuated::into_parser(), "}").parse(input)?;
+
+        Ok((
+            Self {
+                delimiter,
+                attr_comment_list,
+                keyword,
+                ident,
+                variants,
+            },
+            input,
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
 
     use crate::lang::{
         Attr, AttrOrComment, Comment, Data, Delimiter, Ident, NamedField, Punctuated, TokenStream,
-        Type, TypeFn, TypeReturn,
+        Type, TypeFn, TypeReturn, UnameField, Variant, VariantFields,
     };
 
-    use super::Class;
+    use super::{Class, Enum};
 
     #[test]
     fn test_class() {
@@ -296,6 +441,155 @@ mod tests {
                     }
                 },
                 TokenStream::from((306, "\n            "))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_enum() {
+        assert_eq!(
+            Enum::parse(TokenStream::from(
+                r#"
+                /// This property describes decorations that are added to the text of an element.
+                enum TextDecoration {
+                    Underline,
+                    Overline,
+                    LineThrough,
+                    Blink,
+                }
+                "#
+            )),
+            Ok((
+                Enum {
+                    attr_comment_list: vec![AttrOrComment::Comment(Comment(TokenStream::from((
+                        20,
+                        " This property describes decorations that are added to the text of an element."
+                    )))),],
+                    keyword: TokenStream::from((115, "enum")),
+                    ident: Ident(TokenStream::from((120, "TextDecoration"))),
+                    delimiter: Delimiter {
+                        prefix: TokenStream::from((135, "{")),
+                        suffix: TokenStream::from((274, "}"))
+                    },
+                    variants: Punctuated {
+                        items: vec![
+                            (
+                                Variant {
+                                    attr_comment_list: vec![],
+                                    ident: Ident(TokenStream::from((157, "Underline"))),
+                                    fields: None
+                                },
+                                TokenStream::from((166, ","))
+                            ),
+                            (
+                                Variant {
+                                    attr_comment_list: vec![],
+                                    ident: Ident(TokenStream::from((188, "Overline"))),
+                                    fields: None
+                                },
+                                TokenStream::from((196, ","))
+                            ),
+                            (
+                                Variant {
+                                    attr_comment_list: vec![],
+                                    ident: Ident(TokenStream::from((218, "LineThrough"))),
+                                    fields: None
+                                },
+                                TokenStream::from((229, ","))
+                            ),
+                            (
+                                Variant {
+                                    attr_comment_list: vec![],
+                                    ident: Ident(TokenStream::from((251, "Blink"))),
+                                    fields: None
+                                },
+                                TokenStream::from((256, ","))
+                            )
+                        ],
+                        last: None
+                    }
+                },
+                TokenStream::from((275, "\n                "))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_enum2() {
+        assert_eq!(
+            Enum::parse(TokenStream::from(r#"enum A { V(i32) }"#)),
+            Ok((
+                Enum {
+                    attr_comment_list: vec![],
+                    keyword: TokenStream::from((0, "enum")),
+                    ident: Ident(TokenStream::from((5, "A"))),
+                    delimiter: Delimiter {
+                        prefix: TokenStream::from((7, "{")),
+                        suffix: TokenStream::from((16, "}")),
+                    },
+                    variants: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(Variant {
+                            attr_comment_list: vec![],
+                            ident: Ident(TokenStream::from((9, "V"))),
+                            fields: Some(VariantFields::Unamed {
+                                delimiter: Delimiter {
+                                    prefix: TokenStream::from((10, "(")),
+                                    suffix: TokenStream::from((14, ")")),
+                                },
+                                fields: Punctuated {
+                                    items: vec![],
+                                    last: Some(Box::new(UnameField {
+                                        attr_comment_list: vec![],
+                                        ty: Type::Primary(TokenStream::from((11, "i32")))
+                                    }))
+                                }
+                            })
+                        }))
+                    }
+                },
+                TokenStream::from((17, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_enum3() {
+        assert_eq!(
+            Enum::parse(TokenStream::from(r#"enum A { V {v:i32} }"#)),
+            Ok((
+                Enum {
+                    attr_comment_list: vec![],
+                    keyword: TokenStream::from((0, "enum")),
+                    ident: Ident(TokenStream::from((5, "A"))),
+                    delimiter: Delimiter {
+                        prefix: TokenStream::from((7, "{")),
+                        suffix: TokenStream::from((19, "}")),
+                    },
+                    variants: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(Variant {
+                            attr_comment_list: vec![],
+                            ident: Ident(TokenStream::from((9, "V"))),
+                            fields: Some(VariantFields::Named {
+                                delimiter: Delimiter {
+                                    prefix: TokenStream::from((11, "{")),
+                                    suffix: TokenStream::from((17, "}")),
+                                },
+                                fields: Punctuated {
+                                    items: vec![],
+                                    last: Some(Box::new(NamedField {
+                                        attr_comment_list: vec![],
+                                        ident: Ident(TokenStream::from((12, "v"))),
+                                        semi_colon: TokenStream::from((13, ":")),
+                                        ty: Type::Primary(TokenStream::from((14, "i32")))
+                                    }))
+                                }
+                            })
+                        }))
+                    }
+                },
+                TokenStream::from((20, ""))
             ))
         );
     }
