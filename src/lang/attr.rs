@@ -25,7 +25,7 @@ where
 #[derive(Debug, PartialEq, Clone)]
 pub struct Attr<I> {
     /// attribute prefix character `@`,
-    pub prefix: I,
+    pub keyword: I,
     /// attribute ident.
     pub ident: Ident<I>,
     /// optional attribute call body.
@@ -47,7 +47,7 @@ where
 
         Ok((
             Self {
-                prefix,
+                keyword: prefix,
                 ident,
                 body,
             },
@@ -120,7 +120,7 @@ mod tests {
             Attr::parse(TokenStream::from("@option")),
             Ok((
                 Attr {
-                    prefix: TokenStream::from("@"),
+                    keyword: TokenStream::from("@"),
                     ident: Ident(TokenStream::from((1, "option"))),
                     body: None
                 },
@@ -132,7 +132,7 @@ mod tests {
             Attr::parse(TokenStream::from(r#"@sol("./erc20.json")"#)),
             Ok((
                 Attr {
-                    prefix: TokenStream::from("@"),
+                    keyword: TokenStream::from("@"),
                     ident: Ident(TokenStream::from((1, "sol"))),
                     body: Some(LitCallBody {
                         delimiter: Delimiter {
@@ -156,7 +156,7 @@ mod tests {
             Attr::parse(TokenStream::from("@state")),
             Ok((
                 Attr {
-                    prefix: TokenStream::from("@"),
+                    keyword: TokenStream::from("@"),
                     ident: Ident(TokenStream::from((1, "state"))),
                     body: None
                 },
@@ -181,12 +181,12 @@ mod tests {
                 vec![
                     AttrOrComment::Comment(Comment(TokenStream::from((3, " hello")))),
                     AttrOrComment::Attr(Attr {
-                        prefix: TokenStream::from((10, "@")),
+                        keyword: TokenStream::from((10, "@")),
                         ident: Ident(TokenStream::from((11, "hello"))),
                         body: None
                     }),
                     AttrOrComment::Attr(Attr {
-                        prefix: TokenStream::from((17, "@")),
+                        keyword: TokenStream::from((17, "@")),
                         ident: Ident(TokenStream::from((18, "world"))),
                         body: None
                     }),

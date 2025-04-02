@@ -102,7 +102,7 @@ where
 
         let (ident, input) = Ident::parse(input)?;
 
-        let (_, input) = ws(input)?;
+        let (_, input) = skip_ws(input)?;
 
         let ((delimiter, named_fields), input) =
             delimited("{", Punctuated::into_parser(), "}").parse(input)?;
@@ -152,7 +152,7 @@ where
 
         let (ident, input) = Ident::parse(input)?;
 
-        let (_, input) = ws(input)?;
+        let (_, input) = skip_ws(input)?;
 
         let ((delimiter, named_fields), input) =
             delimited("{", Punctuated::into_parser(), "}").parse(input)?;
@@ -268,7 +268,7 @@ where
 
         let (ident, input) = Ident::parse(input)?;
 
-        let (_, input) = ws(input)?;
+        let (_, input) = skip_ws(input)?;
 
         let ((delimiter, variants), input) =
             delimited("{", Punctuated::into_parser(), "}").parse(input)?;
@@ -390,7 +390,7 @@ mod tests {
                                             " The fields is a value object passed by value."
                                         )))),
                                         AttrOrComment::Attr(Attr {
-                                            prefix: TokenStream::from((170, "@")),
+                                            keyword: TokenStream::from((170, "@")),
                                             ident: Ident(TokenStream::from((171, "state"))),
                                             body: None
                                         })
@@ -409,7 +409,7 @@ mod tests {
                                             " optional content builder function."
                                         )))),
                                         AttrOrComment::Attr(Attr {
-                                            prefix: TokenStream::from((262, "@")),
+                                            keyword: TokenStream::from((262, "@")),
                                             ident: Ident(TokenStream::from((263, "option"))),
                                             body: None
                                         })

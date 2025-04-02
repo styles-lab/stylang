@@ -2,7 +2,7 @@ use parserc::{Parse, Parser, ParserExt, keyword};
 
 use crate::lang::{delimited, parse_punctuation_sep, skip_ws};
 
-use super::{Delimiter, Digits, ParseError, Punctuated, StylangInput};
+use super::{Delimiter, Digits, Ident, ParseError, Punctuated, StylangInput};
 
 /// Fn type declaration tokens.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -158,6 +158,7 @@ pub enum Type<I> {
     Slice(TypeSlice<I>),
     Array(TypeArray<I>),
     Fn(TypeFn<I>),
+    Ident(Ident<I>),
 }
 
 impl<I> Parse<I> for Type<I>
@@ -191,6 +192,7 @@ where
             .or(TypeSlice::into_parser().map(|ty| Self::Slice(ty)))
             .or(TypeArray::into_parser().map(|ty| Self::Array(ty)))
             .or(TypeFn::<I>::into_parser().map(|ty| Self::Fn(ty)))
+            .or(Ident::into_parser().map(|ty| Self::Ident(ty)))
             .parse(input)
     }
 }
