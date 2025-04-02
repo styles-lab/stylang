@@ -153,6 +153,7 @@ mod tests {
 
     use crate::lang::{
         Attr, AttrOrComment, Delimiter, FnArg, FnBlock, Ident, Punctuated, TokenStream, Type,
+        TypeReturn,
     };
 
     use super::Fn;
@@ -203,6 +204,46 @@ mod tests {
                     block: FnBlock::SemiColon(TokenStream::from((50, ";")))
                 },
                 TokenStream::from((51, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn parse_fn_with_return() {
+        assert_eq!(
+            Fn::parse(TokenStream::from(
+                "extern fn label(@option len: f32) -> view;"
+            )),
+            Ok((
+                Fn {
+                    attr_comment_list: vec![],
+                    extern_keyword: Some(TokenStream::from((0, "extern"))),
+                    keyword: TokenStream::from((7, "fn")),
+                    ident: Ident(TokenStream::from((10, "label"))),
+                    delimiter: Delimiter {
+                        start: TokenStream::from((15, "(")),
+                        end: TokenStream::from((32, ")")),
+                    },
+                    inputs: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(FnArg::Named {
+                            attr_comment_list: vec![AttrOrComment::Attr(Attr {
+                                keyword: TokenStream::from((16, "@")),
+                                ident: Ident(TokenStream::from((17, "option"))),
+                                body: None
+                            })],
+                            ident: Ident(TokenStream::from((24, "len"))),
+                            colon: TokenStream::from((27, ":")),
+                            ty: Type::Primary(TokenStream::from((29, "f32")))
+                        }))
+                    },
+                    return_ty: Some(TypeReturn {
+                        prefix: TokenStream::from((34, "->")),
+                        ty: Box::new(Type::Primary(TokenStream::from((37, "view"))))
+                    }),
+                    block: FnBlock::SemiColon(TokenStream::from((41, ";")))
+                },
+                TokenStream::from((42, ""))
             ))
         );
     }
