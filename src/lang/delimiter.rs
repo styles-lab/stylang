@@ -6,9 +6,9 @@ use super::{ParseError, StylangInput, skip_ws};
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Delimiter<I> {
     /// prefix token.
-    pub prefix: I,
+    pub start: I,
     /// suffix token.
-    pub suffix: I,
+    pub end: I,
 }
 
 /// Match a sequence parsers: prefix + content + suffix.
@@ -40,16 +40,7 @@ where
             })
             .parse(input)?;
 
-        Ok((
-            (
-                Delimiter {
-                    prefix: start,
-                    suffix: end,
-                },
-                ty,
-            ),
-            input,
-        ))
+        Ok(((Delimiter { start, end }, ty), input))
     }
 }
 
@@ -69,9 +60,9 @@ mod tests {
             Ok((
                 (
                     Delimiter {
-                        prefix: TokenStream::from("("),
+                        start: TokenStream::from("("),
 
-                        suffix: TokenStream::from((18, ")"))
+                        end: TokenStream::from((18, ")"))
                     },
                     TokenStream::from((3, "hello world"))
                 ),

@@ -136,8 +136,8 @@ mod tests {
                     ident: Ident(TokenStream::from((1, "sol"))),
                     body: Some(LitCallBody {
                         delimiter: Delimiter {
-                            prefix: TokenStream::from((4, "(")),
-                            suffix: TokenStream::from((19, ")")),
+                            start: TokenStream::from((4, "(")),
+                            end: TokenStream::from((19, ")")),
                         },
                         inputs: Punctuated {
                             items: vec![],

@@ -41,7 +41,7 @@ pub struct NamedField<I> {
     /// required attribute ident.
     pub ident: Ident<I>,
     /// punct: `:`
-    pub semi_colon: I,
+    pub colon: I,
     /// required attribute type declaration.
     pub ty: Type<I>,
 }
@@ -62,7 +62,7 @@ where
             Self {
                 attr_comment_list,
                 ident,
-                semi_colon,
+                colon: semi_colon,
                 ty,
             },
             input,
@@ -172,7 +172,7 @@ where
 
 /// Parsed enum field body.
 #[derive(Debug, PartialEq, Clone)]
-pub enum VariantFields<I> {
+pub enum Fields<I> {
     Unamed {
         /// delimiter `(...)`
         delimiter: Delimiter<I>,
@@ -186,7 +186,7 @@ pub enum VariantFields<I> {
     },
 }
 
-impl<I> Parse<I> for VariantFields<I>
+impl<I> Parse<I> for Fields<I>
 where
     I: StylangInput,
 {
@@ -209,7 +209,7 @@ pub struct Variant<I> {
     /// field name.
     pub ident: Ident<I>,
     /// variant fields: `(...)` or `{...}`
-    pub fields: Option<VariantFields<I>>,
+    pub fields: Option<Fields<I>>,
 }
 
 impl<I> Parse<I> for Variant<I>
@@ -225,7 +225,7 @@ where
 
         let (_, input) = skip_ws(input)?;
 
-        let (fields, input) = VariantFields::into_parser().ok().parse(input)?;
+        let (fields, input) = Fields::into_parser().ok().parse(input)?;
 
         Ok((
             Self {
@@ -291,8 +291,8 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        Attr, AttrOrComment, Comment, Data, Delimiter, Ident, NamedField, Punctuated, TokenStream,
-        Type, TypeFn, TypeReturn, UnameField, Variant, VariantFields,
+        Attr, AttrOrComment, Comment, Data, Delimiter, Fields, Ident, NamedField, Punctuated,
+        TokenStream, Type, TypeFn, TypeReturn, UnameField, Variant,
     };
 
     use super::{Class, Enum};
@@ -320,8 +320,8 @@ mod tests {
                     keyword: TokenStream::from((46, "class")),
                     ident: Ident(TokenStream::from((52, "Fill"))),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((57, "{")),
-                        suffix: TokenStream::from((153, "}")),
+                        start: TokenStream::from((57, "{")),
+                        end: TokenStream::from((153, "}")),
                     },
                     named_fields: Punctuated {
                         items: vec![
@@ -329,7 +329,7 @@ mod tests {
                                 NamedField {
                                     attr_comment_list: vec![],
                                     ident: Ident(TokenStream::from((75, "foreground_color"))),
-                                    semi_colon: TokenStream::from((91, ":")),
+                                    colon: TokenStream::from((91, ":")),
                                     ty: Type::Primary(TokenStream::from((93, "color")))
                                 },
                                 TokenStream::from((98, ","))
@@ -338,7 +338,7 @@ mod tests {
                                 NamedField {
                                     attr_comment_list: vec![],
                                     ident: Ident(TokenStream::from((116, "background_color"))),
-                                    semi_colon: TokenStream::from((132, ":")),
+                                    colon: TokenStream::from((132, ":")),
                                     ty: Type::Primary(TokenStream::from((134, "color")))
                                 },
                                 TokenStream::from((139, ","))
@@ -377,8 +377,8 @@ mod tests {
                     keyword: TokenStream::from((75, "data")),
                     ident: Ident(TokenStream::from((80, "Label"))),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((86, "{")),
-                        suffix: TokenStream::from((305, "}")),
+                        start: TokenStream::from((86, "{")),
+                        end: TokenStream::from((305, "}")),
                     },
                     named_fields: Punctuated {
                         items: vec![
@@ -396,7 +396,7 @@ mod tests {
                                         })
                                     ],
                                     ident: Ident(TokenStream::from((177, "text"))),
-                                    semi_colon: TokenStream::from((181, ":")),
+                                    colon: TokenStream::from((181, ":")),
                                     ty: Type::Primary(TokenStream::from((183, "string")))
                                 },
                                 TokenStream::from((189, ","))
@@ -415,12 +415,12 @@ mod tests {
                                         })
                                     ],
                                     ident: Ident(TokenStream::from((270, "content"))),
-                                    semi_colon: TokenStream::from((277, ":")),
+                                    colon: TokenStream::from((277, ":")),
                                     ty: Type::Fn(TypeFn {
                                         prefix: TokenStream::from((279, "fn")),
                                         delimiter: Delimiter {
-                                            prefix: TokenStream::from((281, "(")),
-                                            suffix: TokenStream::from((282, ")"))
+                                            start: TokenStream::from((281, "(")),
+                                            end: TokenStream::from((282, ")"))
                                         },
                                         inputs: Punctuated {
                                             items: vec![],
@@ -468,8 +468,8 @@ mod tests {
                     keyword: TokenStream::from((115, "enum")),
                     ident: Ident(TokenStream::from((120, "TextDecoration"))),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((135, "{")),
-                        suffix: TokenStream::from((274, "}"))
+                        start: TokenStream::from((135, "{")),
+                        end: TokenStream::from((274, "}"))
                     },
                     variants: Punctuated {
                         items: vec![
@@ -524,18 +524,18 @@ mod tests {
                     keyword: TokenStream::from((0, "enum")),
                     ident: Ident(TokenStream::from((5, "A"))),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((7, "{")),
-                        suffix: TokenStream::from((16, "}")),
+                        start: TokenStream::from((7, "{")),
+                        end: TokenStream::from((16, "}")),
                     },
                     variants: Punctuated {
                         items: vec![],
                         last: Some(Box::new(Variant {
                             attr_comment_list: vec![],
                             ident: Ident(TokenStream::from((9, "V"))),
-                            fields: Some(VariantFields::Unamed {
+                            fields: Some(Fields::Unamed {
                                 delimiter: Delimiter {
-                                    prefix: TokenStream::from((10, "(")),
-                                    suffix: TokenStream::from((14, ")")),
+                                    start: TokenStream::from((10, "(")),
+                                    end: TokenStream::from((14, ")")),
                                 },
                                 fields: Punctuated {
                                     items: vec![],
@@ -563,25 +563,25 @@ mod tests {
                     keyword: TokenStream::from((0, "enum")),
                     ident: Ident(TokenStream::from((5, "A"))),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((7, "{")),
-                        suffix: TokenStream::from((19, "}")),
+                        start: TokenStream::from((7, "{")),
+                        end: TokenStream::from((19, "}")),
                     },
                     variants: Punctuated {
                         items: vec![],
                         last: Some(Box::new(Variant {
                             attr_comment_list: vec![],
                             ident: Ident(TokenStream::from((9, "V"))),
-                            fields: Some(VariantFields::Named {
+                            fields: Some(Fields::Named {
                                 delimiter: Delimiter {
-                                    prefix: TokenStream::from((11, "{")),
-                                    suffix: TokenStream::from((17, "}")),
+                                    start: TokenStream::from((11, "{")),
+                                    end: TokenStream::from((17, "}")),
                                 },
                                 fields: Punctuated {
                                     items: vec![],
                                     last: Some(Box::new(NamedField {
                                         attr_comment_list: vec![],
                                         ident: Ident(TokenStream::from((12, "v"))),
-                                        semi_colon: TokenStream::from((13, ":")),
+                                        colon: TokenStream::from((13, ":")),
                                         ty: Type::Primary(TokenStream::from((14, "i32")))
                                     }))
                                 }

@@ -128,7 +128,10 @@ where
         Ok((
             LitColor::RgbPercent(Rgb {
                 keyword: kw,
-                delimiter: Delimiter { prefix, suffix },
+                delimiter: Delimiter {
+                    start: prefix,
+                    end: suffix,
+                },
                 red: DigitsPercent {
                     digits: red,
                     percent: red_percent.unwrap(),
@@ -150,7 +153,10 @@ where
         Ok((
             LitColor::Rgb(Rgb {
                 keyword: kw,
-                delimiter: Delimiter { prefix, suffix },
+                delimiter: Delimiter {
+                    start: prefix,
+                    end: suffix,
+                },
                 red,
                 comma1,
                 green,
@@ -275,8 +281,8 @@ mod tests {
                 LitColor::Rgb(Rgb {
                     keyword: TokenStream::from("rgb"),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((3, "(")),
-                        suffix: TokenStream::from((18, ")"))
+                        start: TokenStream::from((3, "(")),
+                        end: TokenStream::from((18, ")"))
                     },
                     red: Digits(TokenStream::from((5, "255"))),
                     comma1: TokenStream::from((8, ",")),
@@ -294,8 +300,8 @@ mod tests {
                 LitColor::RgbPercent(Rgb {
                     keyword: TokenStream::from("rgb"),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((3, "(")),
-                        suffix: TokenStream::from((18, ")"))
+                        start: TokenStream::from((3, "(")),
+                        end: TokenStream::from((18, ")"))
                     },
                     red: DigitsPercent {
                         digits: Digits(TokenStream::from((5, "10"))),

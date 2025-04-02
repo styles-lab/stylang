@@ -43,8 +43,8 @@ mod tests {
             Ok((
                 LitCallBody {
                     delimiter: Delimiter {
-                        prefix: TokenStream::from("("),
-                        suffix: TokenStream::from((1, ")")),
+                        start: TokenStream::from("("),
+                        end: TokenStream::from((1, ")")),
                     },
                     inputs: Punctuated {
                         items: vec![],
@@ -60,8 +60,8 @@ mod tests {
             Ok((
                 LitCallBody {
                     delimiter: Delimiter {
-                        prefix: TokenStream::from("("),
-                        suffix: TokenStream::from((12, ")")),
+                        start: TokenStream::from("("),
+                        end: TokenStream::from((12, ")")),
                     },
                     inputs: Punctuated {
                         items: vec![(

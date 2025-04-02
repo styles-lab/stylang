@@ -211,8 +211,8 @@ mod tests {
             Ok((
                 Type::Slice(TypeSlice {
                     delimiter: Delimiter {
-                        prefix: TokenStream::from("["),
-                        suffix: TokenStream::from((7, "]")),
+                        start: TokenStream::from("["),
+                        end: TokenStream::from((7, "]")),
                     },
                     ty: Box::new(Type::Primary(TokenStream::from((1, "bignum"))))
                 }),
@@ -239,8 +239,8 @@ mod tests {
             Ok((
                 Type::Array(TypeArray {
                     delimiter: Delimiter {
-                        prefix: TokenStream::from("["),
-                        suffix: TokenStream::from((11, "]")),
+                        start: TokenStream::from("["),
+                        end: TokenStream::from((11, "]")),
                     },
                     ty: Box::new(Type::Primary(TokenStream::from((1, "bignum")))),
                     semi_colon: TokenStream::from((8, ";")),
@@ -259,8 +259,8 @@ mod tests {
                 Type::Fn(TypeFn {
                     prefix: TokenStream::from("fn"),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((2, "(")),
-                        suffix: TokenStream::from((23, ")")),
+                        start: TokenStream::from((2, "(")),
+                        end: TokenStream::from((23, ")")),
                     },
                     inputs: Punctuated {
                         items: vec![
@@ -291,8 +291,8 @@ mod tests {
                 Type::Fn(TypeFn {
                     prefix: TokenStream::from("fn"),
                     delimiter: Delimiter {
-                        prefix: TokenStream::from((2, "(")),
-                        suffix: TokenStream::from((23, ")")),
+                        start: TokenStream::from((2, "(")),
+                        end: TokenStream::from((23, ")")),
                     },
                     inputs: Punctuated {
                         items: vec![
