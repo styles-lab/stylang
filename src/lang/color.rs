@@ -33,6 +33,7 @@ where
     }
 }
 
+/// color rgb expr, be like: `rgb(...,...,..)`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Rgb<I, D> {
