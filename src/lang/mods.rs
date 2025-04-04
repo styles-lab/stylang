@@ -1,8 +1,10 @@
-use parserc::{Parse, Parser, ParserExt, keyword, next};
+use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 
 use crate::lang::{delimited, parse_attr_comment_list, skip_ws, ws};
 
-use super::{AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Visibility};
+use super::{
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Token, Visibility,
+};
 
 /// A module declaration.
 #[derive(Debug, PartialEq, Clone)]
@@ -30,7 +32,9 @@ where
 
         let (vis, input) = Visibility::parse(input)?;
 
-        let (keyword, input) = keyword("mod").parse(input)?;
+        let (keyword, input) = keyword("mod")
+            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("mod"), input.span()))
+            .parse(input)?;
 
         let (_, input) = ws(input)?;
 
@@ -137,16 +141,67 @@ where
     }
 }
 
+/// A use statement: `use std::...;`
+#[derive(Debug, PartialEq, Clone)]
+pub struct Use<I> {
+    /// optional attribute/comment list.
+    pub attr_comment_list: Vec<AttrOrComment<I>>,
+    /// visibility token,
+    pub vis: Visibility<I>,
+    /// keyword: `use`
+    pub keyword: I,
+    /// mod name.
+    pub tree: UseTree<I>,
+    /// semi_colon token: `;`
+    pub semi: I,
+}
+
+impl<I> Parse<I> for Use<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+
+        let (vis, input) = Visibility::parse(input)?;
+
+        let (keyword, input) = keyword("use")
+            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("use"), input.span()))
+            .parse(input)?;
+
+        let (_, input) = ws(input)?;
+
+        let (tree, input) = UseTree::parse(input)?;
+
+        let (_, input) = skip_ws(input)?;
+
+        let (semi, input) = next(b';').parse(input)?;
+
+        Ok((
+            Self {
+                attr_comment_list,
+                vis,
+                keyword,
+                tree,
+                semi,
+            },
+            input,
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
 
     use crate::lang::{
         Attr, AttrOrComment, Delimiter, Ident, LitCallBody, LitExpr, LitStr, Punctuated,
-        TokenStream, Visibility,
+        TokenStream, UseGroup, UsePath, UseTree, Visibility,
     };
 
-    use super::Mod;
+    use super::{Mod, Use};
 
     #[test]
     fn test_mod() {
@@ -183,6 +238,100 @@ mod tests {
                 },
                 TokenStream::from((68, "\n                "))
             ))
+        );
+    }
+
+    #[test]
+    fn test_use() {
+        assert_eq!(
+            Use::parse(TokenStream::from("pub use theme::*;")),
+            Ok((
+                Use {
+                    attr_comment_list: vec![],
+                    vis: Visibility::Public(TokenStream::from("pub")),
+                    keyword: TokenStream::from((4, "use")),
+                    tree: UseTree::Path(UsePath {
+                        ident: Ident(TokenStream::from((8, "theme"))),
+                        separator: TokenStream::from((13, "::")),
+                        tree: Box::new(UseTree::Glob(TokenStream::from((15, "*"))))
+                    }),
+                    semi: TokenStream::from((16, ";"))
+                },
+                TokenStream::from((17, ""))
+            ))
+        );
+
+        assert_eq!(
+            Use::parse(TokenStream::from("pub use theme::{a::*,b};")),
+            Ok((
+                Use {
+                    attr_comment_list: vec![],
+                    vis: Visibility::Public(TokenStream {
+                        offset: 0,
+                        value: "pub",
+                    },),
+                    keyword: TokenStream {
+                        offset: 4,
+                        value: "use",
+                    },
+                    tree: UseTree::Path(UsePath {
+                        ident: Ident(TokenStream {
+                            offset: 8,
+                            value: "theme",
+                        },),
+                        separator: TokenStream {
+                            offset: 13,
+                            value: "::",
+                        },
+                        tree: Box::new(UseTree::Group(UseGroup {
+                            delimiter: Delimiter {
+                                start: TokenStream {
+                                    offset: 15,
+                                    value: "{",
+                                },
+                                end: TokenStream {
+                                    offset: 22,
+                                    value: "}",
+                                },
+                            },
+                            items: Punctuated {
+                                items: vec![(
+                                    UseTree::Path(UsePath {
+                                        ident: Ident(TokenStream {
+                                            offset: 16,
+                                            value: "a",
+                                        },),
+                                        separator: TokenStream {
+                                            offset: 17,
+                                            value: "::",
+                                        },
+                                        tree: Box::new(UseTree::Glob(TokenStream {
+                                            offset: 19,
+                                            value: "*",
+                                        },),)
+                                    },),
+                                    TokenStream {
+                                        offset: 20,
+                                        value: ",",
+                                    },
+                                ),],
+                                last: Some(Box::new(UseTree::Name(Ident(TokenStream {
+                                    offset: 21,
+                                    value: "b",
+                                },),),),),
+                            },
+                        },),)
+                    },),
+                    semi: TokenStream {
+                        offset: 23,
+                        value: ";",
+                    },
+                },
+                TokenStream {
+                    offset: 24,
+                    value: "",
+                },
+            ),)
         );
     }
 }
