@@ -4,6 +4,7 @@ use super::{ParseError, StylangInput};
 
 /// literial length unit: em,px,...
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UnitLen<I>(pub I);
 
 impl<I> Parse<I> for UnitLen<I>
@@ -29,6 +30,7 @@ where
 
 /// literial length unit: deg, grad, rad
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UnitAngle<I>(pub I);
 
 impl<I> Parse<I> for UnitAngle<I>
@@ -49,6 +51,7 @@ where
 
 /// literial length unit: u8,i32,i64,i128,ib,ub
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UnitInteger<I>(pub I);
 
 impl<I> Parse<I> for UnitInteger<I>
@@ -77,6 +80,7 @@ where
 
 /// literial length unit: f32,f64,bignum,
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UnitFloat<I>(pub I);
 
 impl<I> Parse<I> for UnitFloat<I>
@@ -97,6 +101,7 @@ where
 
 /// Unit for literial num.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Unit<I> {
     Len(UnitLen<I>),
     Angle(UnitAngle<I>),

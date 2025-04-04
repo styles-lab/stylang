@@ -8,6 +8,7 @@ use super::{Delimiter, Digits, HexDigits, ParseError, StylangInput, Token};
 
 /// An ascii digit characters sequence + `%`.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DigitsPercent<I> {
     /// integer: [0-9]+
     pub digits: Digits<I>,
@@ -33,6 +34,7 @@ where
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Rgb<I, D> {
     /// keyword `rgb`
     keyword: I,
@@ -183,6 +185,7 @@ where
 
 /// literial color expr.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LitColor<I> {
     /// be like: `rgb(255,255,255)`
     Rgb(Rgb<I, Digits<I>>),

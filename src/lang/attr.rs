@@ -4,6 +4,7 @@ use super::{Ident, LitCallBody, ParseError, StylangInput, skip_ws};
 
 /// Comment of the function, be like: `/// ...`
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Comment<I>(pub I);
 
 impl<I> Parse<I> for Comment<I>
@@ -23,6 +24,7 @@ where
 
 /// Attribute, be like: `@option`,`@state`,...
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Attr<I> {
     /// attribute prefix character `@`,
     pub keyword: I,
@@ -58,6 +60,7 @@ where
 
 /// attr or comment.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum AttrOrComment<I> {
     Comment(Comment<I>),
     Attr(Attr<I>),

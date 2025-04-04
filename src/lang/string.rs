@@ -4,6 +4,7 @@ use super::{ParseError, StylangInput};
 
 /// literal string value, be like: `"...\"... "`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitStr<I>(pub I);
 
 impl<I> Parse<I> for LitStr<I>

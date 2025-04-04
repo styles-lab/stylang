@@ -4,6 +4,7 @@ use super::{ParseError, StylangInput, skip_ws};
 
 /// The visibility level of an item: `pub`.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Visibility<I> {
     Public(I),
     Private,

@@ -15,6 +15,8 @@ pub enum ParseError {
 
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Token {
+    #[error("`unknown`")]
+    Unknown,
     #[error("`whitespace`")]
     S,
     #[error("`[0-9]+`")]

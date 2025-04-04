@@ -6,6 +6,7 @@ use super::{AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInpu
 
 /// Parsed position field declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UnameField<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
@@ -35,6 +36,7 @@ where
 
 /// Parsed named field declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct NamedField<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
@@ -72,6 +74,7 @@ where
 
 /// Parsed class type declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Class<I> {
     /// attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
@@ -122,6 +125,7 @@ where
 
 /// Parsed data type declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Data<I> {
     /// attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
@@ -172,6 +176,7 @@ where
 
 /// Parsed enum field body.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Fields<I> {
     Unamed {
         /// delimiter `(...)`
@@ -203,6 +208,7 @@ where
 
 /// Parsed enum field.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Variant<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
@@ -240,6 +246,7 @@ where
 
 /// Parsed data type declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Enum<I> {
     /// attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,

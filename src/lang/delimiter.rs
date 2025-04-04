@@ -4,6 +4,7 @@ use super::{ParseError, StylangInput, skip_ws};
 
 /// A token surround by `start` and `end` tokens.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Delimiter<I> {
     /// prefix token.
     pub start: I,

@@ -4,6 +4,7 @@ use super::{ParseError, StylangInput, Token};
 
 /// An ascii hex-digit characters sequence: [0-9a-f]+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HexDigits<I>(pub I);
 
 impl<I> Parse<I> for HexDigits<I>
@@ -28,6 +29,7 @@ where
 
 /// An ascii digit characters sequence: [0-9]+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Digits<I>(pub I);
 
 impl<I> Parse<I> for Digits<I>
@@ -52,6 +54,7 @@ where
 
 /// Sign character used by [`LitInt`] or [`LitNum`].
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Sign<I>(pub I);
 
 impl<I> Parse<I> for Sign<I>
@@ -68,6 +71,7 @@ where
 
 /// Exp part: [Ee]{1} [+-]? digits.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Exp<I> {
     /// exp prefix, `E` or `e`
     pub prefix: I,
@@ -100,6 +104,7 @@ where
 
 /// literial integer value: `[+-]? [0-9]+`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitNum<I> {
     /// optional sign character: `+` or `-`
     pub sign: Option<Sign<I>>,
@@ -148,6 +153,7 @@ where
 
 /// literial hex integer num: `0x[0-9a-fA-F]+`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitHexNum<I> {
     /// The required hex prefix string: `0x`
     pub prefix: I,

@@ -7,6 +7,7 @@ pub trait StylangInput: Input<Item = u8> + AsBytes + AsStr + Clone + WithSpan {}
 
 /// Input type used by stylang compiler.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TokenStream<'a> {
     pub offset: usize,
     pub value: &'a str,

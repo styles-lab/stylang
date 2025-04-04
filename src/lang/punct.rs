@@ -20,6 +20,7 @@ where
 
 /// A punctuated sequence of syntax tree nodes of type T separated by punctuation of type P.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Punctuated<I, T, const P: u8> {
     pub items: Vec<(T, I)>,
     pub last: Option<Box<T>>,

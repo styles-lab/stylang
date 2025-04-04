@@ -8,6 +8,7 @@ use super::{
 
 /// A module declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Mod<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
@@ -59,6 +60,7 @@ where
 
 /// A module declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum UseTree<I> {
     /// A path prefix of imports in a use item: std::....
     Path(UsePath<I>),
@@ -88,6 +90,7 @@ where
 
 /// a path prefix of imports in a use item: std::....
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UsePath<I> {
     pub ident: Ident<I>,
     pub separator: I,
@@ -120,6 +123,7 @@ where
 
 /// A braced group of imports in a use item: {A, B, C}.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UseGroup<I> {
     /// brace delimiter: `{...}`
     pub delimiter: Delimiter<I>,
@@ -143,6 +147,7 @@ where
 
 /// A use statement: `use std::...;`
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Use<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,

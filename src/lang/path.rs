@@ -4,6 +4,7 @@ use super::{Ident, ParseError, StylangInput, skip_ws};
 
 /// A named item path.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Path<I> {
     /// (segment,::) pairs.
     pub segments: Vec<(Ident<I>, I)>,

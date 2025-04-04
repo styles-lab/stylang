@@ -6,6 +6,7 @@ use super::{Delimiter, LitExpr, ParseError, Punctuated, StylangInput};
 
 /// All params of this type call must be literial exprs.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitCallBody<I> {
     /// delimiter: `(...)`
     pub delimiter: Delimiter<I>,

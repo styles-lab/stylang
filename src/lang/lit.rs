@@ -4,6 +4,7 @@ use super::{LitColor, LitHexNum, LitNum, LitStr, ParseError, StylangInput};
 
 /// Variant for literial expr.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LitExpr<I> {
     Num(LitNum<I>),
     Hex(LitHexNum<I>),

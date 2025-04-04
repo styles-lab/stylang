@@ -6,6 +6,7 @@ use super::{Delimiter, Digits, Ident, ParseError, Punctuated, StylangInput};
 
 /// Fn type declaration tokens.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TypeFn<I> {
     /// prefix keyword `fn`
     pub prefix: I,
@@ -45,6 +46,7 @@ where
 
 /// Returns type used by [`TypeFn`]
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TypeReturn<I> {
     /// required keyword `->`
     pub prefix: I,
@@ -79,6 +81,7 @@ where
 
 /// Returns type used by [`TypeFn`]
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TypeSlice<I> {
     /// required keyword `->`
     pub delimiter: Delimiter<I>,
@@ -107,6 +110,7 @@ where
 
 /// Returns type used by [`TypeFn`]
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TypeArray<I> {
     /// required keyword `->`
     pub delimiter: Delimiter<I>,
@@ -152,6 +156,7 @@ where
 
 /// Type declaration token.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Type<I> {
     /// primary type, be like: i32,..f64,string,bigint,...
     Primary(I),

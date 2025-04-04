@@ -9,6 +9,7 @@ use super::{
 
 /// Function body block.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum FnArg<I> {
     Named {
         /// optional attribute/comment list.
@@ -54,6 +55,7 @@ where
 
 /// Function body block.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum FnBlock<I> {
     SemiColon(I),
     Stats {
@@ -77,6 +79,7 @@ where
 
 /// Function declaration.
 #[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Fn<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
