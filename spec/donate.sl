@@ -34,7 +34,6 @@ fn donate(amount: bignum) {
 
     try {
         let tx = erc20.transfer({value: amount})?;
-
     } catch(err) {
 
     }
