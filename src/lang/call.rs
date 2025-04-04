@@ -71,7 +71,8 @@ mod tests {
                                 trunc: Some(Digits(TokenStream::from((1, "123")))),
                                 comma: None,
                                 fract: None,
-                                exp: None
+                                exp: None,
+                                unit: None
                             }),
                             TokenStream::from((4, ","))
                         )],

@@ -1,6 +1,6 @@
 use parserc::{ControlFlow, Parse, Parser, ParserExt, keyword, next, take_while};
 
-use super::{ParseError, StylangInput, Token};
+use super::{ParseError, StylangInput, Token, Unit};
 
 /// An ascii hex-digit characters sequence: [0-9a-f]+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -116,6 +116,8 @@ pub struct LitNum<I> {
     pub fract: Option<Digits<I>>,
     /// optional exp part.
     pub exp: Option<Exp<I>>,
+    /// optional unit part.
+    pub unit: Option<Unit<I>>,
 }
 
 impl<I> Parse<I> for LitNum<I>
@@ -138,6 +140,8 @@ where
 
         let (exp, input) = Exp::into_parser().ok().parse(input)?;
 
+        let (unit, input) = Unit::into_parser().ok().parse(input)?;
+
         Ok((
             Self {
                 sign,
@@ -145,6 +149,7 @@ where
                 comma,
                 fract,
                 exp,
+                unit,
             },
             input,
         ))
@@ -180,7 +185,8 @@ mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Digits, Exp, HexDigits, LitHexNum, LitNum, ParseError, Sign, Token, TokenStream,
+        Digits, Exp, HexDigits, LitHexNum, LitNum, ParseError, Sign, Token, TokenStream, Unit,
+        UnitLen,
     };
 
     #[test]
@@ -207,7 +213,8 @@ mod tests {
                     trunc: Some(Digits(TokenStream::from("10"))),
                     comma: None,
                     fract: None,
-                    exp: None
+                    exp: None,
+                    unit: None
                 },
                 TokenStream::from((2, ""))
             ))
@@ -221,7 +228,8 @@ mod tests {
                     trunc: Some(Digits(TokenStream::from("0"))),
                     comma: Some(TokenStream::from((1, "."))),
                     fract: Some(Digits(TokenStream::from((2, "10")))),
-                    exp: None
+                    exp: None,
+                    unit: None
                 },
                 TokenStream::from((4, ""))
             ))
@@ -235,7 +243,8 @@ mod tests {
                     trunc: None,
                     comma: Some(TokenStream::from((0, "."))),
                     fract: Some(Digits(TokenStream::from((1, "10")))),
-                    exp: None
+                    exp: None,
+                    unit: None
                 },
                 TokenStream::from((3, ""))
             ))
@@ -249,7 +258,8 @@ mod tests {
                     trunc: None,
                     comma: Some(TokenStream::from((0, "."))),
                     fract: Some(Digits(TokenStream::from((1, "10")))),
-                    exp: None
+                    exp: None,
+                    unit: None
                 },
                 TokenStream::from((3, ""))
             ))
@@ -268,6 +278,7 @@ mod tests {
                         sign: Some(Sign(TokenStream::from((4, "-")))),
                         digits: Digits(TokenStream::from((5, "10")))
                     }),
+                    unit: None
                 },
                 TokenStream::from((7, ""))
             ))
@@ -286,6 +297,7 @@ mod tests {
                         sign: Some(Sign(TokenStream::from((3, "+")))),
                         digits: Digits(TokenStream::from((4, "10")))
                     }),
+                    unit: None
                 },
                 TokenStream::from((6, ""))
             ))
@@ -300,8 +312,9 @@ mod tests {
                     comma: None,
                     fract: None,
                     exp: None,
+                    unit: Some(Unit::Len(UnitLen(TokenStream::from((2, "ex")))))
                 },
-                TokenStream::from((2, "ex"))
+                TokenStream::from((4, ""))
             ))
         );
     }

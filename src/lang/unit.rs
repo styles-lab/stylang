@@ -72,6 +72,7 @@ where
             .or(keyword("u32"))
             .or(keyword("u64"))
             .or(keyword("u128"))
+            .or(keyword("biguint"))
             .parse(input)?;
 
         Ok((Self(unit), input))

@@ -29,11 +29,12 @@ fn main() -> view {
     </navigation-stack>
 }
 
-fn donate(amount: bignum) {
-    use solidity::erc20;
+@platform
+extern fn transfer(target: string, amount: bignum) -> [u8;20] ?? string;
 
+fn donate(amount: bignum) {
     try {
-        let tx = erc20.transfer({value: amount})?;
+        let tx = transfer("xxxxx",10)?;
     } catch(err) {
 
     }
