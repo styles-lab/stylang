@@ -242,7 +242,8 @@ mod tests {
                     },
                     return_ty: Some(TypeReturn {
                         prefix: TokenStream::from((34, "->")),
-                        ty: Box::new(Type::Primary(TokenStream::from((37, "view"))))
+                        ty: Box::new(Type::Primary(TokenStream::from((37, "view")))),
+                        throw_err: None
                     }),
                     block: FnBlock::SemiColon(TokenStream::from((41, ";")))
                 },

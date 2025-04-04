@@ -52,6 +52,8 @@ pub struct TypeReturn<I> {
     pub prefix: I,
     /// Real returned type.
     pub ty: Box<Type<I>>,
+    /// optional throw error token: `?`
+    pub throw_err: Option<I>,
 }
 
 impl<I> Parse<I> for TypeReturn<I>
@@ -69,10 +71,13 @@ where
 
         let (ty, input) = Type::parse(input)?;
 
+        let (throw_err, input) = parse_punctuation_sep(b'?').ok().parse(input)?;
+
         Ok((
             TypeReturn {
                 prefix,
                 ty: Box::new(ty),
+                throw_err,
             },
             input,
         ))
@@ -293,7 +298,7 @@ mod tests {
         );
 
         assert_eq!(
-            Type::parse(TokenStream::from("fn(i32 , string,bignum,) -> view")),
+            Type::parse(TokenStream::from("fn(i32 , string,bignum,) -> view ?")),
             Ok((
                 Type::Fn(TypeFn {
                     prefix: TokenStream::from("fn"),
@@ -320,10 +325,11 @@ mod tests {
                     },
                     output: Some(TypeReturn {
                         prefix: TokenStream::from((25, "->")),
-                        ty: Box::new(Type::Primary(TokenStream::from((28, "view"))))
+                        ty: Box::new(Type::Primary(TokenStream::from((28, "view")))),
+                        throw_err: Some(TokenStream::from((33, "?")))
                     }),
                 }),
-                TokenStream::from((32, ""))
+                TokenStream::from((34, ""))
             ))
         );
     }

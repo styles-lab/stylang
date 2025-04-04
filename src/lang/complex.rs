@@ -437,7 +437,8 @@ mod tests {
                                             prefix: TokenStream::from((284, "->")),
                                             ty: Box::new(Type::Primary(TokenStream::from((
                                                 287, "view"
-                                            ))))
+                                            )))),
+                                            throw_err: None,
                                         })
                                     })
                                 },

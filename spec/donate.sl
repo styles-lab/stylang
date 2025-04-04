@@ -30,12 +30,11 @@ fn main() -> view {
 }
 
 @platform
-extern fn transfer(target: string, amount: bignum) -> [u8;20] ?? string;
+extern fn transfer(target: string, amount: bignum) -> [u8;20]?;
 
 fn donate(amount: bignum) {
     try {
-        let tx = transfer("xxxxx",10)?;
+        let tx = transfer("xxxxx",10);
     } catch(err) {
-
     }
 }
