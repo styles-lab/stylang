@@ -68,3 +68,6 @@ pub use block::*;
 
 mod expr;
 pub use expr::*;
+
+mod patt;
+pub use patt::*;
