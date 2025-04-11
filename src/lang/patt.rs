@@ -1,6 +1,6 @@
-use parserc::Parse;
+use parserc::{Parse, Parser, ParserExt};
 
-use crate::lang::parse_attr_comment_list;
+use crate::lang::{parse_attr_comment_list, parse_punctuation_sep};
 
 use super::{AttrOrComment, Ident, Lit, ParseError, StylangInput, Type};
 
@@ -8,9 +8,54 @@ use super::{AttrOrComment, Ident, Lit, ParseError, StylangInput, Type};
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Patt<I> {
-    Lit(Lit<I>),
+    Lit(PattLit<I>),
     Ident(PattIdent<I>),
     Type(PattType<I>),
+}
+
+impl<I> Parse<I> for Patt<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        PattLit::into_parser()
+            .map(|v| Self::Lit(v))
+            .or(PattIdent::into_parser().map(|v| Self::Ident(v)))
+            .or(PattType::into_parser().map(|v| Self::Type(v)))
+            .parse(input)
+    }
+}
+
+/// A literal in place of an expression: 1, "foo".
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct PattLit<I> {
+    /// atrribute/comment list.
+    pub attr_comment_list: Vec<AttrOrComment<I>>,
+    /// lit patt.
+    pub lit: Lit<I>,
+}
+
+impl<I> Parse<I> for PattLit<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+        let (lit, input) = Lit::parse(input)?;
+
+        Ok((
+            Self {
+                attr_comment_list,
+                lit,
+            },
+            input,
+        ))
+    }
 }
 
 /// A type ascription pattern: foo: f64.
@@ -20,11 +65,35 @@ pub struct PattType<I> {
     /// atrribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// variable binding pattern.
-    pub pat: Box<Patt<I>>,
+    pub patt: Box<Patt<I>>,
     /// seperator `:`
     pub colon_token: I,
     /// type declaration.
     pub ty: Box<Type<I>>,
+}
+
+impl<I> Parse<I> for PattType<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+        let (pat, input) = Patt::parse(input)?;
+        let (colon_token, input) = parse_punctuation_sep(b':').parse(input)?;
+        let (ty, input) = Type::parse(input)?;
+
+        Ok((
+            Self {
+                attr_comment_list,
+                patt: Box::new(pat),
+                colon_token,
+                ty: Box::new(ty),
+            },
+            input,
+        ))
+    }
 }
 
 /// A pattern that binds a new variable:
@@ -61,9 +130,9 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{Attr, AttrOrComment, Comment, Ident, TokenStream};
+    use crate::lang::{Attr, AttrOrComment, Comment, Ident, Patt, TokenStream, Type};
 
-    use super::PattIdent;
+    use super::{PattIdent, PattType};
 
     #[test]
     fn test_patt_ident() {
@@ -87,6 +156,25 @@ mod tests {
                     ident: Ident(TokenStream::from((52, "ident"))),
                 },
                 TokenStream::from((57, "\n                "))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_patt_ty() {
+        assert_eq!(
+            PattType::parse(TokenStream::from("foo: f64")),
+            Ok((
+                PattType {
+                    attr_comment_list: vec![],
+                    patt: Box::new(Patt::Ident(PattIdent {
+                        attr_comment_list: vec![],
+                        ident: Ident(TokenStream::from((0, "foo"))),
+                    })),
+                    colon_token: TokenStream::from((3, ":")),
+                    ty: Box::new(Type::Primary(TokenStream::from((5, "f64"))))
+                },
+                TokenStream::from((8, ""))
             ))
         );
     }
