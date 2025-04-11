@@ -72,7 +72,7 @@ where
 /// Exp part: [Ee]{1} [+-]? digits.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Exp<I> {
+pub struct Exponent<I> {
     /// exp prefix, `E` or `e`
     pub prefix: I,
     /// sign character: `+` or `-`
@@ -81,7 +81,7 @@ pub struct Exp<I> {
     pub digits: Digits<I>,
 }
 
-impl<I> Parse<I> for Exp<I>
+impl<I> Parse<I> for Exponent<I>
 where
     I: StylangInput,
 {
@@ -115,7 +115,7 @@ pub struct LitNum<I> {
     /// optional fractional part.
     pub fract: Option<Digits<I>>,
     /// optional exp part.
-    pub exp: Option<Exp<I>>,
+    pub exp: Option<Exponent<I>>,
     /// optional unit part.
     pub unit: Option<Unit<I>>,
 }
@@ -138,7 +138,7 @@ where
             )));
         }
 
-        let (exp, input) = Exp::into_parser().ok().parse(input)?;
+        let (exp, input) = Exponent::into_parser().ok().parse(input)?;
 
         let (unit, input) = Unit::into_parser().ok().parse(input)?;
 
@@ -185,7 +185,7 @@ mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Digits, Exp, HexDigits, LitHexNum, LitNum, ParseError, Sign, Token, TokenStream, Unit,
+        Digits, Exponent, HexDigits, LitHexNum, LitNum, ParseError, Sign, Token, TokenStream, Unit,
         UnitLen,
     };
 
@@ -273,7 +273,7 @@ mod tests {
                     trunc: None,
                     comma: Some(TokenStream::from((0, "."))),
                     fract: Some(Digits(TokenStream::from((1, "10")))),
-                    exp: Some(Exp {
+                    exp: Some(Exponent {
                         prefix: TokenStream::from((3, "e")),
                         sign: Some(Sign(TokenStream::from((4, "-")))),
                         digits: Digits(TokenStream::from((5, "10")))
@@ -292,7 +292,7 @@ mod tests {
                     trunc: Some(Digits(TokenStream::from((0, "10")))),
                     comma: None,
                     fract: None,
-                    exp: Some(Exp {
+                    exp: Some(Exponent {
                         prefix: TokenStream::from((2, "E")),
                         sign: Some(Sign(TokenStream::from((3, "+")))),
                         digits: Digits(TokenStream::from((4, "10")))

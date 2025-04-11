@@ -56,35 +56,12 @@ where
     }
 }
 
-/// A variable declaration stmt, be like: `let .. = ...;`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Let<I> {
-    /// let stmt keyword `let`.
-    pub keyword: I,
-    /// variable declaration.
-    pub variable: Variable<I>,
-    /// equal keyword: `=`
-    pub eq: I,
-    /// `let stmt` end tag `;`
-    pub semi_colon: I,
-}
-
-/// Variant for in block stmt.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum BlockStmt<I> {
-    Let(Let<I>),
-}
-
 /// A code block delimited by `{...}`.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Block<I> {
     /// delimiter of the block: `{...}`
     pub delimiter: Delimiter<I>,
-    /// stmts belongs to this block.
-    pub stmts: Vec<BlockStmt<I>>,
 }
 
 impl<I> Parse<I> for Block<I>

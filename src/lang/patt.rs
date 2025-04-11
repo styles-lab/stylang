@@ -122,4 +122,18 @@ mod tests {
             ))
         );
     }
+
+    #[test]
+    fn test_patt_ident() {
+        assert_eq!(
+            PattIdent::parse(TokenStream::from("name")),
+            Ok((
+                PattIdent {
+                    attr_comment_list: vec![],
+                    ident: Ident(TokenStream::from("name"))
+                },
+                TokenStream::from((4, ""))
+            ))
+        );
+    }
 }
