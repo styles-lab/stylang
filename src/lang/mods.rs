@@ -202,8 +202,8 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        Attr, AttrOrComment, Delimiter, Ident, LitCallBody, LitExpr, LitStr, Punctuated,
-        TokenStream, UseGroup, UsePath, UseTree, Visibility,
+        Attr, AttrOrComment, Delimiter, Ident, Lit, LitCallBody, LitStr, Punctuated, TokenStream,
+        UseGroup, UsePath, UseTree, Visibility,
     };
 
     use super::{Mod, Use};
@@ -229,7 +229,7 @@ mod tests {
                             },
                             inputs: Punctuated {
                                 items: vec![],
-                                last: Some(Box::new(LitExpr::Str(LitStr(TokenStream::from((
+                                last: Some(Box::new(Lit::Str(LitStr(TokenStream::from((
                                     23,
                                     "./erc20.json"
                                 ))))))
