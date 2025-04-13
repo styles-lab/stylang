@@ -22,8 +22,8 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         PattLit::into_parser()
             .map(|v| Self::Lit(v))
-            .or(PattIdent::into_parser().map(|v| Self::Ident(v)))
             .or(PattType::into_parser().map(|v| Self::Type(v)))
+            .or(PattIdent::into_parser().map(|v| Self::Ident(v)))
             .parse(input)
     }
 }
@@ -80,14 +80,19 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (attr_comment_list, input) = parse_attr_comment_list(input)?;
-        let (pat, input) = Patt::parse(input)?;
+
+        let (patt, input) = PattLit::into_parser()
+            .map(|v| Patt::Lit(v))
+            .or(PattIdent::into_parser().map(|v| Patt::Ident(v)))
+            .parse(input)?;
+
         let (colon_token, input) = parse_punctuation_sep(b':').parse(input)?;
         let (ty, input) = Type::parse(input)?;
 
         Ok((
             Self {
                 attr_comment_list,
-                patt: Box::new(pat),
+                patt: Box::new(patt),
                 colon_token,
                 ty: Box::new(ty),
             },
