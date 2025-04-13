@@ -2,7 +2,7 @@ use parserc::{Parse, Parser, ParserExt};
 
 use crate::lang::{parse_attr_comment_list, parse_punctuation_sep};
 
-use super::{AttrOrComment, ParseError, Patt, PattLit, StylangInput, parse_keyword_sep};
+use super::{AttrOrComment, ParseError, Patt, PattLit, StylangInput, token_of};
 
 /// A let guard: `let value: @state @option string = none`
 #[derive(Debug, PartialEq, Clone)]
@@ -29,7 +29,7 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (attr_comment_list, input) = parse_attr_comment_list(input)?;
 
-        let (let_token, input) = parse_keyword_sep("let").parse(input)?;
+        let (let_token, input) = token_of("let").parse(input)?;
 
         let (patt, input) = Patt::parse(input)?;
         let (eq_token, input) = parse_punctuation_sep(b'=').parse(input)?;

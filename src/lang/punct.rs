@@ -19,7 +19,7 @@ where
 }
 
 /// Parse `[S] punctuation [S]` ...
-pub fn parse_keyword_sep<I>(kw: &'static str) -> impl Parser<I, Error = ParseError, Output = I>
+pub fn token_of<I>(kw: &'static str) -> impl Parser<I, Error = ParseError, Output = I>
 where
     I: StylangInput,
 {

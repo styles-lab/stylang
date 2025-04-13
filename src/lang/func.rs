@@ -1,10 +1,10 @@
-use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
+use parserc::{Parse, Parser, ParserExt, keyword, next};
 
 use crate::lang::{NamedField, UnameField, delimited, parse_attr_comment_list, ws};
 
 use super::{
-    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Type,
-    TypeReturn, skip_ws,
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Type, TypeReturn,
+    skip_ws, token_of,
 };
 
 /// Function body block.
@@ -80,7 +80,7 @@ where
 /// Function declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Fn<I> {
+pub struct ItemFn<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// optional keyword `extern`
@@ -99,7 +99,7 @@ pub struct Fn<I> {
     pub block: FnBlock<I>,
 }
 
-impl<I> Parse<I> for Fn<I>
+impl<I> Parse<I> for ItemFn<I>
 where
     I: StylangInput,
 {
@@ -108,20 +108,16 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (attr_comment_list, input) = parse_attr_comment_list(input)?;
 
-        let (extern_keyword, input) = keyword("extern").ok().parse(input)?;
+        let (extern_token, input) = keyword("extern").ok().parse(input)?;
 
-        let input = if extern_keyword.is_some() {
+        let input = if extern_token.is_some() {
             let (_, input) = ws(input)?;
             input
         } else {
             input
         };
 
-        let (keyword, input) = keyword("fn")
-            .map_err(|input: I, _: Kind| {
-                ParseError::Expect(TokenError::Keyword("fn"), input.span())
-            })
-            .parse(input)?;
+        let (fn_token, input) = token_of("fn").parse(input)?;
 
         let (_, input) = ws(input)?;
 
@@ -139,8 +135,8 @@ where
         Ok((
             Self {
                 attr_comment_list,
-                extern_token: extern_keyword,
-                fn_token: keyword,
+                extern_token,
+                fn_token,
                 ident,
                 delimiter,
                 inputs,
@@ -161,16 +157,16 @@ mod tests {
         TypeReturn,
     };
 
-    use super::Fn;
+    use super::ItemFn;
 
     #[test]
     fn parse_fn_without_returns() {
         assert_eq!(
-            Fn::parse(TokenStream::from(
+            ItemFn::parse(TokenStream::from(
                 "@platform extern fn label(Label, TextLayout, Fill);",
             )),
             Ok((
-                Fn {
+                ItemFn {
                     attr_comment_list: vec![AttrOrComment::Attr(Attr {
                         keyword: TokenStream::from((0, "@")),
                         ident: Ident(TokenStream::from((1, "platform"))),
@@ -216,11 +212,11 @@ mod tests {
     #[test]
     fn parse_fn_with_return() {
         assert_eq!(
-            Fn::parse(TokenStream::from(
+            ItemFn::parse(TokenStream::from(
                 "extern fn label(@option len: f32) -> view;"
             )),
             Ok((
-                Fn {
+                ItemFn {
                     attr_comment_list: vec![],
                     extern_token: Some(TokenStream::from((0, "extern"))),
                     fn_token: TokenStream::from((7, "fn")),

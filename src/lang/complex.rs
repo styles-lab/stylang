@@ -77,7 +77,7 @@ where
 /// Parsed class type declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Class<I> {
+pub struct ItemClass<I> {
     /// attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// keyword: `class`.
@@ -90,7 +90,7 @@ pub struct Class<I> {
     pub named_fields: Punctuated<I, NamedField<I>, b','>,
 }
 
-impl<I> Parse<I> for Class<I>
+impl<I> Parse<I> for ItemClass<I>
 where
     I: StylangInput,
 {
@@ -130,7 +130,7 @@ where
 /// Parsed data type declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Data<I> {
+pub struct ItemData<I> {
     /// attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// keyword: `data`.
@@ -143,7 +143,7 @@ pub struct Data<I> {
     pub named_fields: Punctuated<I, NamedField<I>, b','>,
 }
 
-impl<I> Parse<I> for Data<I>
+impl<I> Parse<I> for ItemData<I>
 where
     I: StylangInput,
 {
@@ -253,7 +253,7 @@ where
 /// Parsed data type declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Enum<I> {
+pub struct ItemEnum<I> {
     /// attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// keyword: `enum`.
@@ -266,7 +266,7 @@ pub struct Enum<I> {
     pub variants: Punctuated<I, Variant<I>, b','>,
 }
 
-impl<I> Parse<I> for Enum<I>
+impl<I> Parse<I> for ItemEnum<I>
 where
     I: StylangInput,
 {
@@ -304,11 +304,11 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        Attr, AttrOrComment, Comment, Data, Delimiter, Fields, Ident, NamedField, Punctuated,
+        Attr, AttrOrComment, Comment, Delimiter, Fields, Ident, ItemData, NamedField, Punctuated,
         TokenStream, Type, TypeFn, TypeReturn, UnameField, Variant,
     };
 
-    use super::{Class, Enum};
+    use super::{ItemClass, ItemEnum};
 
     #[test]
     fn test_class() {
@@ -323,9 +323,9 @@ mod tests {
         );
 
         assert_eq!(
-            Class::parse(input),
+            ItemClass::parse(input),
             Ok((
-                Class {
+                ItemClass {
                     attr_comment_list: vec![AttrOrComment::Comment(Comment(TokenStream::from((
                         16,
                         " Fill properties."
@@ -380,9 +380,9 @@ mod tests {
         );
 
         assert_eq!(
-            Data::parse(input),
+            ItemData::parse(input),
             Ok((
-                Data {
+                ItemData {
                     attr_comment_list: vec![AttrOrComment::Comment(Comment(TokenStream::from((
                         16,
                         " All fields of a `state` are default required."
@@ -462,7 +462,7 @@ mod tests {
     #[test]
     fn test_enum() {
         assert_eq!(
-            Enum::parse(TokenStream::from(
+            ItemEnum::parse(TokenStream::from(
                 r#"
                 /// This property describes decorations that are added to the text of an element.
                 enum TextDecoration {
@@ -474,7 +474,7 @@ mod tests {
                 "#
             )),
             Ok((
-                Enum {
+                ItemEnum {
                     attr_comment_list: vec![AttrOrComment::Comment(Comment(TokenStream::from((
                         20,
                         " This property describes decorations that are added to the text of an element."
@@ -531,9 +531,9 @@ mod tests {
     #[test]
     fn test_enum2() {
         assert_eq!(
-            Enum::parse(TokenStream::from(r#"enum A { V(i32) }"#)),
+            ItemEnum::parse(TokenStream::from(r#"enum A { V(i32) }"#)),
             Ok((
-                Enum {
+                ItemEnum {
                     attr_comment_list: vec![],
                     keyword: TokenStream::from((0, "enum")),
                     ident: Ident(TokenStream::from((5, "A"))),
@@ -570,9 +570,9 @@ mod tests {
     #[test]
     fn test_enum3() {
         assert_eq!(
-            Enum::parse(TokenStream::from(r#"enum A { V {v:i32} }"#)),
+            ItemEnum::parse(TokenStream::from(r#"enum A { V {v:i32} }"#)),
             Ok((
-                Enum {
+                ItemEnum {
                     attr_comment_list: vec![],
                     keyword: TokenStream::from((0, "enum")),
                     ident: Ident(TokenStream::from((5, "A"))),

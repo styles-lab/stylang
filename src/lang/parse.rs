@@ -1,16 +1,16 @@
 use parserc::{ControlFlow, Input, Parse, Parser, ParserExt, span::WithSpan};
 
-use super::{ParseError, Stmt, TokenError, TokenStream, skip_ws};
+use super::{Item, ParseError, TokenError, TokenStream, skip_ws};
 
 /// Parse a source file.
-pub fn parse(source: &str) -> Result<Vec<Stmt<TokenStream<'_>>>, ControlFlow<ParseError>> {
+pub fn parse(source: &str) -> Result<Vec<Item<TokenStream<'_>>>, ControlFlow<ParseError>> {
     let mut input = TokenStream::from(source);
 
     let mut stmts = vec![];
 
     loop {
         let stmt;
-        (stmt, input) = Stmt::into_parser().ok().parse(input)?;
+        (stmt, input) = Item::into_parser().ok().parse(input)?;
 
         if let Some(stmt) = stmt {
             stmts.push(stmt);

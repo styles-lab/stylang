@@ -57,8 +57,8 @@ pub use visibility::*;
 mod path;
 pub use path::*;
 
-mod stmt;
-pub use stmt::*;
+mod item;
+pub use item::*;
 
 mod parse;
 pub use parse::*;
@@ -68,3 +68,6 @@ pub use patt::*;
 
 mod expr;
 pub use expr::*;
+
+mod stmt;
+pub use stmt::*;

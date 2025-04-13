@@ -9,7 +9,7 @@ use super::{
 /// A module declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Mod<I> {
+pub struct ItemMod<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// visibility token,
@@ -22,7 +22,7 @@ pub struct Mod<I> {
     pub semi: I,
 }
 
-impl<I> Parse<I> for Mod<I>
+impl<I> Parse<I> for ItemMod<I>
 where
     I: StylangInput,
 {
@@ -34,7 +34,9 @@ where
         let (vis, input) = Visibility::parse(input)?;
 
         let (keyword, input) = keyword("mod")
-            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("mod"), input.span()))
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(TokenError::Keyword("mod"), input.span())
+            })
             .parse(input)?;
 
         let (_, input) = ws(input)?;
@@ -148,7 +150,7 @@ where
 /// A use statement: `use std::...;`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Use<I> {
+pub struct ItemUse<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// visibility token,
@@ -161,7 +163,7 @@ pub struct Use<I> {
     pub semi: I,
 }
 
-impl<I> Parse<I> for Use<I>
+impl<I> Parse<I> for ItemUse<I>
 where
     I: StylangInput,
 {
@@ -173,7 +175,9 @@ where
         let (vis, input) = Visibility::parse(input)?;
 
         let (keyword, input) = keyword("use")
-            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("use"), input.span()))
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(TokenError::Keyword("use"), input.span())
+            })
             .parse(input)?;
 
         let (_, input) = ws(input)?;
@@ -206,19 +210,19 @@ mod tests {
         UseGroup, UsePath, UseTree, Visibility,
     };
 
-    use super::{Mod, Use};
+    use super::{ItemMod, ItemUse};
 
     #[test]
     fn test_mod() {
         assert_eq!(
-            Mod::parse(TokenStream::from(
+            ItemMod::parse(TokenStream::from(
                 r#"
                 @sol("./erc20.json")
                 pub mod erc20;
                 "#
             )),
             Ok((
-                Mod {
+                ItemMod {
                     attr_comment_list: vec![AttrOrComment::Attr(Attr {
                         keyword: TokenStream::from((17, "@")),
                         ident: Ident(TokenStream::from((18, "sol"))),
@@ -249,9 +253,9 @@ mod tests {
     #[test]
     fn test_use() {
         assert_eq!(
-            Use::parse(TokenStream::from("pub use theme::*;")),
+            ItemUse::parse(TokenStream::from("pub use theme::*;")),
             Ok((
-                Use {
+                ItemUse {
                     attr_comment_list: vec![],
                     vis: Visibility::Public(TokenStream::from("pub")),
                     keyword: TokenStream::from((4, "use")),
@@ -267,9 +271,9 @@ mod tests {
         );
 
         assert_eq!(
-            Use::parse(TokenStream::from("pub use theme::{a::*,b};")),
+            ItemUse::parse(TokenStream::from("pub use theme::{a::*,b};")),
             Ok((
-                Use {
+                ItemUse {
                     attr_comment_list: vec![],
                     vis: Visibility::Public(TokenStream {
                         offset: 0,

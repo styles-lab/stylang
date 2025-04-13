@@ -1,26 +1,6 @@
-use parserc::{Parse, Parser, ParserExt, keyword, next, take_till};
+use parserc::{Parse, Parser, ParserExt, next};
 
-use super::{Ident, LitCallBody, ParseError, StylangInput, skip_ws};
-
-/// Comment of the function, be like: `/// ...`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Comment<I>(pub I);
-
-impl<I> Parse<I> for Comment<I>
-where
-    I: StylangInput,
-{
-    type Error = ParseError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (_, input) = keyword("///").parse(input)?;
-
-        let (content, input) = take_till(|c| c == b'\n').parse(input)?;
-
-        Ok((Comment(content), input))
-    }
-}
+use super::{Comment, Ident, LitCallBody, ParseError, StylangInput, skip_ws};
 
 /// Attribute, be like: `@option`,`@state`,...
 #[derive(Debug, PartialEq, Clone)]
@@ -111,7 +91,7 @@ mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Attr, AttrOrComment, Comment, Delimiter, Ident, LitCallBody, Lit, LitStr, ParseError,
+        Attr, AttrOrComment, Comment, Delimiter, Ident, Lit, LitCallBody, LitStr, ParseError,
         Punctuated, TokenError, TokenStream,
     };
 
