@@ -1,10 +1,10 @@
-use parserc::{Parse, Parser, ParserExt, keyword, next};
+use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 
 use crate::lang::{NamedField, UnameField, delimited, parse_attr_comment_list, ws};
 
 use super::{
-    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Type, TypeReturn,
-    skip_ws, token_of,
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Type,
+    TypeReturn, skip_ws,
 };
 
 /// Function body block.
@@ -117,7 +117,11 @@ where
             input
         };
 
-        let (fn_token, input) = token_of("fn").parse(input)?;
+        let (fn_token, input) = keyword("fn")
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(TokenError::Keyword("fn"), input.span())
+            })
+            .parse(input)?;
 
         let (_, input) = ws(input)?;
 

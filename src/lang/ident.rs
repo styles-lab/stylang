@@ -27,11 +27,12 @@ where
     }
 }
 
-/// view element variable name.
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct ElemIdent<I>(pub I);
+/// xml element ident.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct XmlIdent<I>(pub I);
 
-impl<I> Parse<I> for ElemIdent<I>
+impl<I> Parse<I> for XmlIdent<I>
 where
     I: StylangInput,
 {
@@ -41,12 +42,15 @@ where
         let mut content = input.clone();
         let start = input.start();
 
-        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_').parse(input)?;
+        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::XmlIdent, input.span()))
+            .parse(input)?;
 
         let (_, input) =
-            take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
+            take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'.' || c == b'_' || c == b'-')
+                .parse(input)?;
 
-        Ok((Self(content.split_off(input.start() - start)), input))
+        Ok((Self(content.split_to(input.start() - start)), input))
     }
 }
 
@@ -54,7 +58,7 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::TokenStream;
+    use crate::lang::{TokenStream, XmlIdent};
 
     use super::Ident;
 
@@ -65,6 +69,17 @@ mod tests {
             Ok((
                 Ident(TokenStream::from("option")),
                 TokenStream::from((6, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_xml_ident() {
+        assert_eq!(
+            XmlIdent::parse(TokenStream::from("on-click.solidity")),
+            Ok((
+                XmlIdent(TokenStream::from("on-click.solidity")),
+                TokenStream::from((17, ""))
             ))
         );
     }

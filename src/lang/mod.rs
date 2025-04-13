@@ -71,3 +71,9 @@ pub use expr::*;
 
 mod stmt;
 pub use stmt::*;
+
+mod xml;
+pub use xml::*;
+
+mod block;
+pub use block::*;

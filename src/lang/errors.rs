@@ -35,6 +35,10 @@ pub enum TokenError {
     Color,
     #[error("`ident`")]
     Ident,
+    #[error("`xml_ident`")]
+    XmlIdent,
     #[error("keyword `{0}`")]
     Keyword(&'static str),
+    #[error("`stmt`")]
+    Stmt,
 }

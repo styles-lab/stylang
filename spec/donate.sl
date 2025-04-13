@@ -17,11 +17,11 @@ fn main() -> view {
                     <text-field text=value prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
 
                     <
-                        button 
+                        button
                         icon="assets://ethereum.svg" 
                         text="Donate" 
                         on-click.solidity={
-                            || donate(/*implicit type conversion*/ value) 
+                            donate(/*implicit type conversion*/ value) 
                         }
                     />
                 </row>
