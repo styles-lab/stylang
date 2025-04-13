@@ -3,8 +3,8 @@ use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 use crate::lang::{NamedField, UnameField, delimited, parse_attr_comment_list, ws};
 
 use super::{
-    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Type, TypeReturn,
-    skip_ws,
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Type,
+    TypeReturn, skip_ws,
 };
 
 /// Function body block.
@@ -84,9 +84,9 @@ pub struct Fn<I> {
     /// optional attribute/comment list.
     pub attr_comment_list: Vec<AttrOrComment<I>>,
     /// optional keyword `extern`
-    pub extern_keyword: Option<I>,
+    pub extern_token: Option<I>,
     /// func keyword `fn`
-    pub keyword: I,
+    pub fn_token: I,
     /// function ident name.
     pub ident: Ident<I>,
     /// parameter list delimiter: `(...)`
@@ -118,7 +118,9 @@ where
         };
 
         let (keyword, input) = keyword("fn")
-            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("fn"), input.span()))
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(TokenError::Keyword("fn"), input.span())
+            })
             .parse(input)?;
 
         let (_, input) = ws(input)?;
@@ -137,8 +139,8 @@ where
         Ok((
             Self {
                 attr_comment_list,
-                extern_keyword,
-                keyword,
+                extern_token: extern_keyword,
+                fn_token: keyword,
                 ident,
                 delimiter,
                 inputs,
@@ -174,8 +176,8 @@ mod tests {
                         ident: Ident(TokenStream::from((1, "platform"))),
                         body: None
                     })],
-                    extern_keyword: Some(TokenStream::from((10, "extern"))),
-                    keyword: TokenStream::from((17, "fn")),
+                    extern_token: Some(TokenStream::from((10, "extern"))),
+                    fn_token: TokenStream::from((17, "fn")),
                     ident: Ident(TokenStream::from((20, "label"))),
                     delimiter: Delimiter {
                         start: TokenStream::from((25, "(")),
@@ -220,8 +222,8 @@ mod tests {
             Ok((
                 Fn {
                     attr_comment_list: vec![],
-                    extern_keyword: Some(TokenStream::from((0, "extern"))),
-                    keyword: TokenStream::from((7, "fn")),
+                    extern_token: Some(TokenStream::from((0, "extern"))),
+                    fn_token: TokenStream::from((7, "fn")),
                     ident: Ident(TokenStream::from((10, "label"))),
                     delimiter: Delimiter {
                         start: TokenStream::from((15, "(")),

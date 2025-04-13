@@ -1,5 +1,6 @@
 /// The main entry of one stylang app.
 fn main() -> view {
+    
     let @state @option value: string = none;
 
     <navigation-stack>
