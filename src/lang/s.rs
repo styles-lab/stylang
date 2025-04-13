@@ -1,6 +1,6 @@
 use parserc::{Parser, take_while};
 
-use super::{ParseError, StylangInput, Token};
+use super::{ParseError, StylangInput, TokenError};
 
 /// Skip `S` characters.
 pub fn skip_ws<I>(input: I) -> parserc::Result<I, I, ParseError>
@@ -24,7 +24,7 @@ where
         span.len = 0;
 
         return Err(parserc::ControlFlow::Recovable(ParseError::Expect(
-            Token::S,
+            TokenError::S,
             span,
         )));
     }

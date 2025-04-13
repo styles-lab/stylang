@@ -3,7 +3,7 @@ use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 use crate::lang::{NamedField, UnameField, delimited, parse_attr_comment_list, ws};
 
 use super::{
-    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Token, Type, TypeReturn,
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Type, TypeReturn,
     skip_ws,
 };
 
@@ -118,7 +118,7 @@ where
         };
 
         let (keyword, input) = keyword("fn")
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("fn"), input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("fn"), input.span()))
             .parse(input)?;
 
         let (_, input) = ws(input)?;

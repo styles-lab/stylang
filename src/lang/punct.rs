@@ -1,6 +1,6 @@
 use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 
-use super::{ParseError, StylangInput, Token, skip_ws};
+use super::{ParseError, StylangInput, TokenError, skip_ws};
 
 /// Parse `[S] punctuation [S]` ...
 pub fn parse_punctuation_sep<I>(p: u8) -> impl Parser<I, Error = ParseError, Output = I>
@@ -27,7 +27,7 @@ where
         let (_, input) = skip_ws(input)?;
 
         let (comma, input) = keyword(kw)
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword(kw), input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword(kw), input.span()))
             .parse(input)?;
 
         let (_, input) = skip_ws(input)?;

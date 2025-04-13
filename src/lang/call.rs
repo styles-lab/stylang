@@ -33,7 +33,7 @@ mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Delimiter, Digits, Lit, LitCallBody, LitNum, LitStr, ParseError, Punctuated, Token,
+        Delimiter, Digits, Lit, LitCallBody, LitNum, LitStr, ParseError, Punctuated, TokenError,
         TokenStream,
     };
 
@@ -86,7 +86,7 @@ mod tests {
         assert_eq!(
             LitCallBody::parse(TokenStream::from("")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Prefix("("),
+                TokenError::Prefix("("),
                 Span { offset: 0, len: 0 }
             )))
         );

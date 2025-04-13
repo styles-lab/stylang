@@ -1,6 +1,6 @@
 use parserc::{Kind, Parse, Parser, ParserExt, keyword};
 
-use super::{LitColor, LitHexNum, LitNum, LitStr, ParseError, StylangInput, Token};
+use super::{LitColor, LitHexNum, LitNum, LitStr, ParseError, StylangInput, TokenError};
 
 /// literal `None` value.
 #[derive(Debug, PartialEq, Clone)]
@@ -15,7 +15,7 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         keyword("none")
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("none"), input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("none"), input.span()))
             .map(|v| Self(v))
             .parse(input)
     }

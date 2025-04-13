@@ -4,7 +4,7 @@ use parserc::{ControlFlow, Kind, Parse, Parser, ParserExt, keyword, next};
 
 use crate::lang::{parse_punctuation_sep, skip_ws};
 
-use super::{Delimiter, Digits, HexDigits, ParseError, StylangInput, Token};
+use super::{Delimiter, Digits, HexDigits, ParseError, StylangInput, TokenError};
 
 /// An ascii digit characters sequence + `%`.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -26,7 +26,7 @@ where
         let (digits, input) = Digits::parse(input)?;
 
         let (percent, input) = next(b'%')
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Suffix("%"), input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Suffix("%"), input.span()))
             .parse(input)?;
 
         Ok((DigitsPercent { digits, percent }, input))
@@ -60,7 +60,7 @@ where
     let (kw, input) = keyword("rgb").parse(input)?;
 
     let (prefix, input) = next(b'(')
-        .map_err(|input: I, _: Kind| ParseError::Expect(Token::Prefix("("), input.span()))
+        .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Prefix("("), input.span()))
         .fatal()
         .parse(input)?;
 
@@ -71,7 +71,7 @@ where
     let (red_percent, input) = next(b'%').ok().parse(input)?;
 
     let (comma1, input) = parse_punctuation_sep(b',')
-        .map_err(|input: I, _| ParseError::Expect(Token::Punct(","), input.span()))
+        .map_err(|input: I, _| ParseError::Expect(TokenError::Punct(","), input.span()))
         .fatal()
         .parse(input)?;
 
@@ -82,21 +82,21 @@ where
     if red_percent.is_none() {
         if let Some(green_percent) = green_percent {
             return Err(ControlFlow::Fatal(ParseError::Unexpect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 green_percent.span(),
             )));
         }
     } else {
         if green_percent.is_none() {
             return Err(ControlFlow::Fatal(ParseError::Expect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 input.span(),
             )));
         }
     }
 
     let (comma2, input) = parse_punctuation_sep(b',')
-        .map_err(|input: I, _| ParseError::Expect(Token::Punct(","), input.span()))
+        .map_err(|input: I, _| ParseError::Expect(TokenError::Punct(","), input.span()))
         .fatal()
         .parse(input)?;
 
@@ -107,14 +107,14 @@ where
     if red_percent.is_none() {
         if let Some(blue_percent) = blue_percent {
             return Err(ControlFlow::Fatal(ParseError::Unexpect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 blue_percent.span(),
             )));
         }
     } else {
         if blue_percent.is_none() {
             return Err(ControlFlow::Fatal(ParseError::Expect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 input.span(),
             )));
         }
@@ -123,7 +123,7 @@ where
     let (_, input) = skip_ws(input)?;
 
     let (suffix, input) = next(b')')
-        .map_err(|input: I, _: Kind| ParseError::Expect(Token::Suffix(")"), input.span()))
+        .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Suffix(")"), input.span()))
         .fatal()
         .parse(input)?;
 
@@ -176,7 +176,7 @@ where
     I: StylangInput,
 {
     let (prefix, input) = next(b'#')
-        .map_err(|input: I, _: Kind| ParseError::Expect(Token::Color, input.span()))
+        .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Color, input.span()))
         .parse(input)?;
 
     let (digits, input) = HexDigits::into_parser().fatal().parse(input)?;
@@ -230,7 +230,7 @@ mod tests {
         assert_eq!(
             Digits::parse(TokenStream::from("")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Digits,
+                TokenError::Digits,
                 Span { offset: 0, len: 0 }
             )))
         );
@@ -249,7 +249,7 @@ mod tests {
         assert_eq!(
             HexDigits::parse(TokenStream::from("")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::HexDigits,
+                TokenError::HexDigits,
                 Span { offset: 0, len: 0 }
             )))
         );
@@ -271,7 +271,7 @@ mod tests {
         assert_eq!(
             DigitsPercent::parse(TokenStream::from("10a")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 Span { offset: 2, len: 1 }
             )))
         );
@@ -340,7 +340,7 @@ mod tests {
         assert_eq!(
             LitColor::parse(TokenStream::from("rgb( ff, 10, 30%)")),
             Err(ControlFlow::Fatal(ParseError::Expect(
-                Token::Digits,
+                TokenError::Digits,
                 Span { offset: 5, len: 12 }
             )))
         );
@@ -348,7 +348,7 @@ mod tests {
         assert_eq!(
             LitColor::parse(TokenStream::from("rgb(10, 10, 30%)")),
             Err(ControlFlow::Fatal(ParseError::Unexpect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 Span { offset: 14, len: 1 }
             )))
         );
@@ -356,7 +356,7 @@ mod tests {
         assert_eq!(
             LitColor::parse(TokenStream::from("rgb(10%, 10, 30%)")),
             Err(ControlFlow::Fatal(ParseError::Expect(
-                Token::Suffix("%"),
+                TokenError::Suffix("%"),
                 Span { offset: 11, len: 6 }
             )))
         );
@@ -364,7 +364,7 @@ mod tests {
         assert_eq!(
             LitColor::parse(TokenStream::from("#")),
             Err(ControlFlow::Fatal(ParseError::Expect(
-                Token::HexDigits,
+                TokenError::HexDigits,
                 Span { offset: 1, len: 0 }
             )))
         );
@@ -372,7 +372,7 @@ mod tests {
         assert_eq!(
             LitColor::parse(TokenStream::from("")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Color,
+                TokenError::Color,
                 Span { offset: 0, len: 0 }
             )))
         );

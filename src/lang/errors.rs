@@ -7,14 +7,14 @@ pub enum ParseError {
     ParserC(#[from] Kind),
 
     #[error("expect {0}, {1:?}")]
-    Expect(Token, Span),
+    Expect(TokenError, Span),
 
     #[error("unexpect {0}, {1:?}")]
-    Unexpect(Token, Span),
+    Unexpect(TokenError, Span),
 }
 
 #[derive(Debug, thiserror::Error, PartialEq)]
-pub enum Token {
+pub enum TokenError {
     #[error("`unknown`")]
     Unknown,
     #[error("`whitespace`")]

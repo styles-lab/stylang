@@ -30,6 +30,7 @@ where
         let (attr_comment_list, input) = parse_attr_comment_list(input)?;
 
         let (let_token, input) = parse_keyword_sep("let").parse(input)?;
+
         let (patt, input) = Patt::parse(input)?;
         let (eq_token, input) = parse_punctuation_sep(b'=').parse(input)?;
         let (expr, input) = Expr::parse(input)?;

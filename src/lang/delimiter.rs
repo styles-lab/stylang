@@ -25,7 +25,7 @@ where
     move |input: I| {
         let (start, input) = keyword(prefix)
             .map_err(|input: I, _: Kind| {
-                ParseError::Expect(super::Token::Prefix(prefix), input.span())
+                ParseError::Expect(super::TokenError::Prefix(prefix), input.span())
             })
             .parse(input)?;
 
@@ -37,7 +37,7 @@ where
 
         let (end, input) = keyword(suffix)
             .map_err(|input: I, _: Kind| {
-                ParseError::Expect(super::Token::Suffix(suffix), input.span())
+                ParseError::Expect(super::TokenError::Suffix(suffix), input.span())
             })
             .parse(input)?;
 

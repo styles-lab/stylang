@@ -3,7 +3,7 @@ use parserc::{Kind, Parse, Parser, ParserExt, keyword, next};
 use crate::lang::{delimited, parse_attr_comment_list, skip_ws, ws};
 
 use super::{
-    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Token, Visibility,
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Visibility,
 };
 
 /// A module declaration.
@@ -34,7 +34,7 @@ where
         let (vis, input) = Visibility::parse(input)?;
 
         let (keyword, input) = keyword("mod")
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("mod"), input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("mod"), input.span()))
             .parse(input)?;
 
         let (_, input) = ws(input)?;
@@ -173,7 +173,7 @@ where
         let (vis, input) = Visibility::parse(input)?;
 
         let (keyword, input) = keyword("use")
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("use"), input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Keyword("use"), input.span()))
             .parse(input)?;
 
         let (_, input) = ws(input)?;

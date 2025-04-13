@@ -1,6 +1,6 @@
 use parserc::{ControlFlow, Input, Parse, Parser, ParserExt, span::WithSpan};
 
-use super::{ParseError, Stmt, Token, TokenStream, skip_ws};
+use super::{ParseError, Stmt, TokenError, TokenStream, skip_ws};
 
 /// Parse a source file.
 pub fn parse(source: &str) -> Result<Vec<Stmt<TokenStream<'_>>>, ControlFlow<ParseError>> {
@@ -25,7 +25,7 @@ pub fn parse(source: &str) -> Result<Vec<Stmt<TokenStream<'_>>>, ControlFlow<Par
         }
 
         return Err(ControlFlow::Fatal(ParseError::Unexpect(
-            Token::Unknown,
+            TokenError::Unknown,
             input.span(),
         )));
     }

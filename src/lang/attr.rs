@@ -112,7 +112,7 @@ mod tests {
 
     use crate::lang::{
         Attr, AttrOrComment, Comment, Delimiter, Ident, LitCallBody, Lit, LitStr, ParseError,
-        Punctuated, Token, TokenStream,
+        Punctuated, TokenError, TokenStream,
     };
 
     use super::parse_attr_comment_list;
@@ -170,7 +170,7 @@ mod tests {
         assert_eq!(
             Attr::parse(TokenStream::from("@")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Ident,
+                TokenError::Ident,
                 Span { offset: 1, len: 0 }
             )))
         );

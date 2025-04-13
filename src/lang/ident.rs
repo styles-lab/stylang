@@ -1,6 +1,6 @@
 use parserc::{Kind, Parse, Parser, ParserExt, satisfy, take_while};
 
-use super::{ParseError, StylangInput, Token};
+use super::{ParseError, StylangInput, TokenError};
 
 /// Complex type name or legal variable name.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -18,7 +18,7 @@ where
         let start = input.start();
 
         let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Ident, input.span()))
+            .map_err(|input: I, _: Kind| ParseError::Expect(TokenError::Ident, input.span()))
             .parse(input)?;
 
         let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;

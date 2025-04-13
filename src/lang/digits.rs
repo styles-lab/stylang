@@ -1,6 +1,6 @@
 use parserc::{ControlFlow, Parse, Parser, ParserExt, keyword, next, take_while};
 
-use super::{ParseError, StylangInput, Token, Unit};
+use super::{ParseError, StylangInput, TokenError, Unit};
 
 /// An ascii hex-digit characters sequence: [0-9a-f]+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -18,7 +18,7 @@ where
 
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::HexDigits,
+                TokenError::HexDigits,
                 input.span(),
             )));
         }
@@ -43,7 +43,7 @@ where
 
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Digits,
+                TokenError::Digits,
                 input.span(),
             )));
         }
@@ -133,7 +133,7 @@ where
 
         if trunc.is_none() && fract.is_none() {
             return Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Digits,
+                TokenError::Digits,
                 input.span(),
             )));
         }
@@ -185,7 +185,7 @@ mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Digits, Exponent, HexDigits, LitHexNum, LitNum, ParseError, Sign, Token, TokenStream, Unit,
+        Digits, Exponent, HexDigits, LitHexNum, LitNum, ParseError, Sign, TokenError, TokenStream, Unit,
         UnitLen,
     };
 
@@ -324,7 +324,7 @@ mod tests {
         assert_eq!(
             LitNum::parse(TokenStream::from(".e10")),
             Err(ControlFlow::Recovable(ParseError::Expect(
-                Token::Digits,
+                TokenError::Digits,
                 Span { offset: 1, len: 3 }
             )))
         );

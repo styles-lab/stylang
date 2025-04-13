@@ -2,7 +2,9 @@ use parserc::{Kind, Parse, Parser, ParserExt, keyword};
 
 use crate::lang::{delimited, parse_attr_comment_list, parse_punctuation_sep, skip_ws, ws};
 
-use super::{AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, Token, Type};
+use super::{
+    AttrOrComment, Delimiter, Ident, ParseError, Punctuated, StylangInput, TokenError, Type,
+};
 
 /// Parsed position field declaration.
 #[derive(Debug, PartialEq, Clone)]
@@ -98,7 +100,9 @@ where
         let (attr_comment_list, input) = parse_attr_comment_list(input)?;
 
         let (keyword, input) = keyword("class")
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("class"), input.span()))
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(TokenError::Keyword("class"), input.span())
+            })
             .parse(input)?;
 
         let (_, input) = ws(input)?;
@@ -149,7 +153,9 @@ where
         let (attr_comment_list, input) = parse_attr_comment_list(input)?;
 
         let (keyword, input) = keyword("data")
-            .map_err(|input: I, _: Kind| ParseError::Expect(Token::Keyword("data"), input.span()))
+            .map_err(|input: I, _: Kind| {
+                ParseError::Expect(TokenError::Keyword("data"), input.span())
+            })
             .parse(input)?;
 
         let (_, input) = ws(input)?;
