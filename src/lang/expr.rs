@@ -87,12 +87,37 @@ pub struct ExprField<I> {
     pub member: Member<I>,
 }
 
+impl<I> Parse<I> for ExprField<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (attr_comment_list, input) = parse_attr_comment_list(input)?;
+        let (base, input) = Expr::parse(input)?;
+        let (dot_token, input) = token_of(".").parse(input)?;
+        let (member, input) = Member::parse(input)?;
+
+        Ok((
+            Self {
+                attr_comment_list,
+                base: Box::new(base),
+                dot_token,
+                member,
+            },
+            input,
+        ))
+    }
+}
+
 /// A stylang expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Expr<I> {
     Let(ExprLet<I>),
     Lit(ExprLit<I>),
+    Field(ExprField<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
