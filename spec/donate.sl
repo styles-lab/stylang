@@ -20,7 +20,7 @@ fn main() -> view {
                         button
                         icon="assets://ethereum.svg" 
                         text="Donate" 
-                        on-click.solidity={
+                        on-click.solidity= {
                             donate(/*implicit type conversion*/ value) 
                         }
                     />

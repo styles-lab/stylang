@@ -165,7 +165,8 @@ mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
     use crate::lang::{
-        Lit, LitStr, ParseError, TokenError, TokenStream, XmlEnd, XmlExpr, XmlIdent,
+        Block, Delimiter, Lit, LitStr, ParseError, TokenError, TokenStream, XmlEnd, XmlExpr,
+        XmlIdent,
     };
 
     use super::{XmlAttr, XmlStart};
@@ -260,6 +261,25 @@ mod tests {
                     value: XmlExpr::Lit(Lit::Str(LitStr(TokenStream::from((3, "hello")))))
                 },
                 TokenStream::from((9, ""))
+            ))
+        );
+
+        assert_eq!(
+            XmlAttr::parse(TokenStream::from(r#"v={}"#)),
+            Ok((
+                XmlAttr {
+                    comment_list: vec![],
+                    name: XmlIdent(TokenStream::from("v")),
+                    eq_token: TokenStream::from((1, "=")),
+                    value: XmlExpr::Block(Block {
+                        delimiter: Delimiter {
+                            start: TokenStream::from((2, "{")),
+                            end: TokenStream::from((3, "}"))
+                        },
+                        stmts: vec![]
+                    })
+                },
+                TokenStream::from((4, ""))
             ))
         );
     }

@@ -2,7 +2,7 @@ use parserc::{Parse, Parser, ParserExt};
 
 use crate::lang::{parse_attr_comment_list, parse_punctuation_sep};
 
-use super::{AttrOrComment, ParseError, Patt, PattLit, StylangInput, token_of};
+use super::{AttrOrComment, Digits, Ident, ParseError, Patt, PattLit, StylangInput, token_of};
 
 /// A let guard: `let value: @state @option string = none`
 #[derive(Debug, PartialEq, Clone)]
@@ -50,6 +50,42 @@ where
 
 /// A literal in place of an expression: 1, "foo".
 pub type ExprLit<I> = PattLit<I>;
+
+/// A struct or tuple struct field accessed in a struct literal or field expression.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum Member<I> {
+    Named(Ident<I>),
+    Unnamed(Digits<I>),
+}
+
+impl<I> Parse<I> for Member<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        Ident::into_parser()
+            .map(|v| Self::Named(v))
+            .or(Digits::into_parser().map(|v| Self::Unnamed(v)))
+            .parse(input)
+    }
+}
+
+/// Access of a named struct field (obj.k) or unnamed tuple struct field (obj.0).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ExprField<I> {
+    /// attribute/comment list.
+    pub attr_comment_list: Vec<AttrOrComment<I>>,
+    /// base part.
+    pub base: Box<Expr<I>>,
+    /// token `.`
+    pub dot_token: I,
+    /// member part.
+    pub member: Member<I>,
+}
 
 /// A stylang expression.
 #[derive(Debug, PartialEq, Clone)]
