@@ -130,6 +130,7 @@ where
         ExprLet::into_parser()
             .map(|v| Self::Let(v))
             .or(ExprLit::into_parser().map(|v| Self::Lit(v)))
+            .or(ExprField::into_parser().map(|v| Self::Field(v)))
             .parse(input)
     }
 }
