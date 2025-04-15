@@ -182,4 +182,9 @@ mod tests {
             ),)
         );
     }
+
+    #[test]
+    fn test_field_expr() {
+        Expr::parse(TokenStream::from("hello.a")).unwrap();
+    }
 }
