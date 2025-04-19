@@ -312,6 +312,7 @@ define_token!(length => KeywordLength);
 define_token!(string => KeywordString);
 define_token!(angle => KeywordAngle);
 define_token!(none => KeywordNone);
+define_token!(view => KeywordView);
 define_token!(if => KeywordIf);
 define_token!(else => KeywordElse);
 define_token!(elif => KeywordElif);
