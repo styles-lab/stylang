@@ -236,6 +236,29 @@ where
     }
 }
 
+/// keyword `0x`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct HexSign<I>(pub I);
+
+impl<I> parserc::Parse<I> for HexSign<I>
+where
+    I: super::StylangInput,
+{
+    type Error = super::ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        use parserc::{Parser, ParserExt};
+
+        parserc::keyword("0x")
+            .map(|v| Self(v))
+            .map_err(|input: I, _: parserc::Kind| {
+                super::ParseError::Expect(super::TokenError::Keyword("0x"), input.span())
+            })
+            .parse(input)
+    }
+}
+
 macro_rules! define_token {
     ($expr: tt => $ident: ident) => {
         #[derive(Debug, PartialEq, Clone)]
@@ -272,13 +295,19 @@ define_token!(; => SemiColon);
 define_token!(# => NumberSign);
 define_token!(+ => Plus);
 define_token!(- => Minus);
+define_token!(_ => Underscore);
 define_token!(-> => ArrowRight);
 define_token!(fn => KeywordFn);
+define_token!(pub => KeywordPub);
+define_token!(crate => KeywordCrate);
+define_token!(super => KeywordSuper);
 define_token!(data => KeywordData);
 define_token!(enum => KeywordEnum);
 define_token!(class => KeywordClass);
 define_token!(color => KeywordColor);
 define_token!(length => KeywordLength);
+define_token!(string => KeywordString);
+define_token!(none => KeywordNone);
 define_token!(if => KeywordIf);
 define_token!(else => KeywordElse);
 define_token!(elif => KeywordElif);
@@ -306,3 +335,6 @@ define_token!(mm => Mm);
 define_token!(pt => Pt);
 define_token!(pc => Pc);
 define_token!(% => Percent);
+define_token!(deg => Deg);
+define_token!(grad => Grad);
+define_token!(rad => Rad);

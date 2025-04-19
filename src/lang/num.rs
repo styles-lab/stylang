@@ -58,6 +58,9 @@ where
     Pt(Pt<I>),
     Pc(Pc<I>),
     Percent(Percent<I>),
+    Deg(Deg<I>),
+    Grad(Grad<I>),
+    Rad(Rad<I>),
 }
 
 /// unit part of number.
@@ -81,13 +84,36 @@ where
     /// optional unit part.
     pub unit: Option<NumUnit<I>>,
 }
+/// unit suffix of literial hex number, be like: `_ex`.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct HexNumUnit<I>(pub(crate) Underscore<I>, pub NumUnit<I>)
+where
+    I: StylangInput;
+/// literial hex integer num: `0x[0-9a-fA-F]+`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct LitHexNum<I>
+where
+    I: StylangInput,
+{
+    /// The required hex prefix string: `0x`
+    pub sign: HexSign<I>,
+    /// optional trunc part.
+    pub digits: HexDigits<I>,
+    /// optional unit part.
+    pub unit: Option<HexNumUnit<I>>,
+}
 
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        Digits, Dot, Exp, KeywordExp, LitNum, Minus, NumUnit, Percent, Plus, TokenStream,
+        Digits, Dot, Ex, Exp, HexDigits, HexNumUnit, HexSign, KeywordExp, LitHexNum, LitNum, Minus,
+        NumUnit, Percent, Plus, TokenStream, Underscore,
     };
 
     use super::Sign;
@@ -250,6 +276,36 @@ mod tests {
                     unit: Some(NumUnit::Percent(Percent(TokenStream::from((2, "%")))))
                 },
                 TokenStream::from((3, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_lit_hex_num() {
+        assert_eq!(
+            LitHexNum::parse(TokenStream::from("0xf0a0B0")),
+            Ok((
+                LitHexNum {
+                    sign: HexSign(TokenStream::from("0x")),
+                    digits: HexDigits(TokenStream::from((2, "f0a0B0"))),
+                    unit: None
+                },
+                TokenStream::from((8, ""))
+            ))
+        );
+
+        assert_eq!(
+            LitHexNum::parse(TokenStream::from("0xf0a0B0_ex")),
+            Ok((
+                LitHexNum {
+                    sign: HexSign(TokenStream::from("0x")),
+                    digits: HexDigits(TokenStream::from((2, "f0a0B0"))),
+                    unit: Some(HexNumUnit(
+                        Underscore(TokenStream::from((8, "_"))),
+                        NumUnit::Ex(Ex(TokenStream::from((9, "ex"))))
+                    ))
+                },
+                TokenStream::from((11, ""))
             ))
         );
     }

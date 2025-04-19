@@ -14,3 +14,12 @@ pub use num::*;
 
 mod color;
 pub use color::*;
+
+mod string;
+pub use string::*;
+
+mod lit;
+pub use lit::*;
+
+mod vs;
+pub use vs::*;
