@@ -1,3 +1,7 @@
+use parserc::{ControlFlow, Parse, Parser, take_while};
+
+use super::{ParseError, StylangInput, TokenError};
+
 /// token `{`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -136,6 +140,102 @@ where
     }
 }
 
+/// `S` characters
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct S<I>(pub I);
+
+impl<I> Parse<I> for S<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (s, input) = take_while(|c: u8| c.is_ascii_whitespace()).parse(input)?;
+
+        if s.is_empty() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                TokenError::S,
+                input.span(),
+            )));
+        }
+
+        Ok((Self(s), input))
+    }
+}
+
+/// An ascii digit characters sequence: [0-9]+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Digits<I>(pub I);
+
+impl<I> Parse<I> for Digits<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (digits, input) = take_while(|c: u8| c.is_ascii_digit()).parse(input)?;
+
+        if digits.is_empty() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                TokenError::Digits,
+                input.span(),
+            )));
+        }
+
+        Ok((Digits(digits), input))
+    }
+}
+
+/// An ascii hex-digit characters sequence: [0-9a-f]+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct HexDigits<I>(pub I);
+
+impl<I> Parse<I> for HexDigits<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (digits, input) = take_while(|c: u8| c.is_ascii_hexdigit()).parse(input)?;
+
+        if digits.is_empty() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                TokenError::HexDigits,
+                input.span(),
+            )));
+        }
+
+        Ok((HexDigits(digits), input))
+    }
+}
+
+/// keyword `E` or `e`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct KeywordExp<I>(pub I);
+
+impl<I> parserc::Parse<I> for KeywordExp<I>
+where
+    I: super::StylangInput,
+{
+    type Error = super::ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        use parserc::{Parser, ParserExt};
+
+        parserc::keyword("E")
+            .or(parserc::keyword("e"))
+            .map(|v| Self(v))
+            .parse(input)
+    }
+}
+
 macro_rules! define_token {
     ($expr: tt => $ident: ident) => {
         #[derive(Debug, PartialEq, Clone)]
@@ -165,14 +265,25 @@ macro_rules! define_token {
     };
 }
 
+define_token!(. => Dot);
 define_token!(, => Comma);
 define_token!(: => Colon);
 define_token!(; => SemiColon);
+define_token!(# => NumberSign);
+define_token!(+ => Plus);
+define_token!(- => Minus);
 define_token!(-> => ArrowRight);
 define_token!(fn => KeywordFn);
 define_token!(data => KeywordData);
 define_token!(enum => KeywordEnum);
 define_token!(class => KeywordClass);
+define_token!(color => KeywordColor);
+define_token!(length => KeywordLength);
+define_token!(if => KeywordIf);
+define_token!(else => KeywordElse);
+define_token!(elif => KeywordElif);
+define_token!(for => KeywordFor);
+define_token!(rgb => KeywordRgb);
 define_token!(i8 => I8);
 define_token!(i16 => I16);
 define_token!(i32 => I32);
@@ -187,3 +298,11 @@ define_token!(bigint => BigInt);
 define_token!(f32 => F32);
 define_token!(f64 => F64);
 define_token!(bignum => BigNum);
+define_token!(ex => Ex);
+define_token!(px => Px);
+define_token!(in => In);
+define_token!(cm => Cm);
+define_token!(mm => Mm);
+define_token!(pt => Pt);
+define_token!(pc => Pc);
+define_token!(% => Percent);

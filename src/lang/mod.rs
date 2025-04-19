@@ -6,8 +6,11 @@ pub use errors::*;
 mod input;
 pub use input::*;
 
-mod s;
-pub use s::*;
-
 mod token;
 pub use token::*;
+
+mod num;
+pub use num::*;
+
+mod color;
+pub use color::*;
