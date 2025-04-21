@@ -1,4 +1,6 @@
-use parserc::{Parse, Parser, derive_parse, keyword, take_till, take_until};
+use parserc::{Parse, Parser, ParserExt, derive_parse, keyword, take_till, take_until};
+
+use crate::lang::S;
 
 use super::{ParseError, StylangInput};
 
@@ -82,6 +84,7 @@ where
     }
 }
 
+/// Comment token.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = ParseError,input = I)]
@@ -89,14 +92,104 @@ pub enum Comment<I>
 where
     I: StylangInput,
 {
-    LineComment(LineComment<I>),
     OutlineDoc(OutlineDoc<I>),
-    BlockComment(BlockComment<I>),
+    LineComment(LineComment<I>),
     OutBlockDoc(OutBlockDoc<I>),
+    BlockComment(BlockComment<I>),
+}
+
+/// Comment list.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct CommentList<I>(pub Vec<Comment<I>>)
+where
+    I: StylangInput;
+
+impl<I> Parse<I> for CommentList<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut comments = vec![];
+        loop {
+            (_, input) = S::into_parser().ok().parse(input)?;
+
+            let comment;
+            (comment, input) = Comment::into_parser().ok().parse(input)?;
+
+            if let Some(comment) = comment {
+                comments.push(comment);
+            } else {
+                break;
+            }
+        }
+
+        Ok((Self(comments), input))
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use parserc::Parse;
+
+    use crate::lang::{BlockComment, Comment, LineComment, OutBlockDoc, OutlineDoc, TokenStream};
+
+    use super::CommentList;
+
     #[test]
-    fn test_comment() {}
+    fn test_comment() {
+        assert_eq!(
+            Comment::parse(TokenStream::from("/// hello world\n")),
+            Ok((
+                Comment::OutlineDoc(OutlineDoc(TokenStream::from((3, " hello world")))),
+                TokenStream::from((16, ""))
+            ))
+        );
+
+        assert_eq!(
+            Comment::parse(TokenStream::from("// hello world\n")),
+            Ok((
+                Comment::LineComment(LineComment(TokenStream::from((2, " hello world")))),
+                TokenStream::from((15, ""))
+            ))
+        );
+
+        assert_eq!(
+            Comment::parse(TokenStream::from("/** \n\nhello*/")),
+            Ok((
+                Comment::OutBlockDoc(OutBlockDoc(TokenStream::from((3, " \n\nhello")))),
+                TokenStream::from((13, ""))
+            ))
+        );
+
+        assert_eq!(
+            Comment::parse(TokenStream::from("/* \n\nhello*/")),
+            Ok((
+                Comment::BlockComment(BlockComment(TokenStream::from((2, " \n\nhello")))),
+                TokenStream::from((12, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_comments() {
+        assert_eq!(
+            CommentList::parse(TokenStream::from(
+                r#"/// hello
+                
+
+                /// world
+                "#
+            )),
+            Ok((
+                CommentList(vec![
+                    Comment::OutlineDoc(OutlineDoc(TokenStream::from((3, " hello")))),
+                    Comment::OutlineDoc(OutlineDoc(TokenStream::from((47, " world"))))
+                ]),
+                TokenStream::from((70, ""))
+            ))
+        );
+    }
 }
