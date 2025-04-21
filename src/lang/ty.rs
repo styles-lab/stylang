@@ -74,9 +74,11 @@ where
 {
     /// delimiter start token `[`
     pub delimiter_start: LeftBracket<I>,
+    /// space after delimiter start.
     pub s1: Option<S<I>>,
     /// Real returned type.
     pub ty: Box<Type<I>>,
+    /// space before delimiter end.
     pub s2: Option<S<I>>,
     /// delimiter end token `]`
     pub delimiter_end: RightBracket<I>,
@@ -110,6 +112,7 @@ where
     Slice(TypeSlice<I>),
     Array(TypeArray<I>),
     Fn(TypeFn<I>),
+    Ident(Ident<I>),
 }
 
 #[cfg(test)]
