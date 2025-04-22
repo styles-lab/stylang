@@ -71,7 +71,7 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{Comma, I32, TokenStream};
+    use crate::lang::{Comma, I32, Lit, LitStr, TokenStream};
 
     use super::Punctuated;
 
@@ -94,6 +94,20 @@ mod tests {
                     last: Some(Box::new(I32(TokenStream::from((11, "i32")))))
                 },
                 TokenStream::from((14, ""))
+            ))
+        );
+
+        assert_eq!(
+            Punctuated::<Lit<_>, Comma<_>>::parse(TokenStream::from(r#""hello world""#)),
+            Ok((
+                Punctuated {
+                    items: vec![],
+                    last: Some(Box::new(Lit::String(LitStr(TokenStream::from((
+                        1,
+                        "hello world"
+                    ))))))
+                },
+                TokenStream::from((13, ""))
             ))
         );
     }

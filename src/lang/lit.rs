@@ -10,8 +10,6 @@ pub enum Lit<I>
 where
     I: StylangInput,
 {
-    /// A literial `number` value.
-    Num(LitNum<I>),
     /// A literial `hex number` value.
     Hex(LitHexNum<I>),
     /// A literial `string` value.
@@ -20,4 +18,6 @@ where
     Color(LitColor<I>),
     /// A literial `none` value.
     None(KeywordNone<I>),
+    /// A literial `number` value.
+    Num(LitNum<I>),
 }

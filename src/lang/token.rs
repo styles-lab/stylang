@@ -297,6 +297,7 @@ define_token!(+ => Plus);
 define_token!(- => Minus);
 define_token!(_ => Underscore);
 define_token!(? => QuestionMark);
+define_token!(@ => At);
 define_token!(-> => ArrowRight);
 define_token!(fn => KeywordFn);
 define_token!(pub => KeywordPub);
