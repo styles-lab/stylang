@@ -30,12 +30,8 @@ pub struct TypeReturn<I>
 where
     I: StylangInput,
 {
-    /// space before `->`
-    pub s1: Option<S<I>>,
     /// required keyword `->`
-    pub arrow_right: ArrowRight<I>,
-    /// space after `->`
-    pub s2: Option<S<I>>,
+    pub arrow_right: (Option<S<I>>, ArrowRight<I>, Option<S<I>>),
     /// Real returned type.
     pub ty: Box<Type<I>>,
 }
@@ -227,10 +223,12 @@ mod tests {
                     },
                     delimiter_end: RightParenthesis(TokenStream::from((23, ")"))),
                     output: Some(TypeReturn {
-                        arrow_right: ArrowRight(TokenStream::from((25, "->"))),
+                        arrow_right: (
+                            Some(S(TokenStream::from((24, " ")))),
+                            ArrowRight(TokenStream::from((25, "->"))),
+                            Some(S(TokenStream::from((27, " "))))
+                        ),
                         ty: Box::new(Type::View(KeywordView(TokenStream::from((28, "view"))))),
-                        s1: Some(S(TokenStream::from((24, " ")))),
-                        s2: Some(S(TokenStream::from((27, " ")))),
                     })
                 }),
                 TokenStream::from((32, ""))
