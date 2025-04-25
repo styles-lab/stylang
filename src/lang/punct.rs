@@ -35,12 +35,12 @@ where
 {
     type Error = ParseError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
         let mut items = vec![];
 
-        let (_, mut input) = S::into_parser().ok().parse(input)?;
-
         loop {
+            (_, input) = S::into_parser().ok().parse(input)?;
+
             let item;
 
             (item, input) = T::into_parser().ok().parse(input)?;
@@ -52,6 +52,7 @@ where
                 if let Some(punctuated) = punctuated {
                     items.push((item, punctuated));
                 } else {
+                    (_, input) = S::into_parser().ok().parse(input)?;
                     return Ok((
                         Punctuated {
                             items,

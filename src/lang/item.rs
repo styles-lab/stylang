@@ -117,9 +117,9 @@ where
     /// meta data list.
     pub meta_list: MetaList<I>,
     /// variant name.
-    pub name: Ident<I>,
+    pub name: (Ident<I>, Option<S<I>>),
     /// variant fields
-    pub fields: Fields<I>,
+    pub fields: Option<Fields<I>>,
 }
 
 /// Enum item.
@@ -135,13 +135,14 @@ where
     /// Visibility keyword.
     pub vs: Option<(Visibility<I>, S<I>)>,
     /// keyword token: `enum`
-    pub keyword: KeywordEnum<I>,
-    pub s1: Option<S<I>>,
+    pub keyword: (KeywordEnum<I>, S<I>),
+    /// data name.
+    pub ident: (Ident<I>, Option<S<I>>),
+    /// delimiter `{`
     pub delimiter_start: LeftCurlyBracket<I>,
-    pub s2: Option<S<I>>,
     ///  variant list.
     pub variants: Punctuated<Variant<I>, Comma<I>>,
-    pub s3: Option<S<I>>,
+    /// delimiter `}`
     pub delimiter_end: RightCurlyBracket<I>,
 }
 
@@ -163,8 +164,8 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        ArrowRight, At, Attr, Comment, KeywordColor, KeywordFn, KeywordString, KeywordView, Meta,
-        OutlineDoc, TokenStream,
+        ArrowRight, At, Attr, Comment, I32, KeywordColor, KeywordFn, KeywordString, KeywordView,
+        Meta, OutlineDoc, TokenStream,
         ty::{TypeFn, TypeReturn},
     };
 
@@ -370,152 +371,170 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn test_enum() {
-    //     assert_eq!(
-    //         ItemEnum::parse(TokenStream::from(
-    //             r#"
-    //             /// This property describes decorations that are added to the text of an element.
-    //             enum TextDecoration {
-    //                 Underline,
-    //                 Overline,
-    //                 LineThrough,
-    //                 Blink,
-    //             }
-    //             "#
-    //         )),
-    //         Ok((
-    //             ItemEnum {
-    //                 attr_comment_list: vec![AttrOrComment::Comment(Comment(TokenStream::from((
-    //                     20,
-    //                     " This property describes decorations that are added to the text of an element."
-    //                 )))),],
-    //                 keyword: TokenStream::from((115, "enum")),
-    //                 ident: Ident(TokenStream::from((120, "TextDecoration"))),
-    //                 delimiter: Delimiter {
-    //                     start: TokenStream::from((135, "{")),
-    //                     end: TokenStream::from((274, "}"))
-    //                 },
-    //                 variants: Punctuated {
-    //                     items: vec![
-    //                         (
-    //                             Variant {
-    //                                 attr_comment_list: vec![],
-    //                                 ident: Ident(TokenStream::from((157, "Underline"))),
-    //                                 fields: None
-    //                             },
-    //                             TokenStream::from((166, ","))
-    //                         ),
-    //                         (
-    //                             Variant {
-    //                                 attr_comment_list: vec![],
-    //                                 ident: Ident(TokenStream::from((188, "Overline"))),
-    //                                 fields: None
-    //                             },
-    //                             TokenStream::from((196, ","))
-    //                         ),
-    //                         (
-    //                             Variant {
-    //                                 attr_comment_list: vec![],
-    //                                 ident: Ident(TokenStream::from((218, "LineThrough"))),
-    //                                 fields: None
-    //                             },
-    //                             TokenStream::from((229, ","))
-    //                         ),
-    //                         (
-    //                             Variant {
-    //                                 attr_comment_list: vec![],
-    //                                 ident: Ident(TokenStream::from((251, "Blink"))),
-    //                                 fields: None
-    //                             },
-    //                             TokenStream::from((256, ","))
-    //                         )
-    //                     ],
-    //                     last: None
-    //                 }
-    //             },
-    //             TokenStream::from((275, "\n                "))
-    //         ))
-    //     );
-    // }
+    #[test]
+    fn test_enum() {
+        assert_eq!(
+            ItemEnum::parse(TokenStream::from(
+                r#"
+                /// This property describes decorations that are added to the text of an element.
+                enum TextDecoration {
+                    Underline,
+                    Overline,
+                    LineThrough,
+                    Blink,
+                }
+                "#
+            )),
+            Ok((
+                ItemEnum {
+                    meta_list: MetaList(vec![Meta::Comment(Comment::OutlineDoc(OutlineDoc(
+                        TokenStream::from((
+                            20,
+                            " This property describes decorations that are added to the text of an element."
+                        ))
+                    )))]),
+                    vs: None,
+                    keyword: (
+                        KeywordEnum(TokenStream::from((115, "enum"))),
+                        S(TokenStream::from((119, " ")))
+                    ),
+                    ident: (
+                        Ident(TokenStream::from((120, "TextDecoration"))),
+                        Some(S(TokenStream::from((134, " "))))
+                    ),
+                    delimiter_start: LeftCurlyBracket(TokenStream::from((135, "{"))),
+                    variants: Punctuated {
+                        items: vec![
+                            (
+                                Variant {
+                                    meta_list: MetaList(vec![]),
+                                    name: (Ident(TokenStream::from((157, "Underline"))), None),
+                                    fields: None
+                                },
+                                Comma(TokenStream::from((166, ",")))
+                            ),
+                            (
+                                Variant {
+                                    meta_list: MetaList(vec![]),
+                                    name: (Ident(TokenStream::from((188, "Overline"))), None),
+                                    fields: None
+                                },
+                                Comma(TokenStream::from((196, ",")))
+                            ),
+                            (
+                                Variant {
+                                    meta_list: MetaList(vec![]),
+                                    name: (Ident(TokenStream::from((218, "LineThrough"))), None),
+                                    fields: None
+                                },
+                                Comma(TokenStream::from((229, ",")))
+                            ),
+                            (
+                                Variant {
+                                    meta_list: MetaList(vec![]),
+                                    name: (Ident(TokenStream::from((251, "Blink"))), None),
+                                    fields: None
+                                },
+                                Comma(TokenStream::from((256, ",")))
+                            )
+                        ],
+                        last: None
+                    },
+                    delimiter_end: RightCurlyBracket(TokenStream::from((274, "}")))
+                },
+                TokenStream::from((275, "\n                "))
+            ))
+        );
+    }
 
-    // #[test]
-    // fn test_enum2() {
-    //     assert_eq!(
-    //         ItemEnum::parse(TokenStream::from(r#"enum A { V(i32) }"#)),
-    //         Ok((
-    //             ItemEnum {
-    //                 attr_comment_list: vec![],
-    //                 keyword: TokenStream::from((0, "enum")),
-    //                 ident: Ident(TokenStream::from((5, "A"))),
-    //                 delimiter: Delimiter {
-    //                     start: TokenStream::from((7, "{")),
-    //                     end: TokenStream::from((16, "}")),
-    //                 },
-    //                 variants: Punctuated {
-    //                     items: vec![],
-    //                     last: Some(Box::new(Variant {
-    //                         attr_comment_list: vec![],
-    //                         ident: Ident(TokenStream::from((9, "V"))),
-    //                         fields: Some(Fields::Unamed {
-    //                             delimiter: Delimiter {
-    //                                 start: TokenStream::from((10, "(")),
-    //                                 end: TokenStream::from((14, ")")),
-    //                             },
-    //                             fields: Punctuated {
-    //                                 items: vec![],
-    //                                 last: Some(Box::new(UnameField {
-    //                                     attr_comment_list: vec![],
-    //                                     ty: Type::Primary(TokenStream::from((11, "i32")))
-    //                                 }))
-    //                             }
-    //                         })
-    //                     }))
-    //                 }
-    //             },
-    //             TokenStream::from((17, ""))
-    //         ))
-    //     );
-    // }
+    #[test]
+    fn test_enum2() {
+        assert_eq!(
+            ItemEnum::parse(TokenStream::from(r#"enum A { V(i32) }"#)),
+            Ok((
+                ItemEnum {
+                    meta_list: MetaList(vec![]),
+                    vs: None,
+                    keyword: (
+                        KeywordEnum(TokenStream::from((0, "enum"))),
+                        S(TokenStream::from((4, " ")))
+                    ),
+                    ident: (
+                        Ident(TokenStream::from((5, "A"))),
+                        Some(S(TokenStream::from((6, " "))))
+                    ),
+                    delimiter_start: LeftCurlyBracket(TokenStream::from((7, "{"))),
+                    variants: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(Variant {
+                            meta_list: MetaList(vec![]),
+                            name: (Ident(TokenStream::from((9, "V"))), None),
+                            fields: Some(Fields::Uname {
+                                delimiter_start: LeftParenthesis(TokenStream::from((10, "("))),
+                                fields: Punctuated {
+                                    items: vec![],
+                                    last: Some(Box::new(UnameField {
+                                        meta_list: MetaList(vec![]),
+                                        vs: None,
+                                        ty: Type::I32(I32(TokenStream::from((11, "i32"))))
+                                    })),
+                                },
+                                delimiter_end: RightParenthesis(TokenStream::from((14, ")")))
+                            })
+                        }))
+                    },
+                    delimiter_end: RightCurlyBracket(TokenStream::from((16, "}")))
+                },
+                TokenStream::from((17, ""))
+            ))
+        );
+    }
 
-    // #[test]
-    // fn test_enum3() {
-    //     assert_eq!(
-    //         ItemEnum::parse(TokenStream::from(r#"enum A { V {v:i32} }"#)),
-    //         Ok((
-    //             ItemEnum {
-    //                 attr_comment_list: vec![],
-    //                 keyword: TokenStream::from((0, "enum")),
-    //                 ident: Ident(TokenStream::from((5, "A"))),
-    //                 delimiter: Delimiter {
-    //                     start: TokenStream::from((7, "{")),
-    //                     end: TokenStream::from((19, "}")),
-    //                 },
-    //                 variants: Punctuated {
-    //                     items: vec![],
-    //                     last: Some(Box::new(Variant {
-    //                         attr_comment_list: vec![],
-    //                         ident: Ident(TokenStream::from((9, "V"))),
-    //                         fields: Some(Fields::Named {
-    //                             delimiter: Delimiter {
-    //                                 start: TokenStream::from((11, "{")),
-    //                                 end: TokenStream::from((17, "}")),
-    //                             },
-    //                             fields: Punctuated {
-    //                                 items: vec![],
-    //                                 last: Some(Box::new(NamedField {
-    //                                     attr_comment_list: vec![],
-    //                                     ident: Ident(TokenStream::from((12, "v"))),
-    //                                     colon: TokenStream::from((13, ":")),
-    //                                     ty: Type::Primary(TokenStream::from((14, "i32")))
-    //                                 }))
-    //                             }
-    //                         })
-    //                     }))
-    //                 }
-    //             },
-    //             TokenStream::from((20, ""))
-    //         ))
-    //     );
-    // }
+    #[test]
+    fn test_enum3() {
+        assert_eq!(
+            ItemEnum::parse(TokenStream::from(r#"enum A { V {v:i32} }"#)),
+            Ok((
+                ItemEnum {
+                    meta_list: MetaList(vec![]),
+                    vs: None,
+                    keyword: (
+                        KeywordEnum(TokenStream::from((0, "enum"))),
+                        S(TokenStream::from((4, " ")))
+                    ),
+                    ident: (
+                        Ident(TokenStream::from((5, "A"))),
+                        Some(S(TokenStream::from((6, " "))))
+                    ),
+                    delimiter_start: LeftCurlyBracket(TokenStream::from((7, "{"))),
+                    variants: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(Variant {
+                            meta_list: MetaList(vec![]),
+                            name: (
+                                Ident(TokenStream::from((9, "V"))),
+                                Some(S(TokenStream::from((10, " "))))
+                            ),
+                            fields: Some(Fields::Named {
+                                delimiter_start: LeftCurlyBracket(TokenStream::from((11, "{"))),
+                                fields: Punctuated {
+                                    items: vec![],
+                                    last: Some(Box::new(NamedField {
+                                        meta_list: MetaList(vec![]),
+                                        vs: None,
+                                        name: Ident(TokenStream::from((12, "v"))),
+                                        colon: (None, Colon(TokenStream::from((13, ":"))), None),
+                                        ty: Type::I32(I32(TokenStream::from((14, "i32"))))
+                                    })),
+                                },
+                                delimiter_end: RightCurlyBracket(TokenStream::from((17, "}")))
+                            })
+                        }))
+                    },
+                    delimiter_end: RightCurlyBracket(TokenStream::from((19, "}")))
+                },
+                TokenStream::from((20, ""))
+            ))
+        );
+    }
 }

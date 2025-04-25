@@ -33,9 +33,7 @@ where
     I: StylangInput,
 {
     pub delimiter_start: LeftParenthesis<I>,
-    pub s1: Option<S<I>>,
     pub params: Punctuated<Lit<I>, Comma<I>>,
-    pub s2: Option<S<I>>,
     pub delimiter_end: RightParenthesis<I>,
 }
 
@@ -217,7 +215,6 @@ mod tests {
                     s1: Some(S(TokenStream::from((4, " ")))),
                     params: Some(LitParams {
                         delimiter_start: LeftParenthesis(TokenStream::from((5, "("))),
-                        s1: Some(S(TokenStream::from((6, " ")))),
                         params: Punctuated {
                             items: vec![],
                             last: Some(Box::new(Lit::String(LitStr(TokenStream::from((
@@ -225,7 +222,6 @@ mod tests {
                                 "erc20.json"
                             ))))))
                         },
-                        s2: Some(S(TokenStream::from((19, " ")))),
                         delimiter_end: RightParenthesis(TokenStream::from((20, ")"))),
                     })
                 },
