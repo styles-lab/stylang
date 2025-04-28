@@ -291,6 +291,8 @@ macro_rules! define_token {
 define_token!(. => Dot);
 define_token!(, => Comma);
 define_token!(: => Colon);
+define_token!(* => Star);
+define_token!(:: => PathSep);
 define_token!(; => SemiColon);
 define_token!(# => NumberSign);
 define_token!(+ => Plus);
@@ -314,6 +316,7 @@ define_token!(string => KeywordString);
 define_token!(angle => KeywordAngle);
 define_token!(none => KeywordNone);
 define_token!(view => KeywordView);
+define_token!(extern => KeywordExtern);
 define_token!(if => KeywordIf);
 define_token!(else => KeywordElse);
 define_token!(elif => KeywordElif);

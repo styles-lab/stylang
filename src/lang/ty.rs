@@ -1,4 +1,4 @@
-use parserc::derive_parse;
+use parserc::{Parse, Parser, ParserExt, derive_parse};
 
 use super::*;
 
@@ -80,6 +80,50 @@ where
     pub delimiter_end: RightBracket<I>,
 }
 
+/// Type path.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct TypePath<I>
+where
+    I: StylangInput,
+{
+    /// first segment .
+    pub first: Ident<I>,
+    /// The remaining segments of the path.
+    pub rest: Vec<(PathSep<I>, Ident<I>)>,
+}
+
+impl<I> Parse<I> for TypePath<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (first, mut input) = Ident::parse(input)?;
+
+        let mut rest = vec![];
+
+        loop {
+            (_, input) = S::into_parser().ok().parse(input)?;
+            let sep;
+            (sep, input) = PathSep::into_parser().ok().parse(input)?;
+
+            if let Some(sep) = sep {
+                (_, input) = S::into_parser().ok().parse(input)?;
+                let ident;
+                (ident, input) = Ident::into_parser().fatal().parse(input)?;
+                rest.push((sep, ident));
+                continue;
+            }
+
+            break;
+        }
+
+        Ok((Self { first, rest }, input))
+    }
+}
+
 /// Type declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -100,6 +144,8 @@ where
     U128(U128<I>),
     BigInt(BigInt<I>),
     BigNum(BigNum<I>),
+    F32(F32<I>),
+    F64(F64<I>),
     Length(KeywordLength<I>),
     String(KeywordString<I>),
     Angle(KeywordAngle<I>),
@@ -108,7 +154,7 @@ where
     Slice(TypeSlice<I>),
     Array(TypeArray<I>),
     Fn(TypeFn<I>),
-    Ident(Ident<I>),
+    Path(TypePath<I>),
 }
 
 #[cfg(test)]

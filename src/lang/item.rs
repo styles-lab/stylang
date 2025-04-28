@@ -1,9 +1,11 @@
 use parserc::derive_parse;
 
 use super::{
-    Colon, Comma, Ident, KeywordClass, KeywordData, KeywordEnum, LeftCurlyBracket, LeftParenthesis,
-    MetaList, ParseError, Punctuated, RightCurlyBracket, RightParenthesis, S, SemiColon,
-    StylangInput, Visibility, ty::Type,
+    Colon, Comma, Ident, KeywordClass, KeywordData, KeywordEnum, KeywordExtern, KeywordFn,
+    KeywordMod, KeywordUse, LeftCurlyBracket, LeftParenthesis, MetaList, ParseError, PathSep,
+    Punctuated, RightCurlyBracket, RightParenthesis, S, SemiColon, Star, StylangInput, Visibility,
+    patt::{PattPath, PattType},
+    ty::{Type, TypeReturn},
 };
 
 /// named field patt.
@@ -146,6 +148,146 @@ where
     pub delimiter_end: RightCurlyBracket<I>,
 }
 
+/// Fn arg.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub enum FnArg<I>
+where
+    I: StylangInput,
+{
+    Type(PattType<I>),
+    Path(PattPath<I>),
+}
+
+/// Fn Block.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub enum FnBlock<I>
+where
+    I: StylangInput,
+{
+    SemiColon(SemiColon<I>),
+}
+
+/// Fn item.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct ItemFn<I>
+where
+    I: StylangInput,
+{
+    /// meta data list.
+    pub meta_list: MetaList<I>,
+    /// Visibility keyword.
+    pub vs: Option<(Visibility<I>, S<I>)>,
+    /// keyword token: `extern`
+    pub extern_token: Option<(KeywordExtern<I>, S<I>)>,
+    /// keyword token: `fn`
+    pub keyword: (KeywordFn<I>, S<I>),
+    /// function name.
+    pub ident: (Ident<I>, Option<S<I>>),
+    /// delimiter `(`
+    pub delimiter_start: LeftParenthesis<I>,
+    /// argument list.
+    pub args: Punctuated<FnArg<I>, Comma<I>>,
+    /// delimiter `)`
+    pub delimiter_end: RightParenthesis<I>,
+    /// returns type part.
+    pub return_type: Option<TypeReturn<I>>,
+    /// function block part.
+    pub block: FnBlock<I>,
+}
+
+/// A module declaration.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct Mod<I>
+where
+    I: StylangInput,
+{
+    /// optional attribute/comment list.
+    pub meta_list: MetaList<I>,
+    /// visibility token,
+    pub vis: Option<(Visibility<I>, S<I>)>,
+    /// keyword: `mod`
+    pub keyword: (KeywordMod<I>, S<I>),
+    /// mod name.
+    pub ident: (Ident<I>, Option<S<I>>),
+    /// semi_colon token: `;`
+    pub semi_colon: SemiColon<I>,
+}
+
+/// A module declaration.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub enum UseTree<I>
+where
+    I: StylangInput,
+{
+    /// A path prefix of imports in a use item: std::....
+    Path(UsePath<I>),
+    /// An identifier imported by a use item: HashMap.
+    Name(Ident<I>),
+    /// A glob import in a use item: *.
+    Glob(Star<I>),
+    /// A braced group of imports in a use item: {A, B, C}.
+    Group(UseGroup<I>),
+}
+
+/// a path prefix of imports in a use item: std::....
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct UsePath<I>
+where
+    I: StylangInput,
+{
+    pub ident: Ident<I>,
+    pub separator: (Option<S<I>>, PathSep<I>, Option<S<I>>),
+    pub tree: Box<UseTree<I>>,
+}
+
+/// A braced group of imports in a use item: {A, B, C}.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct UseGroup<I>
+where
+    I: StylangInput,
+{
+    /// brace delimiter: `{`
+    pub delimiter_start: LeftCurlyBracket<I>,
+    /// punctuated group items: `A,B, C`
+    pub items: Punctuated<UseTree<I>, Comma<I>>,
+    /// brace delimiter end: `}`
+    pub delimiter_end: RightCurlyBracket<I>,
+}
+
+/// A use statement: `use std::...;`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct Use<I>
+where
+    I: StylangInput,
+{
+    /// optional attribute/comment list.
+    pub meta_list: MetaList<I>,
+    /// visibility token,
+    pub vis: (Visibility<I>, S<I>),
+    /// keyword: `use`
+    pub keyword: (KeywordUse<I>, S<I>),
+    /// mod name.
+    pub tree: UseTree<I>,
+    /// semi_colon token: `;`
+    pub semi_colon: SemiColon<I>,
+}
+
 /// stylang item variant.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -157,6 +299,9 @@ where
     Class(ItemClass<I>),
     Data(ItemData<I>),
     Enum(ItemEnum<I>),
+    Fn(ItemFn<I>),
+    Mod(Mod<I>),
+    Use(Use<I>),
 }
 
 #[cfg(test)]
@@ -164,9 +309,9 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        ArrowRight, At, Attr, Comment, I32, KeywordColor, KeywordFn, KeywordString, KeywordView,
-        Meta, OutlineDoc, TokenStream,
-        ty::{TypeFn, TypeReturn},
+        ArrowRight, At, Attr, Comment, F32, I32, KeywordColor, KeywordFn, KeywordString,
+        KeywordView, Meta, OutlineDoc, TokenStream,
+        ty::{TypeFn, TypePath, TypeReturn},
     };
 
     use super::*;
@@ -534,6 +679,125 @@ mod tests {
                     delimiter_end: RightCurlyBracket(TokenStream::from((19, "}")))
                 },
                 TokenStream::from((20, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn parse_fn_without_returns() {
+        assert_eq!(
+            ItemFn::parse(TokenStream::from(
+                "@platform extern fn label(Label, TextLayout, Fill);",
+            )),
+            Ok((
+                ItemFn {
+                    meta_list: MetaList(vec![Meta::Attr(Attr {
+                        keyword: At(TokenStream::from("@")),
+                        ident: Ident(TokenStream::from((1, "platform"))),
+                        s1: Some(S(TokenStream::from((9, " ")))),
+                        params: None
+                    })]),
+                    vs: None,
+                    extern_token: Some((
+                        KeywordExtern(TokenStream::from((10, "extern")),),
+                        S(TokenStream::from((16, " ")))
+                    )),
+                    keyword: (
+                        KeywordFn(TokenStream::from((17, "fn"))),
+                        S(TokenStream::from((19, " ")))
+                    ),
+                    ident: (Ident(TokenStream::from((20, "label"))), None),
+                    delimiter_start: LeftParenthesis(TokenStream::from((25, "("))),
+                    args: Punctuated {
+                        items: vec![
+                            (
+                                FnArg::Path(PattPath {
+                                    meta_list: MetaList(vec![]),
+                                    path: TypePath {
+                                        first: Ident(TokenStream::from((26, "Label"))),
+                                        rest: vec![]
+                                    }
+                                }),
+                                Comma(TokenStream::from((31, ",")))
+                            ),
+                            (
+                                FnArg::Path(PattPath {
+                                    meta_list: MetaList(vec![]),
+                                    path: TypePath {
+                                        first: Ident(TokenStream::from((33, "TextLayout"))),
+                                        rest: vec![]
+                                    }
+                                }),
+                                Comma(TokenStream::from((43, ",")))
+                            )
+                        ],
+                        last: Some(Box::new(FnArg::Path(PattPath {
+                            meta_list: MetaList(vec![]),
+                            path: TypePath {
+                                first: Ident(TokenStream::from((45, "Fill"))),
+                                rest: vec![]
+                            }
+                        }))),
+                    },
+                    delimiter_end: RightParenthesis(TokenStream::from((49, ")"))),
+                    return_type: None,
+                    block: FnBlock::SemiColon(SemiColon(TokenStream::from((50, ";"))))
+                },
+                TokenStream::from((51, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn parse_fn_with_return() {
+        assert_eq!(
+            ItemFn::parse(TokenStream::from(
+                "extern fn label(@option len: f32) -> view;"
+            )),
+            Ok((
+                ItemFn {
+                    meta_list: MetaList(vec![]),
+                    vs: None,
+                    extern_token: Some((
+                        KeywordExtern(TokenStream::from((0, "extern")),),
+                        S(TokenStream::from((6, " ")))
+                    )),
+                    keyword: (
+                        KeywordFn(TokenStream::from((7, "fn"))),
+                        S(TokenStream::from((9, " ")))
+                    ),
+                    ident: (Ident(TokenStream::from((10, "label"))), None),
+                    delimiter_start: LeftParenthesis(TokenStream::from((15, "("))),
+                    args: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(FnArg::Type(PattType {
+                            meta_list: MetaList(vec![Meta::Attr(Attr {
+                                keyword: At(TokenStream::from((16, "@"))),
+                                ident: Ident(TokenStream::from((17, "option"))),
+                                s1: Some(S(TokenStream::from((23, " ")))),
+                                params: None
+                            })]),
+                            name: Ident(TokenStream::from((24, "len"))),
+                            colon_token: (
+                                None,
+                                Colon(TokenStream::from((27, ":"))),
+                                Some(S(TokenStream::from((28, " "))))
+                            ),
+                            ty: Box::new(Type::F32(F32(TokenStream::from((29, "f32")))))
+                        }))),
+                    },
+                    delimiter_end: RightParenthesis(TokenStream::from((32, ")"))),
+                    return_type: Some(TypeReturn {
+                        arrow_right: (
+                            Some(S(TokenStream::from((33, " ")))),
+                            ArrowRight(TokenStream::from((34, "->"))),
+                            Some(S(TokenStream::from((36, " "))))
+                        ),
+                        ty: Box::new(Type::View(KeywordView(TokenStream::from((37, "view"))))),
+                    }),
+                    block: FnBlock::SemiColon(SemiColon(TokenStream::from((41, ";"))))
+                },
+                TokenStream::from((42, ""))
             ))
         );
     }
