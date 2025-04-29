@@ -140,6 +140,51 @@ where
     }
 }
 
+/// token `]`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct SlashGt<I>(pub I);
+
+impl<I> parserc::Parse<I> for SlashGt<I>
+where
+    I: super::StylangInput,
+{
+    type Error = super::ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        use parserc::{Parser, ParserExt};
+
+        parserc::keyword("/>")
+            .map(|v| Self(v))
+            .map_err(|input: I, _: parserc::Kind| {
+                super::ParseError::Expect(super::TokenError::Keyword("/>"), input.span())
+            })
+            .parse(input)
+    }
+}
+
+/// token `</`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct LtSlash<I>(pub I);
+
+impl<I> parserc::Parse<I> for LtSlash<I>
+where
+    I: super::StylangInput,
+{
+    type Error = super::ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        use parserc::{Parser, ParserExt};
+
+        parserc::keyword("</")
+            .map(|v| Self(v))
+            .map_err(|input: I, _: parserc::Kind| {
+                super::ParseError::Expect(super::TokenError::Keyword("</"), input.span())
+            })
+            .parse(input)
+    }
+}
 /// `S` characters
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -301,6 +346,8 @@ define_token!(_ => Underscore);
 define_token!(? => QuestionMark);
 define_token!(@ => At);
 define_token!(= => Eq);
+define_token!(< => Lt);
+define_token!(> => Gt);
 define_token!(-> => ArrowRight);
 define_token!(fn => KeywordFn);
 define_token!(pub => KeywordPub);

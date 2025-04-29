@@ -25,6 +25,7 @@ mod vs;
 pub use vs::*;
 
 mod ty;
+pub use ty::*;
 
 mod punct;
 pub use punct::*;
