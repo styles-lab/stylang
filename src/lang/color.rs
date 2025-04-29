@@ -25,23 +25,13 @@ pub struct Rgb<I>
 where
     I: StylangInput,
 {
-    pub keyword: KeywordRgb<I>,
-    pub s1: Option<S<I>>,
+    pub keyword: (KeywordRgb<I>, Option<S<I>>),
     pub delimiter_start: LeftParenthesis<I>,
-    pub s2: Option<S<I>>,
-    pub r: Digits<I>,
-    pub r_percent: Option<Percent<I>>,
-    pub s3: Option<S<I>>,
-    pub comma1: Comma<I>,
-    pub s4: Option<S<I>>,
-    pub g: Digits<I>,
-    pub g_percent: Option<Percent<I>>,
-    pub s5: Option<S<I>>,
-    pub comma2: Comma<I>,
-    pub s6: Option<S<I>>,
-    pub b: Digits<I>,
-    pub b_percent: Option<Percent<I>>,
-    pub s7: Option<S<I>>,
+    pub r: (Option<S<I>>, Digits<I>, Option<Percent<I>>),
+    pub comma1: (Option<S<I>>, Comma<I>, Option<S<I>>),
+    pub g: (Digits<I>, Option<Percent<I>>),
+    pub comma2: (Option<S<I>>, Comma<I>, Option<S<I>>),
+    pub b: (Digits<I>, Option<Percent<I>>, Option<S<I>>),
     pub delimiter_end: RightParenthesis<I>,
 }
 
@@ -88,23 +78,23 @@ mod tests {
             Rgb::parse(TokenStream::from("rgb(255, 255, 255)")),
             Ok((
                 Rgb {
-                    keyword: KeywordRgb(TokenStream::from("rgb")),
-                    s1: None,
+                    keyword: (KeywordRgb(TokenStream::from("rgb")), None),
                     delimiter_start: LeftParenthesis(TokenStream::from((3, "("))),
-                    s2: None,
-                    r: Digits(TokenStream::from((4, "255"))),
-                    r_percent: None,
-                    s3: None,
-                    comma1: Comma(TokenStream::from((7, ","))),
-                    s4: Some(S(TokenStream::from((8, " ")))),
-                    g: Digits(TokenStream::from((9, "255"))),
-                    g_percent: None,
-                    s5: None,
-                    comma2: Comma(TokenStream::from((12, ","))),
-                    s6: Some(S(TokenStream::from((13, " ")))),
-                    b: Digits(TokenStream::from((14, "255"))),
-                    b_percent: None,
-                    s7: None,
+                    r: (None, Digits(TokenStream::from((4, "255"))), None),
+                    comma1: (
+                        None,
+                        Comma(TokenStream::from((7, ","))),
+                        Some(S(TokenStream::from((8, " "))))
+                    ),
+
+                    g: (Digits(TokenStream::from((9, "255"))), None),
+                    comma2: (
+                        None,
+                        Comma(TokenStream::from((12, ","))),
+                        Some(S(TokenStream::from((13, " "))))
+                    ),
+
+                    b: (Digits(TokenStream::from((14, "255"))), None, None),
                     delimiter_end: RightParenthesis(TokenStream::from((17, ")")))
                 },
                 TokenStream::from((18, ""))
@@ -115,23 +105,36 @@ mod tests {
             Rgb::parse(TokenStream::from("rgb(255%, 255%, 255%)")),
             Ok((
                 Rgb {
-                    keyword: KeywordRgb(TokenStream::from("rgb")),
-                    s1: None,
+                    keyword: (KeywordRgb(TokenStream::from("rgb")), None),
                     delimiter_start: LeftParenthesis(TokenStream::from((3, "("))),
-                    s2: None,
-                    r: Digits(TokenStream::from((4, "255"))),
-                    r_percent: Some(Percent(TokenStream::from((7, "%")))),
-                    s3: None,
-                    comma1: Comma(TokenStream::from((8, ","))),
-                    s4: Some(S(TokenStream::from((9, " ")))),
-                    g: Digits(TokenStream::from((10, "255"))),
-                    g_percent: Some(Percent(TokenStream::from((13, "%")))),
-                    s5: None,
-                    comma2: Comma(TokenStream::from((14, ","))),
-                    s6: Some(S(TokenStream::from((15, " ")))),
-                    b: Digits(TokenStream::from((16, "255"))),
-                    b_percent: Some(Percent(TokenStream::from((19, "%")))),
-                    s7: None,
+                    r: (
+                        None,
+                        Digits(TokenStream::from((4, "255"))),
+                        Some(Percent(TokenStream::from((7, "%"))))
+                    ),
+
+                    comma1: (
+                        None,
+                        Comma(TokenStream::from((8, ","))),
+                        Some(S(TokenStream::from((9, " "))))
+                    ),
+                    g: (
+                        Digits(TokenStream::from((10, "255"))),
+                        Some(Percent(TokenStream::from((13, "%"))))
+                    ),
+
+                    comma2: (
+                        None,
+                        Comma(TokenStream::from((14, ","))),
+                        Some(S(TokenStream::from((15, " "))))
+                    ),
+
+                    b: (
+                        Digits(TokenStream::from((16, "255"))),
+                        Some(Percent(TokenStream::from((19, "%")))),
+                        None
+                    ),
+
                     delimiter_end: RightParenthesis(TokenStream::from((20, ")")))
                 },
                 TokenStream::from((21, ""))
