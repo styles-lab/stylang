@@ -36,3 +36,15 @@ where
     /// type declaration.
     pub path: TypePath<I>,
 }
+
+/// A pattern in a local binding, function signature, match expression, or various other places.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub enum Patt<I>
+where
+    I: StylangInput,
+{
+    Type(PattType<I>),
+    Path(PattPath<I>),
+}

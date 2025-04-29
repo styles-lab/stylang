@@ -33,6 +33,7 @@ mod ident;
 pub use ident::*;
 
 mod expr;
+pub use expr::*;
 
 mod meta;
 pub use meta::*;
@@ -41,6 +42,10 @@ mod item;
 pub use item::*;
 
 mod patt;
+pub use patt::*;
 
 mod parse;
 pub use parse::*;
+
+mod stmt;
+pub use stmt::*;

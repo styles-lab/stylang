@@ -1,4 +1,4 @@
-use parserc::derive_parse;
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use super::*;
 
@@ -66,7 +66,6 @@ where
 /// unit part of number.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
 pub struct LitNum<I>
 where
     I: StylangInput,
@@ -84,6 +83,48 @@ where
     /// optional unit part.
     pub unit: Option<NumUnit<I>>,
 }
+
+impl<I> Parse<I> for LitNum<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (sign, input) = Sign::into_parser().ok().parse(input)?;
+        let (trunc, input) = Digits::into_parser().ok().parse(input)?;
+        let (dot, input) = Dot::into_parser().ok().parse(input)?;
+
+        let (fract, input) = if dot.is_some() {
+            Digits::into_parser().ok().parse(input)?
+        } else {
+            (None, input)
+        };
+
+        if trunc.is_none() && fract.is_none() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                TokenError::Digits,
+                input.span(),
+            )));
+        }
+
+        let (exp, input) = Exp::into_parser().ok().parse(input)?;
+        let (unit, input) = NumUnit::into_parser().ok().parse(input)?;
+
+        Ok((
+            Self {
+                sign,
+                trunc,
+                dot,
+                fract,
+                exp,
+                unit,
+            },
+            input,
+        ))
+    }
+}
+
 /// unit suffix of literial hex number, be like: `_ex`.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
