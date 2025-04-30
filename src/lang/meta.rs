@@ -18,8 +18,7 @@ where
     /// token `@`
     pub keyword: At<I>,
     /// attribute name.
-    pub ident: Ident<I>,
-    pub s1: Option<S<I>>,
+    pub ident: (Ident<I>, Option<S<I>>),
     /// optional call parameter list.
     pub params: Option<LitParams<I>>,
 }
@@ -198,8 +197,7 @@ mod tests {
             Ok((
                 Attr {
                     keyword: At(TokenStream::from((0, "@"))),
-                    ident: Ident(TokenStream::from((1, "platform"))),
-                    s1: None,
+                    ident: (Ident(TokenStream::from((1, "platform"))), None),
                     params: None
                 },
                 TokenStream::from((9, ""))
@@ -211,8 +209,11 @@ mod tests {
             Ok((
                 Attr {
                     keyword: At(TokenStream::from("@")),
-                    ident: Ident(TokenStream::from((1, "sol"))),
-                    s1: Some(S(TokenStream::from((4, " ")))),
+                    ident: (
+                        Ident(TokenStream::from((1, "sol"))),
+                        Some(S(TokenStream::from((4, " "))))
+                    ),
+
                     params: Some(LitParams {
                         delimiter_start: LeftParenthesis(TokenStream::from((5, "("))),
                         params: Punctuated {
@@ -276,8 +277,7 @@ mod tests {
                     ))))),
                     Meta::Attr(Attr {
                         keyword: At(TokenStream::from((10, "@"))),
-                        ident: Ident(TokenStream::from((11, "platform"))),
-                        s1: None,
+                        ident: (Ident(TokenStream::from((11, "platform"))), None),
                         params: None
                     })
                 ]),

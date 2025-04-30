@@ -3,8 +3,9 @@ use parserc::derive_parse;
 use super::{
     Colon, Comma, Ident, KeywordClass, KeywordData, KeywordEnum, KeywordExtern, KeywordFn,
     KeywordMod, KeywordUse, LeftCurlyBracket, LeftParenthesis, MetaList, ParseError, PathSep,
-    Punctuated, RightCurlyBracket, RightParenthesis, S, SemiColon, Star, StylangInput, Visibility,
-    patt::{PattPath, PattType},
+    Punctuated, RightCurlyBracket, RightParenthesis, S, SemiColon, Star, Stmt, StylangInput,
+    Visibility,
+    patt::PattType,
     ty::{Type, TypeReturn},
 };
 
@@ -148,16 +149,22 @@ where
     pub delimiter_end: RightCurlyBracket<I>,
 }
 
-/// Fn arg.
+/// Code block with delimiter `{...}`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = ParseError,input = I)]
-pub enum FnArg<I>
+pub struct Block<I>
 where
     I: StylangInput,
 {
-    Type(PattType<I>),
-    Path(PattPath<I>),
+    /// delimiter start token: `{`
+    pub delimiter_start: LeftCurlyBracket<I>,
+    /// optional stmts list.
+    pub stmts: Vec<Stmt<I>>,
+    /// optional tail meta list.
+    pub meta_list: MetaList<I>,
+    /// delimiter end token: `}`
+    pub delimiter_end: RightCurlyBracket<I>,
 }
 
 /// Fn Block.
@@ -168,6 +175,7 @@ pub enum FnBlock<I>
 where
     I: StylangInput,
 {
+    Block(Block<I>),
     SemiColon(SemiColon<I>),
 }
 
@@ -192,7 +200,7 @@ where
     /// delimiter `(`
     pub delimiter_start: LeftParenthesis<I>,
     /// argument list.
-    pub args: Punctuated<FnArg<I>, Comma<I>>,
+    pub args: Punctuated<PattType<I>, Comma<I>>,
     /// delimiter `)`
     pub delimiter_end: RightParenthesis<I>,
     /// returns type part.
@@ -310,7 +318,7 @@ mod tests {
 
     use crate::lang::{
         ArrowRight, At, Attr, Comment, F32, I32, KeywordColor, KeywordFn, KeywordString,
-        KeywordView, Meta, OutlineDoc, TokenStream,
+        KeywordView, LineComment, Meta, OutlineDoc, TokenStream,
         ty::{TypeFn, TypePath, TypeReturn},
     };
 
@@ -437,8 +445,10 @@ mod tests {
                                             ))),
                                             Meta::Attr(Attr {
                                                 keyword: At(TokenStream::from((170, "@"))),
-                                                ident: Ident(TokenStream::from((171, "state"))),
-                                                s1: Some(S(TokenStream::from((176, " ")))),
+                                                ident: (
+                                                    Ident(TokenStream::from((171, "state"))),
+                                                    Some(S(TokenStream::from((176, " "))))
+                                                ),
                                                 params: None
                                             })
                                         ]),
@@ -466,8 +476,10 @@ mod tests {
                                             ))),
                                             Meta::Attr(Attr {
                                                 keyword: At(TokenStream::from((262, "@"))),
-                                                ident: Ident(TokenStream::from((263, "option"))),
-                                                s1: Some(S(TokenStream::from((269, " ")))),
+                                                ident: (
+                                                    Ident(TokenStream::from((263, "option"))),
+                                                    Some(S(TokenStream::from((269, " "))))
+                                                ),
                                                 params: None
                                             })
                                         ]),
@@ -687,14 +699,16 @@ mod tests {
     fn parse_fn_without_returns() {
         assert_eq!(
             ItemFn::parse(TokenStream::from(
-                "@platform extern fn label(Label, TextLayout, Fill);",
+                "@platform extern fn label(label: Label, layout: TextLayout, fill: Fill);",
             )),
             Ok((
                 ItemFn {
                     meta_list: MetaList(vec![Meta::Attr(Attr {
                         keyword: At(TokenStream::from("@")),
-                        ident: Ident(TokenStream::from((1, "platform"))),
-                        s1: Some(S(TokenStream::from((9, " ")))),
+                        ident: (
+                            Ident(TokenStream::from((1, "platform"))),
+                            Some(S(TokenStream::from((9, " "))))
+                        ),
                         params: None
                     })]),
                     vs: None,
@@ -711,39 +725,57 @@ mod tests {
                     args: Punctuated {
                         items: vec![
                             (
-                                FnArg::Path(PattPath {
+                                PattType {
                                     meta_list: MetaList(vec![]),
-                                    path: TypePath {
-                                        first: Ident(TokenStream::from((26, "Label"))),
+                                    name: Ident(TokenStream::from((26, "label"))),
+                                    colon_token: (
+                                        None,
+                                        Colon(TokenStream::from((31, ":"))),
+                                        Some(S(TokenStream::from((32, " "))))
+                                    ),
+                                    ty: Box::new(Type::Path(TypePath {
+                                        first: Ident(TokenStream::from((33, "Label"))),
                                         rest: vec![]
-                                    }
-                                }),
-                                Comma(TokenStream::from((31, ",")))
+                                    }))
+                                },
+                                Comma(TokenStream::from((38, ",")))
                             ),
                             (
-                                FnArg::Path(PattPath {
+                                PattType {
                                     meta_list: MetaList(vec![]),
-                                    path: TypePath {
-                                        first: Ident(TokenStream::from((33, "TextLayout"))),
+                                    name: Ident(TokenStream::from((40, "layout"))),
+                                    colon_token: (
+                                        None,
+                                        Colon(TokenStream::from((46, ":"))),
+                                        Some(S(TokenStream::from((47, " "))))
+                                    ),
+                                    ty: Box::new(Type::Path(TypePath {
+                                        first: Ident(TokenStream::from((48, "TextLayout"))),
                                         rest: vec![]
-                                    }
-                                }),
-                                Comma(TokenStream::from((43, ",")))
+                                    }))
+                                },
+                                Comma(TokenStream::from((58, ",")))
                             )
                         ],
-                        last: Some(Box::new(FnArg::Path(PattPath {
+                        last: Some(Box::new(PattType {
                             meta_list: MetaList(vec![]),
-                            path: TypePath {
-                                first: Ident(TokenStream::from((45, "Fill"))),
+                            name: Ident(TokenStream::from((60, "fill"))),
+                            colon_token: (
+                                None,
+                                Colon(TokenStream::from((64, ":"))),
+                                Some(S(TokenStream::from((65, " "))))
+                            ),
+                            ty: Box::new(Type::Path(TypePath {
+                                first: Ident(TokenStream::from((66, "Fill"))),
                                 rest: vec![]
-                            }
-                        }))),
+                            }))
+                        })),
                     },
-                    delimiter_end: RightParenthesis(TokenStream::from((49, ")"))),
+                    delimiter_end: RightParenthesis(TokenStream::from((70, ")"))),
                     return_type: None,
-                    block: FnBlock::SemiColon(SemiColon(TokenStream::from((50, ";"))))
+                    block: FnBlock::SemiColon(SemiColon(TokenStream::from((71, ";"))))
                 },
-                TokenStream::from((51, ""))
+                TokenStream::from((72, ""))
             ))
         );
     }
@@ -770,11 +802,13 @@ mod tests {
                     delimiter_start: LeftParenthesis(TokenStream::from((15, "("))),
                     args: Punctuated {
                         items: vec![],
-                        last: Some(Box::new(FnArg::Type(PattType {
+                        last: Some(Box::new(PattType {
                             meta_list: MetaList(vec![Meta::Attr(Attr {
                                 keyword: At(TokenStream::from((16, "@"))),
-                                ident: Ident(TokenStream::from((17, "option"))),
-                                s1: Some(S(TokenStream::from((23, " ")))),
+                                ident: (
+                                    Ident(TokenStream::from((17, "option"))),
+                                    Some(S(TokenStream::from((23, " "))))
+                                ),
                                 params: None
                             })]),
                             name: Ident(TokenStream::from((24, "len"))),
@@ -784,7 +818,7 @@ mod tests {
                                 Some(S(TokenStream::from((28, " "))))
                             ),
                             ty: Box::new(Type::F32(F32(TokenStream::from((29, "f32")))))
-                        }))),
+                        })),
                     },
                     delimiter_end: RightParenthesis(TokenStream::from((32, ")"))),
                     return_type: Some(TypeReturn {
@@ -798,6 +832,28 @@ mod tests {
                     block: FnBlock::SemiColon(SemiColon(TokenStream::from((41, ";"))))
                 },
                 TokenStream::from((42, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_block() {
+        assert_eq!(
+            Block::parse(TokenStream::from(
+                r#"{
+                    // hello world
+                }"#,
+            )),
+            Ok((
+                Block {
+                    delimiter_start: LeftCurlyBracket(TokenStream::from((0, "{"))),
+                    stmts: vec![],
+                    meta_list: MetaList(vec![Meta::Comment(Comment::LineComment(LineComment(
+                        TokenStream::from((24, " hello world"))
+                    )))]),
+                    delimiter_end: RightCurlyBracket(TokenStream::from((53, "}")))
+                },
+                TokenStream::from((54, ""))
             ))
         );
     }

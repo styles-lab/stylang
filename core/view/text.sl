@@ -62,11 +62,11 @@ data Label {
 
 /// A platform provided view function to display a text characters
 @platform
-extern fn label(Label, TextLayout, Fill) -> view;
+extern fn label(label: Label, layout: TextLayout, fill: Fill) -> view;
 
 /// A platform provided view function to display a text characters.
 /// 
 /// The `text` parameter is a `StateObject` passed by reference.
 @platform
-extern fn text_field(@state text: string, TextLayout, Fill, @option content: fn() -> view) -> view;
+extern fn text_field(@state text: string, layout: TextLayout, fill: Fill, @option content: fn() -> view) -> view;
 

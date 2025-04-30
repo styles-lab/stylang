@@ -1,8 +1,8 @@
 use parserc::derive_parse;
 
 use super::{
-    Eq, Gt, KeywordLet, Lit, Lt, LtSlash, MetaList, ParseError, Patt, Punctuated, S, SlashGt,
-    StylangInput, XmlIdent,
+    Block, Comma, Eq, Gt, Ident, KeywordLet, LeftParenthesis, Lit, Lt, LtSlash, MetaList,
+    ParseError, Patt, Punctuated, RightParenthesis, S, SlashGt, StylangInput, XmlIdent,
 };
 
 /// value expr for xml attribute.
@@ -15,6 +15,7 @@ where
 {
     /// A lit value.
     Lit(Lit<I>),
+    Block(Block<I>),
 }
 
 /// Xml attribute name/value pair: `xx=...`
@@ -105,6 +106,26 @@ where
     pub expr: Box<Expr<I>>,
 }
 
+/// A function call expression: invoke(a, b).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct ExprCall<I>
+where
+    I: StylangInput,
+{
+    /// optional meta list.
+    pub meta_list: MetaList<I>,
+    /// function ident.
+    pub func: Box<Ident<I>>,
+    /// delimiter start token: `(`
+    pub delimiter_start: LeftParenthesis<I>,
+    /// call argument list.
+    pub args: Punctuated<Expr<I>, Comma<I>>,
+    /// delimiter end token: `)`
+    pub delimiter_end: RightParenthesis<I>,
+}
+
 /// A Rust expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -115,6 +136,7 @@ where
 {
     Lit(MetaList<I>, Lit<I>),
     Let(ExprLet<I>),
+    Call(ExprCall<I>),
     XmlStart(XmlStart<I>),
     XmlEnd(XmlEnd<I>),
 }
@@ -161,6 +183,63 @@ mod tests {
                     ))
                 }),
                 TokenStream::from((10, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_let_2() {
+        assert_eq!(
+            ExprLet::parse(TokenStream::from(
+                "let @state @option value: string = none;",
+            )),
+            Ok((
+                ExprLet {
+                    meta_list: MetaList(vec![]),
+                    let_token: (
+                        KeywordLet(TokenStream::from((0, "let"))),
+                        S(TokenStream::from((3, " ")))
+                    ),
+                    patt: Patt::Type(PattType {
+                        meta_list: MetaList(vec![
+                            Meta::Attr(Attr {
+                                keyword: At(TokenStream::from((4, "@"))),
+                                ident: (
+                                    Ident(TokenStream::from((5, "state"))),
+                                    Some(S(TokenStream::from((10, " "))))
+                                ),
+                                params: None
+                            }),
+                            Meta::Attr(Attr {
+                                keyword: At(TokenStream::from((11, "@"))),
+                                ident: (
+                                    Ident(TokenStream::from((12, "option"))),
+                                    Some(S(TokenStream::from((18, " "))))
+                                ),
+                                params: None
+                            })
+                        ]),
+                        name: Ident(TokenStream::from((19, "value"))),
+                        colon_token: (
+                            None,
+                            Colon(TokenStream::from((24, ":"))),
+                            Some(S(TokenStream::from((25, " "))))
+                        ),
+                        ty: Box::new(Type::String(KeywordString(TokenStream::from((
+                            26, "string"
+                        )))))
+                    }),
+                    eq_token: (
+                        Some(S(TokenStream::from((32, " ")))),
+                        Eq(TokenStream::from((33, "="))),
+                        Some(S(TokenStream::from((34, " "))))
+                    ),
+                    expr: Box::new(Expr::Lit(
+                        MetaList(vec![]),
+                        Lit::None(KeywordNone(TokenStream::from((35, "none"))))
+                    ))
+                },
+                TokenStream::from((39, ";"))
             ))
         );
     }
@@ -304,4 +383,12 @@ mod tests {
             ))
         );
     }
+
+    // #[test]
+    // fn test_expr_call() {
+    //     Expr::parse(TokenStream::from(
+    //         r#"donate(/*implicit type conversion*/ value) "#,
+    //     ))
+    //     .unwrap();
+    // }
 }
