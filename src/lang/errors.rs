@@ -41,4 +41,8 @@ pub enum TokenError {
     Keyword(&'static str),
     #[error("`stmt`")]
     Stmt,
+    #[error("`exprs`")]
+    Exprs,
+    #[error("`chain_members`")]
+    ChainMembers,
 }

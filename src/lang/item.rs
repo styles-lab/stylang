@@ -206,7 +206,7 @@ where
     /// returns type part.
     pub return_type: Option<TypeReturn<I>>,
     /// function block part.
-    pub block: FnBlock<I>,
+    pub block: (Option<S<I>>, FnBlock<I>),
 }
 
 /// A module declaration.
@@ -287,7 +287,7 @@ where
     /// optional attribute/comment list.
     pub meta_list: MetaList<I>,
     /// visibility token,
-    pub vis: (Visibility<I>, S<I>),
+    pub vis: Option<(Visibility<I>, S<I>)>,
     /// keyword: `use`
     pub keyword: (KeywordUse<I>, S<I>),
     /// mod name.
@@ -317,8 +317,9 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        ArrowRight, At, Attr, Comment, F32, I32, KeywordColor, KeywordFn, KeywordString,
-        KeywordView, LineComment, Meta, OutlineDoc, TokenStream,
+        ArrowRight, At, Attr, BlockComment, Comment, Expr, ExprCall, ExprList, F32, I32,
+        KeywordColor, KeywordFn, KeywordString, KeywordView, LineComment, Meta, OutlineDoc,
+        TokenStream,
         ty::{TypeFn, TypePath, TypeReturn},
     };
 
@@ -773,7 +774,10 @@ mod tests {
                     },
                     delimiter_end: RightParenthesis(TokenStream::from((70, ")"))),
                     return_type: None,
-                    block: FnBlock::SemiColon(SemiColon(TokenStream::from((71, ";"))))
+                    block: (
+                        None,
+                        FnBlock::SemiColon(SemiColon(TokenStream::from((71, ";"))))
+                    )
                 },
                 TokenStream::from((72, ""))
             ))
@@ -829,7 +833,10 @@ mod tests {
                         ),
                         ty: Box::new(Type::View(KeywordView(TokenStream::from((37, "view"))))),
                     }),
-                    block: FnBlock::SemiColon(SemiColon(TokenStream::from((41, ";"))))
+                    block: (
+                        None,
+                        FnBlock::SemiColon(SemiColon(TokenStream::from((41, ";"))))
+                    )
                 },
                 TokenStream::from((42, ""))
             ))
@@ -854,6 +861,48 @@ mod tests {
                     delimiter_end: RightCurlyBracket(TokenStream::from((53, "}")))
                 },
                 TokenStream::from((54, ""))
+            ))
+        );
+
+        assert_eq!(
+            Block::parse(TokenStream::from(
+                r#"{
+                    donate(/*implicit type conversion*/ value)
+                }"#,
+            )),
+            Ok((
+                Block {
+                    delimiter_start: LeftCurlyBracket(TokenStream::from((0, "{"))),
+                    stmts: vec![
+                        Stmt::Expr(
+                            Expr::Ident(MetaList(vec![]), Ident(TokenStream::from((22, "donate")))),
+                            None
+                        ),
+                        Stmt::Expr(
+                            Expr::Call(ExprCall {
+                                meta_list: MetaList(vec![]),
+                                delimiter_start: LeftParenthesis(TokenStream::from((28, "("))),
+                                args: Punctuated {
+                                    items: vec![],
+                                    last: Some(Box::new(ExprList(vec![Expr::Ident(
+                                        MetaList(vec![Meta::Comment(Comment::BlockComment(
+                                            BlockComment(TokenStream::from((
+                                                31,
+                                                "implicit type conversion"
+                                            )))
+                                        ))]),
+                                        Ident(TokenStream::from((58, "value")))
+                                    )])))
+                                },
+                                delimiter_end: RightParenthesis(TokenStream::from((63, ")"))),
+                            }),
+                            None
+                        )
+                    ],
+                    meta_list: MetaList(vec![]),
+                    delimiter_end: RightCurlyBracket(TokenStream::from((81, "}")))
+                },
+                TokenStream::from((82, ""))
             ))
         );
     }

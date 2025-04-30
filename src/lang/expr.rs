@@ -1,8 +1,9 @@
-use parserc::derive_parse;
+use parserc::{ControlFlow, Parse, derive_parse};
 
 use super::{
-    Block, Comma, Eq, Gt, Ident, KeywordLet, LeftParenthesis, Lit, Lt, LtSlash, MetaList,
-    ParseError, Patt, Punctuated, RightParenthesis, S, SlashGt, StylangInput, XmlIdent,
+    Block, Comma, Digits, Dot, Eq, Gt, Ident, KeywordLet, LeftParenthesis, Lit, Lt, LtSlash,
+    MetaList, ParseError, Patt, Punctuated, RightParenthesis, S, SlashGt, StylangInput, TokenError,
+    XmlIdent,
 };
 
 /// value expr for xml attribute.
@@ -14,7 +15,7 @@ where
     I: StylangInput,
 {
     /// A lit value.
-    Lit(Lit<I>),
+    Expr(ExprList<I>),
     Block(Block<I>),
 }
 
@@ -103,7 +104,7 @@ where
     /// equal token: `=`
     pub eq_token: (Option<S<I>>, Eq<I>, Option<S<I>>),
     /// init expr part.
-    pub expr: Box<Expr<I>>,
+    pub expr: ExprList<I>,
 }
 
 /// A function call expression: invoke(a, b).
@@ -116,14 +117,51 @@ where
 {
     /// optional meta list.
     pub meta_list: MetaList<I>,
-    /// function ident.
-    pub func: Box<Ident<I>>,
     /// delimiter start token: `(`
     pub delimiter_start: LeftParenthesis<I>,
     /// call argument list.
-    pub args: Punctuated<Expr<I>, Comma<I>>,
+    pub args: Punctuated<ExprList<I>, Comma<I>>,
     /// delimiter end token: `)`
     pub delimiter_end: RightParenthesis<I>,
+}
+
+/// A struct or tuple struct field accessed in a struct literal or field expression.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub enum Member<I>
+where
+    I: StylangInput,
+{
+    Named(Ident<I>),
+    Unnamed(Digits<I>),
+}
+
+/// A struct or tuple struct field accessed in a struct literal or field expression.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ChainMembers<I>(Vec<(Dot<I>, Member<I>)>)
+where
+    I: StylangInput;
+
+impl<I> Parse<I> for ChainMembers<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (members, input) = Vec::parse(input)?;
+
+        if members.is_empty() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                TokenError::ChainMembers,
+                input.span(),
+            )));
+        }
+
+        Ok((Self(members), input))
+    }
 }
 
 /// A Rust expression.
@@ -136,9 +174,37 @@ where
 {
     Lit(MetaList<I>, Lit<I>),
     Let(ExprLet<I>),
+    Field(MetaList<I>, ChainMembers<I>),
     Call(ExprCall<I>),
     XmlStart(XmlStart<I>),
     XmlEnd(XmlEnd<I>),
+    Ident(MetaList<I>, Ident<I>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ExprList<I>(pub Vec<Expr<I>>)
+where
+    I: StylangInput;
+
+impl<I> Parse<I> for ExprList<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (exprs, input) = Vec::parse(input)?;
+
+        if exprs.is_empty() {
+            return Err(ControlFlow::Recovable(ParseError::Expect(
+                TokenError::Exprs,
+                input.span(),
+            )));
+        }
+
+        Ok((Self(exprs), input))
+    }
 }
 
 #[cfg(test)]
@@ -170,7 +236,7 @@ mod tests {
                         Eq(TokenStream::from((6, "="))),
                         Some(S(TokenStream::from((7, " "))))
                     ),
-                    expr: Box::new(Expr::Lit(
+                    expr: ExprList(vec![Expr::Lit(
                         MetaList(vec![]),
                         crate::lang::Lit::Num(LitNum {
                             sign: None,
@@ -180,7 +246,7 @@ mod tests {
                             exp: None,
                             unit: None
                         })
-                    ))
+                    )])
                 }),
                 TokenStream::from((10, ""))
             ))
@@ -234,10 +300,10 @@ mod tests {
                         Eq(TokenStream::from((33, "="))),
                         Some(S(TokenStream::from((34, " "))))
                     ),
-                    expr: Box::new(Expr::Lit(
+                    expr: ExprList(vec![Expr::Lit(
                         MetaList(vec![]),
                         Lit::None(KeywordNone(TokenStream::from((35, "none"))))
-                    ))
+                    )])
                 },
                 TokenStream::from((39, ";"))
             ))
@@ -348,9 +414,30 @@ mod tests {
                     meta_list: MetaList(vec![]),
                     name: XmlIdent(TokenStream::from("v")),
                     eq_token: (None, Eq(TokenStream::from((1, "="))), None),
-                    value: XmlAttrValue::Lit(Lit::String(LitStr(TokenStream::from((3, "hello")))))
+                    value: XmlAttrValue::Expr(ExprList(vec![Expr::Lit(
+                        MetaList(vec![]),
+                        Lit::String(LitStr(TokenStream::from((3, "hello"))))
+                    )]))
                 },
                 TokenStream::from((9, ""))
+            ))
+        );
+
+        assert_eq!(
+            XmlAttr::parse(TokenStream::from(r#"v={}"#)),
+            Ok((
+                XmlAttr {
+                    meta_list: MetaList(vec![]),
+                    name: XmlIdent(TokenStream::from("v")),
+                    eq_token: (None, Eq(TokenStream::from((1, "="))), None),
+                    value: XmlAttrValue::Block(Block {
+                        delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
+                        stmts: vec![],
+                        meta_list: MetaList(vec![]),
+                        delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
+                    })
+                },
+                TokenStream::from((4, ""))
             ))
         );
     }
@@ -370,9 +457,10 @@ mod tests {
                             meta_list: MetaList(vec![]),
                             name: XmlIdent(TokenStream::from((6, "font-family"))),
                             eq_token: (None, Eq(TokenStream::from((17, "="))), None),
-                            value: XmlAttrValue::Lit(Lit::String(LitStr(TokenStream::from((
-                                19, "serif"
-                            )))))
+                            value: XmlAttrValue::Expr(ExprList(vec![Expr::Lit(
+                                MetaList(vec![]),
+                                Lit::String(LitStr(TokenStream::from((19, "serif"))))
+                            )]))
                         }))
                     },
                     delimiter_end: XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((
@@ -384,11 +472,32 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn test_expr_call() {
-    //     Expr::parse(TokenStream::from(
-    //         r#"donate(/*implicit type conversion*/ value) "#,
-    //     ))
-    //     .unwrap();
-    // }
+    #[test]
+    fn test_expr_call() {
+        assert_eq!(
+            Vec::<Expr<_>>::parse(TokenStream::from(
+                r#"donate(/*implicit type conversion*/ value)"#,
+            )),
+            Ok((
+                vec![
+                    Expr::Ident(MetaList(vec![]), Ident(TokenStream::from((0, "donate")))),
+                    Expr::Call(ExprCall {
+                        meta_list: MetaList(vec![]),
+                        delimiter_start: LeftParenthesis(TokenStream::from((6, "("))),
+                        args: Punctuated {
+                            items: vec![],
+                            last: Some(Box::new(ExprList(vec![Expr::Ident(
+                                MetaList(vec![Meta::Comment(Comment::BlockComment(BlockComment(
+                                    TokenStream::from((9, "implicit type conversion"))
+                                )))]),
+                                Ident(TokenStream::from((36, "value")))
+                            )])))
+                        },
+                        delimiter_end: RightParenthesis(TokenStream::from((41, ")"))),
+                    })
+                ],
+                TokenStream::from((42, ""))
+            ))
+        );
+    }
 }

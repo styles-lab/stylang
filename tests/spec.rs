@@ -42,3 +42,16 @@ fn parse_core_lib() {
         println!(" ... ok({})", stmts.len());
     }
 }
+
+// #[test]
+// fn parse_spec() {
+//     for path in files("spec") {
+//         print!("parse {:?}", path);
+
+//         let source = fs::read_to_string(path).unwrap();
+
+//         let stmts = parse(&source).unwrap();
+
+//         println!(" ... ok({})", stmts.len());
+//     }
+// }
