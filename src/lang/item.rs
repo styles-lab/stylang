@@ -317,9 +317,9 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        ArrowRight, At, Attr, BlockComment, Comment, Expr, ExprCall, ExprList, F32, I32,
-        KeywordColor, KeywordFn, KeywordString, KeywordView, LineComment, Meta, OutlineDoc,
-        TokenStream,
+        ArrowRight, At, Attr, BlockComment, CallBody, ChainMembers, Comment, Expr, ExprCall,
+        ExprField, ExprFieldBase, F32, I32, KeywordColor, KeywordFn, KeywordString, KeywordView,
+        LineComment, Meta, OutlineDoc, TokenStream,
         ty::{TypeFn, TypePath, TypeReturn},
     };
 
@@ -873,32 +873,41 @@ mod tests {
             Ok((
                 Block {
                     delimiter_start: LeftCurlyBracket(TokenStream::from((0, "{"))),
-                    stmts: vec![
-                        Stmt::Expr(
-                            Expr::Ident(MetaList(vec![]), Ident(TokenStream::from((22, "donate")))),
-                            None
+                    stmts: vec![Stmt::Expr(
+                        Expr::Call(
+                            MetaList(vec![]),
+                            ExprCall {
+                                target: Box::new(ExprField {
+                                    base: Box::new(ExprFieldBase::Ident(Ident(TokenStream::from(
+                                        (22, "donate")
+                                    )))),
+                                    chain_members: ChainMembers(vec![]),
+                                }),
+                                chain_body: vec![CallBody {
+                                    delimiter_start: LeftParenthesis(TokenStream::from((28, "("))),
+                                    args: Punctuated {
+                                        items: vec![],
+                                        last: Some(Box::new(Expr::Field(
+                                            MetaList(vec![Meta::Comment(Comment::BlockComment(
+                                                BlockComment(TokenStream::from((
+                                                    31,
+                                                    "implicit type conversion"
+                                                )))
+                                            ))]),
+                                            ExprField {
+                                                base: Box::new(ExprFieldBase::Ident(Ident(
+                                                    TokenStream::from((58, "value"))
+                                                ))),
+                                                chain_members: ChainMembers(vec![])
+                                            }
+                                        )))
+                                    },
+                                    delimiter_end: RightParenthesis(TokenStream::from((63, ")"))),
+                                }]
+                            }
                         ),
-                        Stmt::Expr(
-                            Expr::Call(ExprCall {
-                                meta_list: MetaList(vec![]),
-                                delimiter_start: LeftParenthesis(TokenStream::from((28, "("))),
-                                args: Punctuated {
-                                    items: vec![],
-                                    last: Some(Box::new(ExprList(vec![Expr::Ident(
-                                        MetaList(vec![Meta::Comment(Comment::BlockComment(
-                                            BlockComment(TokenStream::from((
-                                                31,
-                                                "implicit type conversion"
-                                            )))
-                                        ))]),
-                                        Ident(TokenStream::from((58, "value")))
-                                    )])))
-                                },
-                                delimiter_end: RightParenthesis(TokenStream::from((63, ")"))),
-                            }),
-                            None
-                        )
-                    ],
+                        None
+                    )],
                     meta_list: MetaList(vec![]),
                     delimiter_end: RightCurlyBracket(TokenStream::from((81, "}")))
                 },

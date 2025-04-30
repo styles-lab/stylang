@@ -45,4 +45,6 @@ pub enum TokenError {
     Exprs,
     #[error("`chain_members`")]
     ChainMembers,
+    #[error("`chain_call_body`")]
+    ChainCallBody,
 }

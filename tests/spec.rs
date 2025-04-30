@@ -43,15 +43,15 @@ fn parse_core_lib() {
     }
 }
 
-// #[test]
-// fn parse_spec() {
-//     for path in files("spec") {
-//         print!("parse {:?}", path);
+#[test]
+fn parse_spec() {
+    for path in files("spec") {
+        print!("parse {:?}", path);
 
-//         let source = fs::read_to_string(path).unwrap();
+        let source = fs::read_to_string(path).unwrap();
 
-//         let stmts = parse(&source).unwrap();
+        let stmts = parse(&source).unwrap();
 
-//         println!(" ... ok({})", stmts.len());
-//     }
-// }
+        println!(" ... ok({})", stmts.len());
+    }
+}
