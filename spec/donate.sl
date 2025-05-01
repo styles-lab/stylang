@@ -14,7 +14,7 @@ fn main() -> view {
                 // }
                 
                 <row>
-                    <text-field text=value prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
+                    <text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
                     <
                         button
                         icon="assets://ethereum.svg" 

@@ -1,9 +1,9 @@
-use std::{iter::Enumerate, str::Bytes};
+use std::{fmt::Debug, iter::Enumerate, str::Bytes};
 
 use parserc::{AsBytes, AsStr, Input, span::WithSpan};
 
 /// `Input` type alias for `stylang` parser combinator.
-pub trait StylangInput: Input<Item = u8> + AsBytes + AsStr + Clone + WithSpan {}
+pub trait StylangInput: Input<Item = u8> + AsBytes + AsStr + Clone + WithSpan + Debug {}
 
 /// Input type used by stylang compiler.
 #[derive(Debug, PartialEq, Clone)]

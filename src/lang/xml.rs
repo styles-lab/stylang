@@ -1,8 +1,7 @@
 use parserc::derive_parse;
 
 use super::{
-    Block, Eq, Gt, Ident, Lit, Lt, LtSlash, MetaList, ParseError, S, SlashGt, StylangInput,
-    XmlIdent,
+    Block, Eq, Gt, Lit, Lt, LtSlash, MetaList, ParseError, S, SlashGt, StylangInput, XmlIdent,
 };
 
 /// value expr for xml attribute.
@@ -15,7 +14,6 @@ where
 {
     /// A lit value.
     Lit(Lit<I>),
-    Ident(Ident<I>),
     Block(Block<I>),
 }
 
@@ -32,6 +30,7 @@ where
     /// xml attribute name.
     pub name: XmlIdent<I>,
     /// equal token: `=`
+    #[key_field]
     pub eq_token: (Option<S<I>>, Eq<I>, Option<S<I>>),
     /// xml attribute value.
     pub value: XmlAttrValue<I>,
@@ -100,7 +99,7 @@ mod tests {
     #[test]
     fn test_empty_tag() {
         XmlStart::parse(TokenStream::from(
-            r#"<text-field text=value prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
+            r#"<text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
         )).unwrap();
     }
 
