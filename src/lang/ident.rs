@@ -47,8 +47,7 @@ where
             .parse(input)?;
 
         let (_, input) =
-            take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'.' || c == b'_' || c == b'-')
-                .parse(input)?;
+            take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
 
         Ok((Self(content.split_to(input.start() - start)), input))
     }
@@ -76,10 +75,10 @@ mod tests {
     #[test]
     fn test_xml_ident() {
         assert_eq!(
-            XmlIdent::parse(TokenStream::from("on-click.solidity")),
+            XmlIdent::parse(TokenStream::from("on-click")),
             Ok((
-                XmlIdent(TokenStream::from("on-click.solidity")),
-                TokenStream::from((17, ""))
+                XmlIdent(TokenStream::from("on-click")),
+                TokenStream::from((8, ""))
             ))
         );
     }
