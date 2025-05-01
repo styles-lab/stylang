@@ -37,15 +37,18 @@ fn test_script(mut path: PathBuf) {
 
     let script = parse(&source).unwrap();
 
-    println!(" ... ok({})", script.0.len());
-
     path.set_extension("b");
 
     let data = bendy::serde::ser::to_bytes(&script).unwrap();
+    // let data = flexbuffers::to_vec(&script).unwrap();
 
     std::fs::write(path, &data).unwrap();
 
+    // let _: Vec<Item<TokenStream<'_>>> = flexbuffers::from_slice(&data).unwrap();
+
     let _: Vec<Item<TokenStream<'_>>> = bendy::serde::de::from_bytes(&data).unwrap();
+
+    println!(" ... ok({},{})", script.0.len(), data.len());
 }
 
 #[test]
