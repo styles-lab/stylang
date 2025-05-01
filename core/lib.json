@@ -1,0 +1,78 @@
+[
+  {
+    "Mod": {
+      "meta_list": [],
+      "vis": [
+        {
+          "Public": {
+            "offset": 0,
+            "value": "pub"
+          }
+        },
+        {
+          "offset": 3,
+          "value": " "
+        }
+      ],
+      "keyword": [
+        {
+          "offset": 4,
+          "value": "mod"
+        },
+        {
+          "offset": 7,
+          "value": " "
+        }
+      ],
+      "ident": [
+        {
+          "offset": 8,
+          "value": "view"
+        },
+        null
+      ],
+      "semi_colon": {
+        "offset": 12,
+        "value": ";"
+      }
+    }
+  },
+  {
+    "Mod": {
+      "meta_list": [],
+      "vis": [
+        {
+          "Public": {
+            "offset": 15,
+            "value": "pub"
+          }
+        },
+        {
+          "offset": 18,
+          "value": " "
+        }
+      ],
+      "keyword": [
+        {
+          "offset": 19,
+          "value": "mod"
+        },
+        {
+          "offset": 22,
+          "value": " "
+        }
+      ],
+      "ident": [
+        {
+          "offset": 23,
+          "value": "platform"
+        },
+        null
+      ],
+      "semi_colon": {
+        "offset": 31,
+        "value": ";"
+      }
+    }
+  }
+]

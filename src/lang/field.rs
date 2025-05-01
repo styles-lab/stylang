@@ -21,8 +21,8 @@ pub struct ExprField<I>
 where
     I: StylangInput,
 {
-    /// base expr.
-    pub base: Box<Expr<I>>,
+    /// the target expr.
+    pub target: Box<Expr<I>>,
     /// dot token `.`
     pub dot_token: Dot<I>,
     /// member expr.

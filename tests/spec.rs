@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use stylang::lang::parse;
+use stylang::lang::{Item, TokenStream, parse};
 
 fn files(path: impl AsRef<Path>) -> Vec<PathBuf> {
     let mut dirs = vec![Path::new(env!("CARGO_MANIFEST_DIR")).join(path)];
@@ -30,28 +30,31 @@ fn files(path: impl AsRef<Path>) -> Vec<PathBuf> {
     files
 }
 
-#[test]
-fn parse_core_lib() {
-    for path in files("core") {
-        print!("parse {:?}", path);
+fn test_script(mut path: PathBuf) {
+    print!("parse {:?}", path);
 
-        let source = fs::read_to_string(path).unwrap();
+    let source = fs::read_to_string(&path).unwrap();
 
-        let stmts = parse(&source).unwrap();
+    let script = parse(&source).unwrap();
 
-        println!(" ... ok({})", stmts.len());
-    }
+    println!(" ... ok({})", script.0.len());
+
+    path.set_extension("b");
+
+    let data = bendy::serde::ser::to_bytes(&script).unwrap();
+
+    std::fs::write(path, &data).unwrap();
+
+    let _: Vec<Item<TokenStream<'_>>> = bendy::serde::de::from_bytes(&data).unwrap();
 }
 
 #[test]
-fn parse_spec() {
+fn test_specs() {
+    for path in files("core") {
+        test_script(path);
+    }
+
     for path in files("spec") {
-        print!("parse {:?}", path);
-
-        let source = fs::read_to_string(path).unwrap();
-
-        let stmts = parse(&source).unwrap();
-
-        println!(" ... ok({})", stmts.len());
+        test_script(path);
     }
 }

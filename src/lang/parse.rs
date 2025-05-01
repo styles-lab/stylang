@@ -1,32 +1,51 @@
-use parserc::{ControlFlow, Input, Parse, Parser, ParserExt, span::WithSpan};
+use parserc::{ControlFlow, Parse, Parser, ParserExt};
 
-use super::{Item, ParseError, S, TokenError, TokenStream};
+use super::{Item, ParseError, S, StylangInput, TokenError, TokenStream};
 
-/// Parse a source file.
-pub fn parse(source: &str) -> Result<Vec<Item<TokenStream<'_>>>, ControlFlow<ParseError>> {
-    let mut input = TokenStream::from(source);
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Script<I>(pub Vec<Item<I>>)
+where
+    I: StylangInput;
 
-    let mut stmts = vec![];
+impl<I> Parse<I> for Script<I>
+where
+    I: StylangInput,
+{
+    type Error = ParseError;
 
-    loop {
-        let stmt;
-        (stmt, input) = Item::into_parser().ok().parse(input)?;
+    fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut stmts = vec![];
 
-        if let Some(stmt) = stmt {
-            stmts.push(stmt);
+        loop {
+            let stmt;
+            (stmt, input) = Item::into_parser().ok().parse(input)?;
 
-            (_, input) = S::into_parser().ok().parse(input)?;
+            if let Some(stmt) = stmt {
+                stmts.push(stmt);
 
-            if input.is_empty() {
-                return Ok(stmts);
+                (_, input) = S::into_parser().ok().parse(input)?;
+
+                if input.is_empty() {
+                    return Ok((Self(stmts), input));
+                }
+
+                continue;
             }
 
-            continue;
+            return Err(ControlFlow::Fatal(ParseError::Unexpect(
+                TokenError::Unknown,
+                input.span(),
+            )));
         }
-
-        return Err(ControlFlow::Fatal(ParseError::Unexpect(
-            TokenError::Unknown,
-            input.span(),
-        )));
     }
+}
+
+/// Parse a source file.
+pub fn parse(source: &str) -> Result<Script<TokenStream<'_>>, ControlFlow<ParseError>> {
+    let input = TokenStream::from(source);
+
+    let (script, _) = Script::parse(input)?;
+
+    Ok(script)
 }

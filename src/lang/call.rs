@@ -7,6 +7,7 @@ pub struct ExprCall<I>
 where
     I: StylangInput,
 {
+    pub target: Box<Expr<I>>,
     /// delimiter start token: `(`
     pub delimiter_start: LeftParenthesis<I>,
     /// params list.

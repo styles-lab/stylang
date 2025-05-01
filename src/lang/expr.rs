@@ -3,8 +3,8 @@ use parserc::{Parse, Parser, ParserExt, derive_parse};
 use crate::lang::{Dot, LeftParenthesis, Member, Punctuated, RightParenthesis};
 
 use super::{
-    Eq, ExprField, Ident, KeywordLet, Lit, MetaList, ParseError, Patt, S, StylangInput, XmlEnd,
-    XmlStart, call::ExprCall,
+    Block, Eq, ExprField, ExprIf, ExprPath, KeywordLet, Lit, MetaList, ParseError, Patt, S,
+    StylangInput, XmlEnd, XmlStart, call::ExprCall,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -31,12 +31,24 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = ParseError,input = I)]
-pub enum ExprVariable<I>
+pub struct ExprLit<I>
 where
     I: StylangInput,
 {
-    Lit(MetaList<I>, Lit<I>),
-    Ident(MetaList<I>, Ident<I>),
+    pub meta_list: MetaList<I>,
+    pub lit: Lit<I>,
+}
+
+/// A block expr
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct ExprBlock<I>
+where
+    I: StylangInput,
+{
+    pub meta_list: MetaList<I>,
+    pub block: Block<I>,
 }
 
 /// A Rust expression.
@@ -51,7 +63,10 @@ where
     Call(ExprCall<I>),
     XmlStart(XmlStart<I>),
     XmlEnd(XmlEnd<I>),
-    Variable(ExprVariable<I>),
+    Lit(ExprLit<I>),
+    Path(ExprPath<I>),
+    Block(ExprBlock<I>),
+    If(ExprIf<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -65,6 +80,8 @@ where
             .map(|v| Expr::Let(v))
             .or(XmlEnd::into_parser().map(|v| Expr::XmlEnd(v)))
             .or(XmlStart::into_parser().map(|v| Expr::XmlStart(v)))
+            .or(ExprBlock::into_parser().map(|v| Expr::Block(v)))
+            .or(ExprIf::into_parser().map(|v| Expr::If(v)))
             .ok()
             .parse(input)?;
 
@@ -72,8 +89,9 @@ where
             return Ok((expr, input));
         }
 
-        let (mut expr, mut input) = ExprVariable::into_parser()
-            .map(|v| Expr::Variable(v))
+        let (mut expr, mut input) = ExprLit::into_parser()
+            .map(|v| Expr::Lit(v))
+            .or(ExprPath::into_parser().map(|v| Expr::Path(v)))
             .parse(input)?;
 
         loop {
@@ -89,7 +107,7 @@ where
 
                 (member, input) = Member::parse(input)?;
                 expr = Expr::Field(ExprField {
-                    base: Box::new(expr),
+                    target: Box::new(expr),
                     dot_token,
                     member,
                 });
@@ -111,6 +129,7 @@ where
                 (delimiter_end, input) = RightParenthesis::parse(input)?;
 
                 expr = Expr::Call(ExprCall {
+                    target: Box::new(expr),
                     delimiter_start,
                     params,
                     delimiter_end,
@@ -179,10 +198,10 @@ mod tests {
                         Eq(TokenStream::from((33, "="))),
                         Some(S(TokenStream::from((34, " "))))
                     ),
-                    expr: Box::new(Expr::Variable(ExprVariable::Lit(
-                        MetaList(vec![]),
-                        Lit::None(KeywordNone(TokenStream::from((35, "none"))))
-                    )))
+                    expr: Box::new(Expr::Lit(ExprLit {
+                        meta_list: MetaList(vec![]),
+                        lit: Lit::None(KeywordNone(TokenStream::from((35, "none"))))
+                    }))
                 },
                 TokenStream::from((39, ";"))
             ))

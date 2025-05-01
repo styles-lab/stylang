@@ -28,9 +28,9 @@ where
     /// comment list.
     pub meta_list: MetaList<I>,
     /// xml attribute name.
+    #[key_field]
     pub name: XmlIdent<I>,
     /// equal token: `=`
-    #[key_field]
     pub eq_token: (Option<S<I>>, Eq<I>, Option<S<I>>),
     /// xml attribute value.
     pub value: XmlAttrValue<I>,
