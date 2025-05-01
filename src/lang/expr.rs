@@ -1,93 +1,11 @@
 use parserc::{Parse, Parser, ParserExt, derive_parse};
 
+use crate::lang::{Dot, LeftParenthesis, Member, Punctuated, RightParenthesis};
+
 use super::{
-    Block, Comma, Digits, Dot, Eq, Gt, Ident, KeywordLet, LeftParenthesis, Lit, Lt, LtSlash,
-    MetaList, ParseError, Patt, Punctuated, RightParenthesis, S, SlashGt, StylangInput, TokenError,
-    XmlIdent,
+    Eq, ExprField, Ident, KeywordLet, Lit, MetaList, ParseError, Patt, S, StylangInput, XmlEnd,
+    XmlStart, call::ExprCall,
 };
-
-/// value expr for xml attribute.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub enum XmlAttrValue<I>
-where
-    I: StylangInput,
-{
-    /// A lit value.
-    Expr(Expr<I>),
-    Block(Block<I>),
-}
-
-/// Xml attribute name/value pair: `xx=...`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub struct XmlAttr<I>
-where
-    I: StylangInput,
-{
-    /// comment list.
-    pub meta_list: MetaList<I>,
-    /// xml attribute name.
-    pub name: XmlIdent<I>,
-    /// equal token: `=`
-    pub eq_token: (Option<S<I>>, Eq<I>, Option<S<I>>),
-    /// xml attribute value.
-    pub value: XmlAttrValue<I>,
-}
-
-/// Xml start tag end token: `>` or `/>`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub enum XmlStartDelimiterEnd<I>
-where
-    I: StylangInput,
-{
-    Empty(SlashGt<I>),
-    WithContent(Gt<I>),
-}
-
-/// Xml start tag: `<xxx xx=xx ..>`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub struct XmlStart<I>
-where
-    I: StylangInput,
-{
-    /// comment list.
-    pub meta_list: MetaList<I>,
-    /// delimiter start token `<`
-    #[key_field]
-    pub delimiter_start: (Lt<I>, Option<S<I>>),
-    /// xml tag name.
-    pub ident: XmlIdent<I>,
-    /// optional attribute list.
-    pub attrs: Punctuated<XmlAttr<I>, S<I>>,
-    /// delimiter end token `/>`
-    pub delimiter_end: XmlStartDelimiterEnd<I>,
-}
-
-/// Xml end tag: `</xxx>`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub struct XmlEnd<I>
-where
-    I: StylangInput,
-{
-    /// comment list.
-    pub meta_list: MetaList<I>,
-    /// token `</`
-    #[key_field]
-    pub delimiter_start: LtSlash<I>,
-    /// xml start tag name.
-    pub ident: (Option<S<I>>, XmlIdent<I>, Option<S<I>>),
-    /// token `>`
-    pub delimiter_end: Gt<I>,
-}
 
 /// A local let binding: let x: u64 = 10.
 #[derive(Debug, PartialEq, Clone)]
@@ -109,178 +27,113 @@ where
     pub expr: Box<Expr<I>>,
 }
 
-/// A function call expression: invoke(a, b).
+/// A variable expr
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = ParseError,input = I)]
-pub struct CallBody<I>
+pub enum ExprVariable<I>
 where
     I: StylangInput,
 {
-    /// delimiter start token: `(`
-    pub delimiter_start: LeftParenthesis<I>,
-    /// call argument list.
-    pub args: Punctuated<Expr<I>, Comma<I>>,
-    /// delimiter end token: `)`
-    pub delimiter_end: RightParenthesis<I>,
+    Lit(MetaList<I>, Lit<I>),
+    Ident(MetaList<I>, Ident<I>),
 }
 
-/// A function call expression: invoke(a, b).
+/// A Rust expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ExprCall<I>
+pub enum Expr<I>
 where
     I: StylangInput,
 {
-    pub target: Box<ExprField<I>>,
-    pub chain_body: Vec<CallBody<I>>,
+    Let(ExprLet<I>),
+    Field(ExprField<I>),
+    Call(ExprCall<I>),
+    XmlStart(XmlStart<I>),
+    XmlEnd(XmlEnd<I>),
+    Variable(ExprVariable<I>),
 }
 
-impl<I> Parse<I> for ExprCall<I>
+impl<I> Parse<I> for Expr<I>
 where
     I: StylangInput,
 {
     type Error = ParseError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (target, mut input) = ExprField::parse(input)?;
-        let mut chain_body = vec![];
+        let (expr, input) = ExprLet::into_parser()
+            .map(|v| Expr::Let(v))
+            .or(XmlEnd::into_parser().map(|v| Expr::XmlEnd(v)))
+            .or(XmlStart::into_parser().map(|v| Expr::XmlStart(v)))
+            .ok()
+            .parse(input)?;
+
+        if let Some(expr) = expr {
+            return Ok((expr, input));
+        }
+
+        let (mut expr, mut input) = ExprVariable::into_parser()
+            .map(|v| Expr::Variable(v))
+            .parse(input)?;
 
         loop {
             (_, input) = S::into_parser().ok().parse(input)?;
-            let body;
-            (body, input) = CallBody::into_parser().ok().parse(input)?;
 
-            let Some(body) = body else {
-                if chain_body.is_empty() {
-                    return Err(parserc::ControlFlow::Recovable(ParseError::Expect(
-                        TokenError::ChainCallBody,
-                        input.span(),
-                    )));
-                }
-                return Ok((
-                    Self {
-                        target: Box::new(target),
-                        chain_body,
-                    },
-                    input,
-                ));
-            };
+            let dot_token;
 
-            chain_body.push(body);
+            (dot_token, input) = Dot::into_parser().ok().parse(input)?;
+
+            if let Some(dot_token) = dot_token {
+                (_, input) = S::into_parser().ok().parse(input)?;
+                let member;
+
+                (member, input) = Member::parse(input)?;
+                expr = Expr::Field(ExprField {
+                    base: Box::new(expr),
+                    dot_token,
+                    member,
+                });
+
+                continue;
+            }
+
+            let delimiter_start;
+
+            (delimiter_start, input) = LeftParenthesis::into_parser().ok().parse(input)?;
+
+            if let Some(delimiter_start) = delimiter_start {
+                let delimiter_end;
+
+                let params;
+
+                (params, input) = Punctuated::parse(input)?;
+
+                (delimiter_end, input) = RightParenthesis::parse(input)?;
+
+                expr = Expr::Call(ExprCall {
+                    delimiter_start,
+                    params,
+                    delimiter_end,
+                });
+
+                continue;
+            }
+
+            break;
         }
+
+        Ok((expr, input))
     }
-}
-
-/// A struct or tuple struct field accessed in a struct literal or field expression.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub enum Member<I>
-where
-    I: StylangInput,
-{
-    Named(Ident<I>),
-    Unnamed(Digits<I>),
-}
-
-/// A struct or tuple struct field accessed in a struct literal or field expression.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub struct ChainMembers<I>(pub Vec<(Option<S<I>>, Dot<I>, Option<S<I>>, Member<I>)>)
-where
-    I: StylangInput;
-
-/// A struct or tuple struct field accessed in a struct literal or field expression.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub enum ExprFieldBase<I>
-where
-    I: StylangInput,
-{
-    Lit(Lit<I>),
-    Ident(Ident<I>),
-    // Call(ExprCall<I>),
-}
-
-/// A struct or tuple struct field accessed in a struct literal or field expression.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub struct ExprField<I>
-where
-    I: StylangInput,
-{
-    pub base: Box<ExprFieldBase<I>>,
-    pub chain_members: ChainMembers<I>,
-}
-
-/// A Rust expression.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
-pub enum Expr<I>
-where
-    I: StylangInput,
-{
-    Lit(MetaList<I>, Lit<I>),
-    Let(ExprLet<I>),
-    Call(MetaList<I>, ExprCall<I>),
-    Field(MetaList<I>, ExprField<I>),
-    XmlStart(XmlStart<I>),
-    XmlEnd(XmlEnd<I>),
 }
 
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Parse, span::Span};
+    use parserc::Parse;
 
     use crate::lang::*;
 
     #[test]
     fn test_let() {
-        assert_eq!(
-            Expr::parse(TokenStream::from("let a = 10")),
-            Ok((
-                Expr::Let(ExprLet {
-                    meta_list: MetaList(vec![]),
-                    let_token: (
-                        KeywordLet(TokenStream::from("let")),
-                        S(TokenStream::from((3, " ")))
-                    ),
-                    patt: Patt::Path(PattPath {
-                        meta_list: MetaList(vec![]),
-                        path: TypePath {
-                            first: Ident(TokenStream::from((4, "a"))),
-                            rest: vec![]
-                        }
-                    }),
-                    eq_token: (
-                        None,
-                        Eq(TokenStream::from((6, "="))),
-                        Some(S(TokenStream::from((7, " "))))
-                    ),
-                    expr: Box::new(Expr::Lit(
-                        MetaList(vec![]),
-                        crate::lang::Lit::Num(LitNum {
-                            sign: None,
-                            trunc: Some(Digits(TokenStream::from((8, "10")))),
-                            dot: None,
-                            fract: None,
-                            exp: None,
-                            unit: None
-                        })
-                    ))
-                }),
-                TokenStream::from((10, ""))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_let_2() {
         assert_eq!(
             ExprLet::parse(TokenStream::from(
                 "let @state @option value: string = none;",
@@ -326,225 +179,12 @@ mod tests {
                         Eq(TokenStream::from((33, "="))),
                         Some(S(TokenStream::from((34, " "))))
                     ),
-                    expr: Box::new(Expr::Lit(
+                    expr: Box::new(Expr::Variable(ExprVariable::Lit(
                         MetaList(vec![]),
                         Lit::None(KeywordNone(TokenStream::from((35, "none"))))
-                    ))
+                    )))
                 },
                 TokenStream::from((39, ";"))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_empty_tag() {
-        XmlStart::parse(TokenStream::from(
-            r#"<text-field text=value prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
-        )).unwrap();
-    }
-
-    #[test]
-    fn test_start_tag() {
-        assert_eq!(
-            XmlStart::parse(TokenStream::from("<hello/>")),
-            Ok((
-                XmlStart {
-                    meta_list: MetaList(vec![]),
-                    delimiter_start: (Lt(TokenStream::from((0, "<"))), None),
-                    ident: XmlIdent(TokenStream::from((1, "hello"))),
-                    attrs: Punctuated {
-                        items: vec![],
-                        last: None
-                    },
-                    delimiter_end: XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((
-                        6, "/>"
-                    ))))
-                },
-                TokenStream::from((8, ""))
-            ))
-        );
-
-        assert_eq!(
-            XmlStart::parse(TokenStream::from("< hello >")),
-            Ok((
-                XmlStart {
-                    meta_list: MetaList(vec![]),
-                    delimiter_start: (
-                        Lt(TokenStream::from((0, "<"))),
-                        Some(S(TokenStream::from((1, " "))))
-                    ),
-                    ident: XmlIdent(TokenStream::from((2, "hello"))),
-                    attrs: Punctuated {
-                        items: vec![],
-                        last: None
-                    },
-                    delimiter_end: XmlStartDelimiterEnd::WithContent(Gt(TokenStream::from((
-                        8, ">"
-                    ))))
-                },
-                TokenStream::from((9, ""))
-            ))
-        );
-
-        assert_eq!(
-            XmlStart::parse(TokenStream::from("<hello / >")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::Keyword(">"),
-                Span { offset: 7, len: 3 }
-            )))
-        );
-    }
-
-    #[test]
-    fn test_end_tag() {
-        assert_eq!(
-            XmlEnd::parse(TokenStream::from("</ hello>")),
-            Ok((
-                XmlEnd {
-                    meta_list: MetaList(vec![]),
-                    delimiter_start: LtSlash(TokenStream::from("</")),
-                    ident: (
-                        Some(S(TokenStream::from((2, " ")))),
-                        XmlIdent(TokenStream::from((3, "hello"))),
-                        None
-                    ),
-                    delimiter_end: Gt(TokenStream::from((8, ">")))
-                },
-                TokenStream::from((9, ""))
-            ))
-        );
-
-        assert_eq!(
-            XmlEnd::parse(TokenStream::from("<hello>")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::Keyword("</"),
-                Span { offset: 0, len: 7 }
-            )))
-        );
-
-        assert_eq!(
-            XmlEnd::parse(TokenStream::from("</>")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::XmlIdent,
-                Span { offset: 2, len: 1 }
-            )))
-        );
-        assert_eq!(
-            XmlEnd::parse(TokenStream::from("</hello")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::Keyword(">"),
-                Span { offset: 7, len: 0 }
-            )))
-        );
-    }
-
-    #[test]
-    fn test_attr() {
-        assert_eq!(
-            XmlAttr::parse(TokenStream::from(r#"v="hello""#)),
-            Ok((
-                XmlAttr {
-                    meta_list: MetaList(vec![]),
-                    name: XmlIdent(TokenStream::from("v")),
-                    eq_token: (None, Eq(TokenStream::from((1, "="))), None),
-                    value: XmlAttrValue::Expr(Expr::Lit(
-                        MetaList(vec![]),
-                        Lit::String(LitStr(TokenStream::from((3, "hello"))))
-                    ))
-                },
-                TokenStream::from((9, ""))
-            ))
-        );
-
-        assert_eq!(
-            XmlAttr::parse(TokenStream::from(r#"v={}"#)),
-            Ok((
-                XmlAttr {
-                    meta_list: MetaList(vec![]),
-                    name: XmlIdent(TokenStream::from("v")),
-                    eq_token: (None, Eq(TokenStream::from((1, "="))), None),
-                    value: XmlAttrValue::Block(Block {
-                        delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
-                        stmts: vec![],
-                        meta_list: MetaList(vec![]),
-                        delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
-                    })
-                },
-                TokenStream::from((4, ""))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_start_tag_with_attr() {
-        assert_eq!(
-            XmlStart::parse(TokenStream::from(r#"<text font-family="serif" />"#)),
-            Ok((
-                XmlStart {
-                    meta_list: MetaList(vec![]),
-                    delimiter_start: (Lt(TokenStream::from("<")), None),
-                    ident: XmlIdent(TokenStream::from((1, "text"))),
-                    attrs: Punctuated {
-                        items: vec![],
-                        last: Some(Box::new(XmlAttr {
-                            meta_list: MetaList(vec![]),
-                            name: XmlIdent(TokenStream::from((6, "font-family"))),
-                            eq_token: (None, Eq(TokenStream::from((17, "="))), None),
-                            value: XmlAttrValue::Expr(Expr::Lit(
-                                MetaList(vec![]),
-                                Lit::String(LitStr(TokenStream::from((19, "serif"))))
-                            ))
-                        }))
-                    },
-                    delimiter_end: XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((
-                        26, "/>"
-                    ))))
-                },
-                TokenStream::from((28, ""))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_expr_call() {
-        assert_eq!(
-            Expr::parse(TokenStream::from(
-                r#"donate(/*implicit type conversion*/ value)"#,
-            )),
-            Ok((
-                Expr::Call(
-                    MetaList(vec![]),
-                    ExprCall {
-                        target: Box::new(ExprField {
-                            base: Box::new(ExprFieldBase::Ident(Ident(TokenStream::from((
-                                0, "donate"
-                            ))))),
-                            chain_members: ChainMembers(vec![]),
-                        }),
-                        chain_body: vec![CallBody {
-                            delimiter_start: LeftParenthesis(TokenStream::from((6, "("))),
-                            args: Punctuated {
-                                items: vec![],
-                                last: Some(Box::new(Expr::Field(
-                                    MetaList(vec![Meta::Comment(Comment::BlockComment(
-                                        BlockComment(TokenStream::from((
-                                            9,
-                                            "implicit type conversion"
-                                        )))
-                                    ))]),
-                                    ExprField {
-                                        base: Box::new(ExprFieldBase::Ident(Ident(
-                                            TokenStream::from((36, "value"))
-                                        ))),
-                                        chain_members: ChainMembers(vec![])
-                                    }
-                                )))
-                            },
-                            delimiter_end: RightParenthesis(TokenStream::from((41, ")"))),
-                        }]
-                    }
-                ),
-                TokenStream::from((42, ""))
             ))
         );
     }

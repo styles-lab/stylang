@@ -317,9 +317,8 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        ArrowRight, At, Attr, BlockComment, CallBody, ChainMembers, Comment, Expr, ExprCall,
-        ExprField, ExprFieldBase, F32, I32, KeywordColor, KeywordFn, KeywordString, KeywordView,
-        LineComment, Meta, OutlineDoc, TokenStream,
+        ArrowRight, At, Attr, Comment, F32, I32, KeywordColor, KeywordFn, KeywordString,
+        KeywordView, Meta, OutlineDoc, TokenStream,
         ty::{TypeFn, TypePath, TypeReturn},
     };
 
@@ -839,79 +838,6 @@ mod tests {
                     )
                 },
                 TokenStream::from((42, ""))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_block() {
-        assert_eq!(
-            Block::parse(TokenStream::from(
-                r#"{
-                    // hello world
-                }"#,
-            )),
-            Ok((
-                Block {
-                    delimiter_start: LeftCurlyBracket(TokenStream::from((0, "{"))),
-                    stmts: vec![],
-                    meta_list: MetaList(vec![Meta::Comment(Comment::LineComment(LineComment(
-                        TokenStream::from((24, " hello world"))
-                    )))]),
-                    delimiter_end: RightCurlyBracket(TokenStream::from((53, "}")))
-                },
-                TokenStream::from((54, ""))
-            ))
-        );
-
-        assert_eq!(
-            Block::parse(TokenStream::from(
-                r#"{
-                    donate(/*implicit type conversion*/ value)
-                }"#,
-            )),
-            Ok((
-                Block {
-                    delimiter_start: LeftCurlyBracket(TokenStream::from((0, "{"))),
-                    stmts: vec![Stmt::Expr(
-                        Expr::Call(
-                            MetaList(vec![]),
-                            ExprCall {
-                                target: Box::new(ExprField {
-                                    base: Box::new(ExprFieldBase::Ident(Ident(TokenStream::from(
-                                        (22, "donate")
-                                    )))),
-                                    chain_members: ChainMembers(vec![]),
-                                }),
-                                chain_body: vec![CallBody {
-                                    delimiter_start: LeftParenthesis(TokenStream::from((28, "("))),
-                                    args: Punctuated {
-                                        items: vec![],
-                                        last: Some(Box::new(Expr::Field(
-                                            MetaList(vec![Meta::Comment(Comment::BlockComment(
-                                                BlockComment(TokenStream::from((
-                                                    31,
-                                                    "implicit type conversion"
-                                                )))
-                                            ))]),
-                                            ExprField {
-                                                base: Box::new(ExprFieldBase::Ident(Ident(
-                                                    TokenStream::from((58, "value"))
-                                                ))),
-                                                chain_members: ChainMembers(vec![])
-                                            }
-                                        )))
-                                    },
-                                    delimiter_end: RightParenthesis(TokenStream::from((63, ")"))),
-                                }]
-                            }
-                        ),
-                        None
-                    )],
-                    meta_list: MetaList(vec![]),
-                    delimiter_end: RightCurlyBracket(TokenStream::from((81, "}")))
-                },
-                TokenStream::from((82, ""))
             ))
         );
     }
