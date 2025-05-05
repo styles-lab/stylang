@@ -45,8 +45,8 @@ pub use item::*;
 mod patt;
 pub use patt::*;
 
-mod parse;
-pub use parse::*;
+mod script;
+pub use script::*;
 
 mod stmt;
 pub use stmt::*;

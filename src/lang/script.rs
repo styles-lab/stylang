@@ -41,11 +41,26 @@ where
     }
 }
 
-/// Parse a source file.
-pub fn parse(source: &str) -> Result<Script<TokenStream<'_>>, ControlFlow<ParseError>> {
-    let input = TokenStream::from(source);
+impl<'a> TryFrom<&'a str> for Script<TokenStream<'a>> {
+    type Error = ControlFlow<ParseError>;
 
-    let (script, _) = Script::parse(input)?;
+    fn try_from(source: &'a str) -> Result<Self, Self::Error> {
+        let input = TokenStream::from(source);
 
-    Ok(script)
+        let (script, _) = Script::parse(input)?;
+
+        Ok(script)
+    }
+}
+
+impl<'a> TryFrom<&'a String> for Script<TokenStream<'a>> {
+    type Error = ControlFlow<ParseError>;
+
+    fn try_from(source: &'a String) -> Result<Self, Self::Error> {
+        let input = TokenStream::from(source.as_str());
+
+        let (script, _) = Script::parse(input)?;
+
+        Ok(script)
+    }
 }

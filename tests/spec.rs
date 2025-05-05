@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use stylang::lang::{Item, TokenStream, parse};
+use stylang::lang::{Script, TokenStream};
 
 fn files(path: impl AsRef<Path>) -> Vec<PathBuf> {
     let mut dirs = vec![Path::new(env!("CARGO_MANIFEST_DIR")).join(path)];
@@ -35,18 +35,20 @@ fn test_script(mut path: PathBuf) {
 
     let source = fs::read_to_string(&path).unwrap();
 
-    let script = parse(&source).unwrap();
+    let script = Script::try_from(&source).unwrap();
 
     path.set_extension("b");
 
-    let data = bendy::serde::ser::to_bytes(&script).unwrap();
-    // let data = flexbuffers::to_vec(&script).unwrap();
+    // let data = bendy::serde::ser::to_bytes(&script).unwrap();
+    let data = flexbuffers::to_vec(&script).unwrap();
+    // let data = serde_lexpr::to_vec(&script).unwrap();
 
     std::fs::write(path, &data).unwrap();
 
-    // let _: Vec<Item<TokenStream<'_>>> = flexbuffers::from_slice(&data).unwrap();
+    let _: Script<TokenStream<'_>> = flexbuffers::from_slice(&data).unwrap();
 
-    let _: Vec<Item<TokenStream<'_>>> = bendy::serde::de::from_bytes(&data).unwrap();
+    // let _: Script<TokenStream<'_>> = bendy::serde::de::from_bytes(&data).unwrap();
+    // let _: Vec<Item<TokenStream<'static>>> = serde_lexpr::from_slice(s);
 
     println!(" ... ok({},{})", script.0.len(), data.len());
 }
