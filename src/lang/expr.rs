@@ -3,8 +3,9 @@ use parserc::{Parse, Parser, ParserExt, derive_parse};
 use crate::lang::{Dot, LeftParenthesis, Member, Punctuated, RightParenthesis};
 
 use super::{
-    Block, Eq, ExprField, ExprIf, ExprPath, KeywordLet, Lit, MetaList, ParseError, Patt, S,
-    StylangInput, XmlEnd, XmlStart, call::ExprCall,
+    BinOp, Block, Eq, ExprBinary, ExprField, ExprIf, ExprIndex, ExprPath, ExprUnary, KeywordLet,
+    LeftBracket, Lit, MetaList, ParseError, Patt, RightBracket, S, StylangInput, XmlEnd, XmlStart,
+    call::ExprCall,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -51,6 +52,20 @@ where
     pub block: Block<I>,
 }
 
+/// A parenthesized expression: (a + b).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct ExprParen<I>
+where
+    I: StylangInput,
+{
+    pub meta_list: MetaList<I>,
+    pub delimiter_start: LeftParenthesis<I>,
+    pub expr: Box<Expr<I>>,
+    pub delimiter_end: RightParenthesis<I>,
+}
+
 /// A Rust expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -67,6 +82,10 @@ where
     Path(ExprPath<I>),
     Block(ExprBlock<I>),
     If(ExprIf<I>),
+    Binary(ExprBinary<I>),
+    Unary(ExprUnary<I>),
+    Paren(ExprParen<I>),
+    Index(ExprIndex<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -82,6 +101,8 @@ where
             .or(XmlStart::into_parser().map(|v| Expr::XmlStart(v)))
             .or(ExprBlock::into_parser().map(|v| Expr::Block(v)))
             .or(ExprIf::into_parser().map(|v| Expr::If(v)))
+            .or(ExprUnary::into_parser().map(|v| Expr::Unary(v)))
+            .or(ExprParen::into_parser().map(|v| Expr::Paren(v)))
             .ok()
             .parse(input)?;
 
@@ -138,7 +159,48 @@ where
                 continue;
             }
 
+            let delimiter_start;
+
+            (delimiter_start, input) = LeftBracket::into_parser().ok().parse(input)?;
+
+            if let Some(delimiter_start) = delimiter_start {
+                let delimiter_end;
+
+                let index;
+
+                (index, input) = Expr::parse(input)?;
+
+                (delimiter_end, input) = RightBracket::parse(input)?;
+
+                expr = Expr::Index(ExprIndex {
+                    expr: Box::new(expr),
+                    delimiter_start,
+                    index: Box::new(index),
+                    delimiter_end,
+                });
+
+                continue;
+            }
+
             break;
+        }
+
+        let (_, input) = S::into_parser().ok().parse(input)?;
+
+        let (op, input) = BinOp::into_parser().ok().parse(input)?;
+
+        if let Some(op) = op {
+            let (_, input) = S::into_parser().ok().parse(input)?;
+            let (rhs, input) = Expr::parse(input)?;
+
+            return Ok((
+                Expr::Binary(ExprBinary {
+                    left: Box::new(expr),
+                    op,
+                    right: Box::new(rhs),
+                }),
+                input,
+            ));
         }
 
         Ok((expr, input))
@@ -204,6 +266,31 @@ mod tests {
                     }))
                 },
                 TokenStream::from((39, ";"))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_paren() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("((a))")),
+            Ok((
+                Expr::Paren(ExprParen {
+                    meta_list: MetaList(vec![]),
+                    delimiter_start: LeftParenthesis(TokenStream::from("(")),
+                    expr: Box::new(Expr::Paren(ExprParen {
+                        meta_list: MetaList(vec![]),
+                        delimiter_start: LeftParenthesis(TokenStream::from((1, "("))),
+                        expr: Box::new(Expr::Path(ExprPath {
+                            meta_list: MetaList(vec![]),
+                            first: Ident(TokenStream::from((2, "a"))),
+                            tails: vec![]
+                        })),
+                        delimiter_end: RightParenthesis(TokenStream::from((3, ")")))
+                    })),
+                    delimiter_end: RightParenthesis(TokenStream::from((4, ")")))
+                }),
+                TokenStream::from((5, ""))
             ))
         );
     }
