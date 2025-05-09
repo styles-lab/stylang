@@ -373,6 +373,8 @@ define_token!(>>= => ShrEq);
 define_token!(<= => Le);
 define_token!(>= => Ge);
 define_token!(!= => Ne);
+define_token!(.. => DotDot);
+define_token!(..= => DotDotEq);
 define_token!(fn => KeywordFn);
 define_token!(pub => KeywordPub);
 define_token!(crate => KeywordCrate);

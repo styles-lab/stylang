@@ -1,11 +1,11 @@
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{Dot, LeftParenthesis, Member, Punctuated, RightParenthesis};
 
 use super::{
-    BinOp, Block, Eq, ExprBinary, ExprField, ExprIf, ExprIndex, ExprPath, ExprUnary, KeywordLet,
-    LeftBracket, Lit, MetaList, ParseError, Patt, RightBracket, S, StylangInput, XmlEnd, XmlStart,
-    call::ExprCall,
+    BinOp, Block, DotDot, DotDotEq, Eq, ExprBinary, ExprField, ExprIf, ExprIndex, ExprPath,
+    ExprRange, ExprUnary, KeywordLet, LeftBracket, Lit, MetaList, ParseError, Patt, RangeLimits,
+    RightBracket, S, StylangInput, TokenError, XmlEnd, XmlStart, call::ExprCall,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -86,6 +86,7 @@ where
     Unary(ExprUnary<I>),
     Paren(ExprParen<I>),
     Index(ExprIndex<I>),
+    Range(ExprRange<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -117,6 +118,15 @@ where
 
         loop {
             (_, input) = S::into_parser().ok().parse(input)?;
+
+            let (None, _) = DotDotEq::into_parser()
+                .map(|_| ())
+                .or(DotDot::into_parser().map(|_| ()))
+                .ok()
+                .parse(input.clone())?
+            else {
+                break;
+            };
 
             let dot_token;
 
@@ -166,18 +176,46 @@ where
             if let Some(delimiter_start) = delimiter_start {
                 let delimiter_end;
 
-                let index;
+                let start;
 
-                (index, input) = Expr::parse(input)?;
+                (start, input) = Expr::into_parser().ok().parse(input)?;
 
-                (delimiter_end, input) = RightBracket::parse(input)?;
+                let limits;
 
-                expr = Expr::Index(ExprIndex {
-                    expr: Box::new(expr),
-                    delimiter_start,
-                    index: Box::new(index),
-                    delimiter_end,
-                });
+                (limits, input) = RangeLimits::into_parser().ok().parse(input)?;
+
+                if let Some(limits) = limits {
+                    let end;
+                    (end, input) = Expr::into_parser().ok().parse(input)?;
+                    (delimiter_end, input) = RightBracket::parse(input)?;
+
+                    expr = Expr::Index(ExprIndex {
+                        expr: Box::new(expr),
+                        delimiter_start,
+                        index: Box::new(Expr::Range(ExprRange {
+                            start: start.map(|v| Box::new(v)),
+                            limits,
+                            end: end.map(|v| Box::new(v)),
+                        })),
+                        delimiter_end,
+                    });
+                } else {
+                    let Some(start) = start else {
+                        return Err(ControlFlow::Fatal(ParseError::Expect(
+                            TokenError::Index,
+                            input.span(),
+                        )));
+                    };
+
+                    (delimiter_end, input) = RightBracket::parse(input)?;
+
+                    expr = Expr::Index(ExprIndex {
+                        expr: Box::new(expr),
+                        delimiter_start,
+                        index: Box::new(start),
+                        delimiter_end,
+                    });
+                }
 
                 continue;
             }

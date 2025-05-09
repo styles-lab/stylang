@@ -93,6 +93,33 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (sign, input) = Sign::into_parser().ok().parse(input)?;
         let (trunc, input) = Digits::into_parser().ok().parse(input)?;
+
+        let (None, _) = DotDotEq::into_parser()
+            .map(|_| ())
+            .or(DotDot::into_parser().map(|_| ()))
+            .ok()
+            .parse(input.clone())?
+        else {
+            if trunc.is_none() {
+                return Err(ControlFlow::Recovable(ParseError::Expect(
+                    TokenError::Digits,
+                    input.span(),
+                )));
+            }
+
+            return Ok((
+                Self {
+                    sign,
+                    trunc,
+                    dot: None,
+                    fract: None,
+                    exp: None,
+                    unit: None,
+                },
+                input,
+            ));
+        };
+
         let (dot, input) = Dot::into_parser().ok().parse(input)?;
 
         let (fract, input) = if dot.is_some() {
