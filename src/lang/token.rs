@@ -397,6 +397,7 @@ define_token!(else => KeywordElse);
 define_token!(elif => KeywordElif);
 define_token!(for => KeywordFor);
 define_token!(rgb => KeywordRgb);
+define_token!(return => KeywordReturn);
 define_token!(i8 => I8);
 define_token!(i16 => I16);
 define_token!(i32 => I32);

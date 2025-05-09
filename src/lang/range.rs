@@ -21,6 +21,6 @@ pub enum RangeLimits<I>
 where
     I: StylangInput,
 {
-    HalfOpen(DotDot<I>),
     Closed(DotDotEq<I>),
+    HalfOpen(DotDot<I>),
 }
