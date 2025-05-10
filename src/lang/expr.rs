@@ -4,8 +4,8 @@ use crate::lang::{Dot, LeftParenthesis, Member, Punctuated, RightParenthesis};
 
 use super::{
     BinOp, Block, DotDot, DotDotEq, Eq, ExprBinary, ExprField, ExprIf, ExprIndex, ExprPath,
-    ExprRange, ExprUnary, KeywordLet, LeftBracket, Lit, MetaList, ParseError, Patt, RangeLimits,
-    RightBracket, S, StylangInput, TokenError, XmlEnd, XmlStart, call::ExprCall,
+    ExprRange, ExprUnary, KeywordLet, KeywordReturn, LeftBracket, Lit, MetaList, ParseError, Patt,
+    RangeLimits, RightBracket, S, StylangInput, TokenError, XmlEnd, XmlStart, call::ExprCall,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -66,6 +66,19 @@ where
     pub delimiter_end: RightParenthesis<I>,
 }
 
+/// A return, with an optional value to be returned.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = ParseError,input = I)]
+pub struct ExprReturn<I>
+where
+    I: StylangInput,
+{
+    pub meta_list: MetaList<I>,
+    pub return_token: KeywordReturn<I>,
+    pub expr: Option<Box<Expr<I>>>,
+}
+
 /// A Rust expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -87,6 +100,7 @@ where
     Paren(ExprParen<I>),
     Index(ExprIndex<I>),
     Range(ExprRange<I>),
+    Return(ExprReturn<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -104,6 +118,7 @@ where
             .or(ExprIf::into_parser().map(|v| Expr::If(v)))
             .or(ExprUnary::into_parser().map(|v| Expr::Unary(v)))
             .or(ExprParen::into_parser().map(|v| Expr::Paren(v)))
+            .or(ExprReturn::into_parser().map(|v| Expr::Return(v)))
             .ok()
             .parse(input)?;
 
@@ -330,6 +345,25 @@ mod tests {
                 }),
                 TokenStream::from((5, ""))
             ))
+        );
+    }
+
+    #[test]
+    fn test_return() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("return a")),
+            Ok((
+                Expr::Return(ExprReturn {
+                    meta_list: MetaList(vec![]),
+                    return_token: KeywordReturn(TokenStream::from("return")),
+                    expr: Some(Box::new(Expr::Path(ExprPath {
+                        meta_list: MetaList(vec![]),
+                        first: Ident(TokenStream::from((7, "a"))),
+                        tails: vec![]
+                    })))
+                }),
+                TokenStream::from((8, ""))
+            ),)
         );
     }
 }
