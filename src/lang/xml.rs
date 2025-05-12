@@ -2,7 +2,9 @@
 
 use parserc::derive_parse;
 
-use super::{errors::LangError, inputs::LangInput, lit::Lit, meta::MetaList, tokens::*};
+use super::{
+    errors::LangError, inputs::LangInput, item::Block, lit::Lit, meta::MetaList, tokens::*,
+};
 
 /// value expr for xml attribute.
 #[derive(Debug, PartialEq, Clone)]
@@ -14,7 +16,8 @@ where
 {
     /// A lit value.
     Lit(Lit<I>),
-    // Block(Block<I>),
+    /// a block value.
+    Block(Block<I>),
 }
 
 /// Xml attribute name/value pair: `xx=...`
