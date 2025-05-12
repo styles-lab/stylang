@@ -113,20 +113,20 @@ mod tests {
                     left: Box::new(Expr::Path(ExprPath {
                         meta_list: MetaList(vec![]),
                         first: Ident(TokenStream::from((0, "a"))),
-                        tails: vec![]
+                        rest: vec![]
                     })),
                     op: BinOp::Mul(Star(TokenStream::from((2, "*")))),
                     right: Box::new(Expr::Binary(ExprBinary {
                         left: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from((4, "b"))),
-                            tails: vec![]
+                            rest: vec![]
                         })),
                         op: BinOp::Add(Plus(TokenStream::from((6, "+")))),
                         right: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from((8, "b"))),
-                            tails: vec![]
+                            rest: vec![]
                         }))
                     }))
                 }),
@@ -168,7 +168,7 @@ mod tests {
                     right: Box::new(Expr::Path(ExprPath {
                         meta_list: MetaList(vec![]),
                         first: Ident(TokenStream::from((1, "a"))),
-                        tails: vec![]
+                        rest: vec![]
                     }))
                 }),
                 TokenStream::from((2, ""))

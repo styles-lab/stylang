@@ -62,9 +62,6 @@ pub use field::*;
 mod cond;
 pub use cond::*;
 
-mod path;
-pub use path::*;
-
 mod op;
 pub use op::*;
 

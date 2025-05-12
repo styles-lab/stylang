@@ -734,6 +734,7 @@ mod tests {
                                         Some(S(TokenStream::from((32, " "))))
                                     ),
                                     ty: Box::new(Type::Path(TypePath {
+                                        meta_list: MetaList(vec![]),
                                         first: Ident(TokenStream::from((33, "Label"))),
                                         rest: vec![]
                                     }))
@@ -750,6 +751,7 @@ mod tests {
                                         Some(S(TokenStream::from((47, " "))))
                                     ),
                                     ty: Box::new(Type::Path(TypePath {
+                                        meta_list: MetaList(vec![]),
                                         first: Ident(TokenStream::from((48, "TextLayout"))),
                                         rest: vec![]
                                     }))
@@ -766,6 +768,7 @@ mod tests {
                                 Some(S(TokenStream::from((65, " "))))
                             ),
                             ty: Box::new(Type::Path(TypePath {
+                                meta_list: MetaList(vec![]),
                                 first: Ident(TokenStream::from((66, "Fill"))),
                                 rest: vec![]
                             }))

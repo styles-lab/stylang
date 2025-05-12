@@ -32,7 +32,7 @@ mod tests {
                         target: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from("a")),
-                            tails: vec![]
+                            rest: vec![]
                         })),
                         dot_token: Dot(TokenStream::from((1, "."))),
                         member: Member::Named(Ident(TokenStream::from((2, "b"))))
@@ -66,7 +66,7 @@ mod tests {
                         target: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from("a")),
-                            tails: vec![]
+                            rest: vec![]
                         })),
                         dot_token: Dot(TokenStream::from((1, "."))),
                         member: Member::Named(Ident(TokenStream::from((2, "b"))))
@@ -111,7 +111,7 @@ mod tests {
                         target: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from("a")),
-                            tails: vec![]
+                            rest: vec![]
                         })),
                         dot_token: Dot(TokenStream::from((1, "."))),
                         member: Member::Named(Ident(TokenStream::from((2, "b"))))

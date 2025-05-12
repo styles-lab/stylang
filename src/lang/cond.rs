@@ -53,10 +53,8 @@ mod tests {
                         target: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from((56, "web3"))),
-                            tails: vec![(
-                                None,
+                            rest: vec![(
                                 PathSep(TokenStream::from((60, "::"))),
-                                None,
                                 Ident(TokenStream::from((62, "is_connected")))
                             )]
                         })),

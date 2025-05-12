@@ -3,9 +3,10 @@ use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 use crate::lang::{Dot, LeftParenthesis, Member, Punctuated, RightParenthesis};
 
 use super::{
-    BinOp, Block, DotDot, DotDotEq, Eq, ExprBinary, ExprField, ExprIf, ExprIndex, ExprPath,
-    ExprRange, ExprUnary, KeywordLet, KeywordReturn, LeftBracket, Lit, MetaList, ParseError, Patt,
-    RangeLimits, RightBracket, S, StylangInput, TokenError, XmlEnd, XmlStart, call::ExprCall,
+    BinOp, Block, DotDot, DotDotEq, Eq, ExprBinary, ExprField, ExprIf, ExprIndex, ExprRange,
+    ExprUnary, KeywordLet, KeywordReturn, LeftBracket, Lit, MetaList, ParseError, Patt,
+    RangeLimits, RightBracket, S, StylangInput, TokenError, TypePath, XmlEnd, XmlStart,
+    call::ExprCall,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -78,6 +79,8 @@ where
     pub return_token: KeywordReturn<I>,
     pub expr: Option<Box<Expr<I>>>,
 }
+
+pub type ExprPath<I> = TypePath<I>;
 
 /// A Rust expression.
 #[derive(Debug, PartialEq, Clone)]
@@ -337,7 +340,7 @@ mod tests {
                         expr: Box::new(Expr::Path(ExprPath {
                             meta_list: MetaList(vec![]),
                             first: Ident(TokenStream::from((2, "a"))),
-                            tails: vec![]
+                            rest: vec![]
                         })),
                         delimiter_end: RightParenthesis(TokenStream::from((3, ")")))
                     })),
@@ -359,7 +362,7 @@ mod tests {
                     expr: Some(Box::new(Expr::Path(ExprPath {
                         meta_list: MetaList(vec![]),
                         first: Ident(TokenStream::from((7, "a"))),
-                        tails: vec![]
+                        rest: vec![]
                     })))
                 }),
                 TokenStream::from((8, ""))

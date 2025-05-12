@@ -87,6 +87,8 @@ pub struct TypePath<I>
 where
     I: StylangInput,
 {
+    /// optional meta information list.
+    pub meta_list: MetaList<I>,
     /// first segment .
     pub first: Ident<I>,
     /// The remaining segments of the path.
@@ -100,6 +102,8 @@ where
     type Error = ParseError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+
         let (first, mut input) = Ident::parse(input)?;
 
         let mut rest = vec![];
@@ -120,7 +124,14 @@ where
             break;
         }
 
-        Ok((Self { first, rest }, input))
+        Ok((
+            Self {
+                meta_list,
+                first,
+                rest,
+            },
+            input,
+        ))
     }
 }
 
