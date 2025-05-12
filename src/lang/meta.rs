@@ -1,19 +1,22 @@
+//! meta types for `stylang`
+
 use parserc::{Parse, Parser, ParserExt, derive_parse};
 
-use super::{
-    At, Comma, Ident, LeftParenthesis, Lit, ParseError, Punctuated, RightParenthesis, S,
-    StylangInput,
-};
-
 use parserc::{keyword, take_till, take_until};
+
+use super::errors::LangError;
+use super::inputs::LangInput;
+use super::lit::Lit;
+use super::punct::Punctuated;
+use super::tokens::*;
 
 /// An Attribute, like `@platform` or `@sol("./erc20.json")`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Attr<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// token `@`
     pub keyword: At<I>,
@@ -26,10 +29,10 @@ where
 /// A literial parameter list used by attribute.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct LitParams<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     pub delimiter_start: LeftParenthesis<I>,
     pub params: Punctuated<Lit<I>, Comma<I>>,
@@ -43,9 +46,9 @@ pub struct OutlineDoc<I>(pub I);
 
 impl<I> Parse<I> for OutlineDoc<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (_, input) = keyword("///").parse(input)?;
@@ -63,9 +66,9 @@ pub struct LineComment<I>(pub I);
 
 impl<I> Parse<I> for LineComment<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (_, input) = keyword("//").parse(input)?;
@@ -83,9 +86,9 @@ pub struct BlockComment<I>(pub I);
 
 impl<I> Parse<I> for BlockComment<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (_, input) = keyword("/*").parse(input)?;
@@ -103,9 +106,9 @@ pub struct OutBlockDoc<I>(pub I);
 
 impl<I> Parse<I> for OutBlockDoc<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (_, input) = keyword("/**").parse(input)?;
@@ -119,10 +122,10 @@ where
 /// Comment token.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Comment<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     OutlineDoc(OutlineDoc<I>),
     LineComment(LineComment<I>),
@@ -133,10 +136,10 @@ where
 /// Metadata for item/patt...
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Meta<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Attr(Attr<I>),
     Comment(Comment<I>),
@@ -147,13 +150,13 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MetaList<I>(pub Vec<Meta<I>>)
 where
-    I: StylangInput;
+    I: LangInput;
 
 impl<I> Parse<I> for MetaList<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
         let mut meta_list = vec![];
@@ -178,10 +181,7 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{
-        At, Ident, LeftParenthesis, Lit, LitParams, LitStr, Punctuated, RightParenthesis, S,
-        TokenStream,
-    };
+    use crate::lang::{inputs::TokenStream, lit::LitStr};
 
     use super::*;
 

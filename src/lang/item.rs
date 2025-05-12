@@ -1,21 +1,38 @@
+//! The syntax analyser for `stylang` items.
+
 use parserc::derive_parse;
 
 use super::{
-    Colon, Comma, Ident, KeywordClass, KeywordData, KeywordEnum, KeywordExtern, KeywordFn,
-    KeywordMod, KeywordUse, LeftCurlyBracket, LeftParenthesis, MetaList, ParseError, PathSep,
-    Punctuated, RightCurlyBracket, RightParenthesis, S, SemiColon, Star, Stmt, StylangInput,
-    Visibility,
+    errors::LangError,
+    expr::Expr,
+    inputs::LangInput,
+    meta::MetaList,
     patt::PattType,
+    punct::Punctuated,
+    tokens::*,
     ty::{Type, TypeReturn},
+    vs::Visibility,
 };
+
+/// A statement, usually ending in a semicolon.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub enum Stmt<I>
+where
+    I: LangInput,
+{
+    Item(Item<I>),
+    Expr(Expr<I>, Option<SemiColon<I>>),
+}
 
 /// named field patt.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct NamedField<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -32,10 +49,10 @@ where
 /// uname field patt.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct UnameField<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -48,10 +65,10 @@ where
 /// Field patt.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Fields<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Named {
         delimiter_start: LeftCurlyBracket<I>,
@@ -68,10 +85,10 @@ where
 /// Class item.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct ItemClass<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -90,10 +107,10 @@ where
 /// Data item.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct ItemData<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -112,10 +129,10 @@ where
 /// Enum variant field.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Variant<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -128,10 +145,10 @@ where
 /// Enum item.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct ItemEnum<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -152,10 +169,10 @@ where
 /// Code block with delimiter `{...}`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Block<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// delimiter start token: `{`
     pub delimiter_start: LeftCurlyBracket<I>,
@@ -170,10 +187,10 @@ where
 /// Fn Block.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum FnBlock<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Block(Block<I>),
     SemiColon(SemiColon<I>),
@@ -182,10 +199,10 @@ where
 /// Fn item.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct ItemFn<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// meta data list.
     pub meta_list: MetaList<I>,
@@ -212,10 +229,10 @@ where
 /// A module declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Mod<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// optional attribute/comment list.
     pub meta_list: MetaList<I>,
@@ -232,10 +249,10 @@ where
 /// A module declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum UseTree<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// A path prefix of imports in a use item: std::....
     Path(UsePath<I>),
@@ -250,10 +267,10 @@ where
 /// a path prefix of imports in a use item: std::....
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct UsePath<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     pub ident: Ident<I>,
     pub separator: (Option<S<I>>, PathSep<I>, Option<S<I>>),
@@ -263,10 +280,10 @@ where
 /// A braced group of imports in a use item: {A, B, C}.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct UseGroup<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// brace delimiter: `{`
     pub delimiter_start: LeftCurlyBracket<I>,
@@ -279,10 +296,10 @@ where
 /// A use statement: `use std::...;`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Use<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// optional attribute/comment list.
     pub meta_list: MetaList<I>,
@@ -299,10 +316,10 @@ where
 /// stylang item variant.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Item<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Class(ItemClass<I>),
     Data(ItemData<I>),
@@ -316,11 +333,7 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{
-        ArrowRight, At, Attr, Comment, F32, I32, KeywordColor, KeywordFn, KeywordString,
-        KeywordView, Meta, OutlineDoc, TokenStream,
-        ty::{TypeFn, TypePath, TypeReturn},
-    };
+    use crate::lang::{inputs::TokenStream, meta::*, ty::*};
 
     use super::*;
 

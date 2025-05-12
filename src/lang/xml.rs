@@ -1,29 +1,29 @@
+//! xml syntax analyser.
+
 use parserc::derive_parse;
 
-use super::{
-    Block, Eq, Gt, Lit, Lt, LtSlash, MetaList, ParseError, S, SlashGt, StylangInput, XmlIdent,
-};
+use super::{errors::LangError, inputs::LangInput, lit::Lit, meta::MetaList, tokens::*};
 
 /// value expr for xml attribute.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum XmlAttrValue<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// A lit value.
     Lit(Lit<I>),
-    Block(Block<I>),
+    // Block(Block<I>),
 }
 
 /// Xml attribute name/value pair: `xx=...`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct XmlAttr<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// comment list.
     pub meta_list: MetaList<I>,
@@ -39,10 +39,10 @@ where
 /// Xml start tag end token: `>` or `/>`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum XmlStartDelimiterEnd<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Empty(SlashGt<I>),
     WithContent(Gt<I>),
@@ -51,10 +51,10 @@ where
 /// Xml start tag: `<xxx xx=xx ..>`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct XmlStart<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// comment list.
     pub meta_list: MetaList<I>,
@@ -72,10 +72,10 @@ where
 /// Xml end tag: `</xxx>`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct XmlEnd<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// comment list.
     pub meta_list: MetaList<I>,
@@ -92,16 +92,16 @@ where
 mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::{LeftCurlyBracket, Lit, LitStr, RightCurlyBracket, TokenError, TokenStream};
+    use crate::lang::{errors::TokenKind, inputs::TokenStream, lit::LitStr};
 
     use super::*;
 
-    #[test]
-    fn test_empty_tag() {
-        XmlStart::parse(TokenStream::from(
-            r#"<text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
-        )).unwrap();
-    }
+    // #[test]
+    // fn test_empty_tag() {
+    //     XmlStart::parse(TokenStream::from(
+    //         r#"<text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
+    //     )).unwrap();
+    // }
 
     #[test]
     fn test_start_tag() {
@@ -144,8 +144,8 @@ mod tests {
 
         assert_eq!(
             XmlStart::parse(TokenStream::from("<hello / >")),
-            Err(ControlFlow::Fatal(ParseError::Expect(
-                TokenError::Keyword(">"),
+            Err(ControlFlow::Fatal(LangError::expect(
+                TokenKind::Token(">"),
                 Span { offset: 7, len: 3 }
             )))
         );
@@ -172,23 +172,23 @@ mod tests {
 
         assert_eq!(
             XmlEnd::parse(TokenStream::from("<hello>")),
-            Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::Keyword("</"),
+            Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Token("</"),
                 Span { offset: 0, len: 7 }
             )))
         );
 
         assert_eq!(
             XmlEnd::parse(TokenStream::from("</>")),
-            Err(ControlFlow::Fatal(ParseError::Expect(
-                TokenError::XmlIdent,
+            Err(ControlFlow::Fatal(LangError::expect(
+                TokenKind::XmlIdent,
                 Span { offset: 2, len: 1 }
             )))
         );
         assert_eq!(
             XmlEnd::parse(TokenStream::from("</hello")),
-            Err(ControlFlow::Fatal(ParseError::Expect(
-                TokenError::Keyword(">"),
+            Err(ControlFlow::Fatal(LangError::expect(
+                TokenKind::Token(">"),
                 Span { offset: 7, len: 0 }
             )))
         );
@@ -209,23 +209,23 @@ mod tests {
             ))
         );
 
-        assert_eq!(
-            XmlAttr::parse(TokenStream::from(r#"v={}"#)),
-            Ok((
-                XmlAttr {
-                    meta_list: MetaList(vec![]),
-                    name: XmlIdent(TokenStream::from("v")),
-                    eq_token: (None, Eq(TokenStream::from((1, "="))), None),
-                    value: XmlAttrValue::Block(Block {
-                        delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
-                        stmts: vec![],
-                        meta_list: MetaList(vec![]),
-                        delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
-                    })
-                },
-                TokenStream::from((4, ""))
-            ))
-        );
+        // assert_eq!(
+        //     XmlAttr::parse(TokenStream::from(r#"v={}"#)),
+        //     Ok((
+        //         XmlAttr {
+        //             meta_list: MetaList(vec![]),
+        //             name: XmlIdent(TokenStream::from("v")),
+        //             eq_token: (None, Eq(TokenStream::from((1, "="))), None),
+        //             value: XmlAttrValue::Block(Block {
+        //                 delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
+        //                 stmts: vec![],
+        //                 meta_list: MetaList(vec![]),
+        //                 delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
+        //             })
+        //         },
+        //         TokenStream::from((4, ""))
+        //     ))
+        // );
     }
 
     #[test]

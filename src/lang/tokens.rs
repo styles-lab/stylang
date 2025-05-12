@@ -1,6 +1,10 @@
-use parserc::{ControlFlow, Parse, Parser, take_while};
+//! Lexical token for `stylang`
 
-use super::{ParseError, StylangInput, TokenError};
+use parserc::{ControlFlow, Kind, Parse, Parser, ParserExt, satisfy, take_while};
+
+use crate::lang::errors::TokenKind;
+
+use super::{errors::LangError, inputs::LangInput};
 
 /// token `{`
 #[derive(Debug, PartialEq, Clone)]
@@ -9,9 +13,9 @@ pub struct LeftCurlyBracket<I>(pub I);
 
 impl<I> parserc::Parse<I> for LeftCurlyBracket<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -19,7 +23,7 @@ where
         parserc::keyword("{")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("{"), input.span())
+                LangError::expect(TokenKind::Token("{"), input.span())
             })
             .parse(input)
     }
@@ -32,9 +36,9 @@ pub struct RightCurlyBracket<I>(pub I);
 
 impl<I> parserc::Parse<I> for RightCurlyBracket<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -42,7 +46,7 @@ where
         parserc::keyword("}")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("}"), input.span())
+                LangError::expect(TokenKind::Token("}"), input.span())
             })
             .parse(input)
     }
@@ -55,9 +59,9 @@ pub struct LeftBracket<I>(pub I);
 
 impl<I> parserc::Parse<I> for LeftBracket<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -65,7 +69,7 @@ where
         parserc::keyword("[")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("["), input.span())
+                LangError::expect(TokenKind::Token("["), input.span())
             })
             .parse(input)
     }
@@ -78,9 +82,9 @@ pub struct RightBracket<I>(pub I);
 
 impl<I> parserc::Parse<I> for RightBracket<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -88,7 +92,7 @@ where
         parserc::keyword("]")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("]"), input.span())
+                LangError::expect(TokenKind::Token("]"), input.span())
             })
             .parse(input)
     }
@@ -101,9 +105,9 @@ pub struct LeftParenthesis<I>(pub I);
 
 impl<I> parserc::Parse<I> for LeftParenthesis<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -111,7 +115,7 @@ where
         parserc::keyword("(")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("("), input.span())
+                LangError::expect(TokenKind::Token("("), input.span())
             })
             .parse(input)
     }
@@ -124,9 +128,9 @@ pub struct RightParenthesis<I>(pub I);
 
 impl<I> parserc::Parse<I> for RightParenthesis<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -134,7 +138,7 @@ where
         parserc::keyword(")")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword(")"), input.span())
+                LangError::expect(TokenKind::Token(")"), input.span())
             })
             .parse(input)
     }
@@ -147,9 +151,9 @@ pub struct SlashGt<I>(pub I);
 
 impl<I> parserc::Parse<I> for SlashGt<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -157,7 +161,7 @@ where
         parserc::keyword("/>")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("/>"), input.span())
+                LangError::expect(TokenKind::Token("/>"), input.span())
             })
             .parse(input)
     }
@@ -170,9 +174,9 @@ pub struct LtSlash<I>(pub I);
 
 impl<I> parserc::Parse<I> for LtSlash<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -180,7 +184,7 @@ where
         parserc::keyword("</")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("</"), input.span())
+                LangError::expect(TokenKind::Token("</"), input.span())
             })
             .parse(input)
     }
@@ -192,16 +196,16 @@ pub struct S<I>(pub I);
 
 impl<I> Parse<I> for S<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (s, input) = take_while(|c: u8| c.is_ascii_whitespace()).parse(input)?;
 
         if s.is_empty() {
-            return Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::S,
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Token("/>"),
                 input.span(),
             )));
         }
@@ -217,16 +221,16 @@ pub struct Digits<I>(pub I);
 
 impl<I> Parse<I> for Digits<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (digits, input) = take_while(|c: u8| c.is_ascii_digit()).parse(input)?;
 
         if digits.is_empty() {
-            return Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::Digits,
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Digits,
                 input.span(),
             )));
         }
@@ -242,16 +246,16 @@ pub struct HexDigits<I>(pub I);
 
 impl<I> Parse<I> for HexDigits<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (digits, input) = take_while(|c: u8| c.is_ascii_hexdigit()).parse(input)?;
 
         if digits.is_empty() {
-            return Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::HexDigits,
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::HexDigits,
                 input.span(),
             )));
         }
@@ -267,9 +271,9 @@ pub struct KeywordExp<I>(pub I);
 
 impl<I> parserc::Parse<I> for KeywordExp<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -277,6 +281,9 @@ where
         parserc::keyword("E")
             .or(parserc::keyword("e"))
             .map(|v| Self(v))
+            .map_err(|input: I, _: parserc::Kind| {
+                LangError::expect(TokenKind::Token("E or e"), input.span())
+            })
             .parse(input)
     }
 }
@@ -288,9 +295,9 @@ pub struct HexSign<I>(pub I);
 
 impl<I> parserc::Parse<I> for HexSign<I>
 where
-    I: super::StylangInput,
+    I: LangInput,
 {
-    type Error = super::ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
@@ -298,7 +305,7 @@ where
         parserc::keyword("0x")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
-                super::ParseError::Expect(super::TokenError::Keyword("0x"), input.span())
+                LangError::expect(TokenKind::HexSign, input.span())
             })
             .parse(input)
     }
@@ -312,9 +319,9 @@ macro_rules! define_token {
 
         impl<I> parserc::Parse<I> for $ident<I>
         where
-            I: super::StylangInput,
+            I: LangInput,
         {
-            type Error = super::ParseError;
+            type Error = LangError;
 
             fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
                 use parserc::{Parser, ParserExt};
@@ -322,10 +329,7 @@ macro_rules! define_token {
                 parserc::keyword(stringify!($expr))
                     .map(|v| Self(v))
                     .map_err(|input: I, _: parserc::Kind| {
-                        super::ParseError::Expect(
-                            super::TokenError::Keyword(stringify!($expr)),
-                            input.span(),
-                        )
+                        LangError::expect(TokenKind::Token(stringify!($expr)), input.span())
                     })
                     .parse(input)
             }
@@ -423,3 +427,85 @@ define_token!(% => Percent);
 define_token!(deg => Deg);
 define_token!(grad => Grad);
 define_token!(rad => Rad);
+
+/// Complex type name or legal variable name.
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Ident<I>(pub I);
+
+impl<I> Parse<I> for Ident<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut content = input.clone();
+        let start = input.start();
+
+        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|input: I, _: Kind| LangError::expect(TokenKind::Ident, input.span()))
+            .parse(input)?;
+
+        let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;
+
+        Ok((Self(content.split_to(input.start() - start)), input))
+    }
+}
+
+/// xml element ident.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct XmlIdent<I>(pub I);
+
+impl<I> Parse<I> for XmlIdent<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut content = input.clone();
+        let start = input.start();
+
+        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|input: I, _: Kind| LangError::expect(TokenKind::XmlIdent, input.span()))
+            .parse(input)?;
+
+        let (_, input) =
+            take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
+
+        Ok((Self(content.split_to(input.start() - start)), input))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use parserc::Parse;
+
+    use crate::lang::inputs::TokenStream;
+
+    use super::*;
+
+    #[test]
+    fn test_ident() {
+        assert_eq!(
+            Ident::parse(TokenStream::from("option")),
+            Ok((
+                Ident(TokenStream::from("option")),
+                TokenStream::from((6, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_xml_ident() {
+        assert_eq!(
+            XmlIdent::parse(TokenStream::from("on-click")),
+            Ok((
+                XmlIdent(TokenStream::from("on-click")),
+                TokenStream::from((8, ""))
+            ))
+        );
+    }
+}

@@ -1,55 +1,121 @@
-use parserc::{Kind, span::Span};
+//! Types associated with error reporting by this module.
 
-/// Error raised by `stylang` parser combinators.
+use parserc::span::Span;
+
+/// Error variants return by language parser.
 #[derive(Debug, thiserror::Error, PartialEq)]
-pub enum ParseError {
+pub enum LangError {
+    /// Fallback error that catching the parserc raw error kind.
     #[error(transparent)]
-    ParserC(#[from] Kind),
+    ParserC(#[from] parserc::Kind),
+    /// Report an unexpect token error with span information.
+    #[error("unexpect {kind} {span:?}")]
+    Unexpect {
+        /// token kind.
+        kind: TokenKind,
+        /// token span.
+        span: Span,
+        /// optional parsing item.
+        item: Option<ItemKind>,
+    },
 
-    #[error("expect {0}, {1:?}")]
-    Expect(TokenError, Span),
-
-    #[error("unexpect {0}, {1:?}")]
-    Unexpect(TokenError, Span),
+    /// Report a token missing error with span information.
+    #[error("unexpect {kind} {span:?}")]
+    Expect {
+        /// token kind.
+        kind: TokenKind,
+        /// token span.
+        span: Span,
+        /// optional parsing item.
+        item: Option<ItemKind>,
+    },
 }
 
+impl LangError {
+    /// Create a [`LangError::Expect`] error without optional `item` field.
+    pub fn expect(kind: TokenKind, span: Span) -> Self {
+        Self::Expect {
+            kind,
+            span,
+            item: None,
+        }
+    }
+
+    /// Create a [`LangError::Unexpect`] error without optional `item` field.
+    pub fn unexpect(kind: TokenKind, span: Span) -> Self {
+        Self::Unexpect {
+            kind,
+            span,
+            item: None,
+        }
+    }
+}
+
+impl From<(LangError, ItemKind)> for LangError {
+    fn from(value: (LangError, ItemKind)) -> Self {
+        match value.0 {
+            LangError::Expect {
+                kind,
+                span,
+                item: _,
+            } => Self::Expect {
+                kind,
+                span,
+                item: Some(value.1),
+            },
+            LangError::Unexpect {
+                kind,
+                span,
+                item: _,
+            } => Self::Unexpect {
+                kind,
+                span,
+                item: Some(value.1),
+            },
+            parserc => parserc,
+        }
+    }
+}
+
+/// Error variants pointing to `stylang` item.
 #[derive(Debug, thiserror::Error, PartialEq)]
-pub enum TokenError {
-    #[error("`unknown`")]
+pub enum ItemKind {
+    #[error("class{0:?}")]
+    Class(Span),
+    #[error("data{0:?}")]
+    Data(Span),
+    #[error("enum{0:?}")]
+    Enum(Span),
+    #[error("fn{0:?}")]
+    Fn(Span),
+    #[error("mod{0:?}")]
+    Mod(Span),
+    #[error("use{0:?}")]
+    Use(Span),
+}
+
+/// Error variants pointing to lexical tokens.
+#[derive(Debug, thiserror::Error, PartialEq)]
+pub enum TokenKind {
+    #[error("`unknown token`")]
     Unknown,
-    #[error("`whitespace`")]
+    /// token.
+    #[error("token[`{0}`]")]
+    Token(&'static str),
+    /// space words
+    #[error("`space words`")]
     S,
-    #[error("`[0-9]+`")]
+    /// decimal digits string.
+    #[error("`digits`")]
     Digits,
-    #[error("`[0-9a-fA-F]+`")]
+    /// hexadecimal digits string.
+    #[error("`hexdigits`")]
     HexDigits,
-    #[error("prefix `{0}`")]
-    Prefix(&'static str),
-    #[error("suffix `{0}`")]
-    Suffix(&'static str),
-    #[error("punctuation `{0}`")]
-    Punct(&'static str),
-    #[error("rgb component `{0}`")]
-    Rgb(&'static str),
-    #[error("`rgb(...)/#xxx/#xxxxxx`")]
-    Color,
+    /// hexadecimal sign part `0x`
+    #[error("`0x`")]
+    HexSign,
     #[error("`ident`")]
     Ident,
-    #[error("`xml_ident`")]
+    #[error("`xml-ident`")]
     XmlIdent,
-    #[error("keyword `{0}`")]
-    Keyword(&'static str),
-    #[error("`stmt`")]
-    Stmt,
-    #[error("`exprs`")]
-    Exprs,
-    #[error("`chain_members`")]
-    ChainMembers,
-    #[error("`chain_call_body`")]
-    ChainCallBody,
-    #[error("`index expr`")]
-    Index,
-
-    #[error("`..`")]
-    DotDot,
 }

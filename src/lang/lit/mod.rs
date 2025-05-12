@@ -1,14 +1,23 @@
+//! lit expr parsers for `stylang`
+
+mod num;
+pub use num::*;
+mod string;
+pub use string::*;
+mod color;
+pub use color::*;
+
 use parserc::derive_parse;
 
-use super::{KeywordNone, LitColor, LitHexNum, LitNum, LitStr, ParseError, StylangInput};
+use super::{errors::LangError, inputs::LangInput, tokens::KeywordNone};
 
 /// A literial value.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Lit<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// A literial `hex number` value.
     Hex(LitHexNum<I>),

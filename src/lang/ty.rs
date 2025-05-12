@@ -1,14 +1,16 @@
+//! syntax analyser for type declaration.
+
 use parserc::{Parse, Parser, ParserExt, derive_parse};
 
-use super::*;
+use super::{errors::LangError, inputs::LangInput, meta::MetaList, punct::Punctuated, tokens::*};
 
 /// Fn type declaration tokens.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct TypeFn<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// prefix keyword `fn`
     pub keyword_fn: KeywordFn<I>,
@@ -25,10 +27,10 @@ where
 /// Returns type used by [`TypeFn`]
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct TypeReturn<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// required keyword `->`
     pub arrow_right: (Option<S<I>>, ArrowRight<I>, Option<S<I>>),
@@ -39,10 +41,10 @@ where
 /// Type array.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct TypeArray<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// delimiter start token `[`
     pub delimiter_start: LeftBracket<I>,
@@ -63,10 +65,10 @@ where
 /// Type array.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct TypeSlice<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// delimiter start token `[`
     pub delimiter_start: LeftBracket<I>,
@@ -85,7 +87,7 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TypePath<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// optional meta information list.
     pub meta_list: MetaList<I>,
@@ -97,9 +99,9 @@ where
 
 impl<I> Parse<I> for TypePath<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
@@ -138,10 +140,10 @@ where
 /// Type declaration.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Type<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     I8(I8<I>),
     I16(I16<I>),
@@ -171,6 +173,8 @@ where
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
+
+    use crate::lang::inputs::TokenStream;
 
     use super::*;
 

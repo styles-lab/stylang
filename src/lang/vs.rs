@@ -1,17 +1,16 @@
+//! visibility syntax analyser
+
 use parserc::derive_parse;
 
-use super::{
-    KeywordCrate, KeywordPub, KeywordSuper, LeftParenthesis, ParseError, RightParenthesis, S,
-    StylangInput,
-};
+use super::{errors::LangError, inputs::LangInput, tokens::*};
 
 /// The visibility level of an item: `pub`.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError, input = I)]
+#[derive_parse(error = LangError, input = I)]
 pub enum Visibility<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     PublicCrate {
         keyword_pub: KeywordPub<I>,
@@ -39,11 +38,9 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{
-        KeywordCrate, KeywordPub, KeywordSuper, LeftParenthesis, RightParenthesis, S, TokenStream,
-    };
+    use crate::lang::inputs::TokenStream;
 
-    use super::Visibility;
+    use super::*;
 
     #[test]
     fn test_vs() {

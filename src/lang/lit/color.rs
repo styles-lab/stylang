@@ -1,17 +1,14 @@
 use parserc::derive_parse;
 
-use super::{
-    Comma, Digits, HexDigits, KeywordRgb, LeftParenthesis, NumberSign, ParseError, Percent,
-    RightParenthesis, S, StylangInput,
-};
+use crate::lang::{errors::LangError, inputs::LangInput, tokens::*};
 
 /// Hex color: `#fff`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct HexColor<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     pub keyword: NumberSign<I>,
     pub digits: HexDigits<I>,
@@ -20,10 +17,10 @@ where
 /// rgb(xxx,xxx,xx)
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Rgb<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     pub keyword: (KeywordRgb<I>, Option<S<I>>),
     pub delimiter_start: LeftParenthesis<I>,
@@ -38,10 +35,10 @@ where
 /// A literial color expr.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum LitColor<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Hex(HexColor<I>),
     Rgb(Rgb<I>),
@@ -51,12 +48,9 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{
-        Comma, Digits, HexDigits, KeywordRgb, LeftParenthesis, NumberSign, Percent,
-        RightParenthesis, S, TokenStream,
-    };
+    use crate::lang::inputs::TokenStream;
 
-    use super::{HexColor, Rgb};
+    use super::*;
 
     #[test]
     fn test_hex_color() {

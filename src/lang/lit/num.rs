@@ -1,14 +1,18 @@
 use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
-use super::*;
+use crate::lang::{
+    errors::{LangError, TokenKind},
+    inputs::LangInput,
+    tokens::*,
+};
 
 /// Number sign.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum Sign<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     Plus(Plus<I>),
     Minus(Minus<I>),
@@ -17,10 +21,10 @@ where
 /// Exponent part of number.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct Exp<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// keyword `E` or `e`
     pub token: KeywordExp<I>,
@@ -33,10 +37,10 @@ where
 /// unit part of number.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub enum NumUnit<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     I8(I8<I>),
     I16(I16<I>),
@@ -68,7 +72,7 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitNum<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// optional sign character: `+` or `-`
     pub sign: Option<Sign<I>>,
@@ -86,9 +90,9 @@ where
 
 impl<I> Parse<I> for LitNum<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (sign, input) = Sign::into_parser().ok().parse(input)?;
@@ -101,8 +105,8 @@ where
             .parse(input.clone())?
         else {
             if trunc.is_none() {
-                return Err(ControlFlow::Recovable(ParseError::Expect(
-                    TokenError::Digits,
+                return Err(ControlFlow::Recovable(LangError::expect(
+                    TokenKind::Digits,
                     input.span(),
                 )));
             }
@@ -129,8 +133,8 @@ where
         };
 
         if trunc.is_none() && fract.is_none() {
-            return Err(ControlFlow::Recovable(ParseError::Expect(
-                TokenError::Digits,
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Digits,
                 input.span(),
             )));
         }
@@ -155,17 +159,17 @@ where
 /// unit suffix of literial hex number, be like: `_ex`.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct HexNumUnit<I>(pub(crate) Underscore<I>, pub NumUnit<I>)
 where
-    I: StylangInput;
+    I: LangInput;
 /// literial hex integer num: `0x[0-9a-fA-F]+`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = ParseError,input = I)]
+#[derive_parse(error = LangError,input = I)]
 pub struct LitHexNum<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
     /// The required hex prefix string: `0x`
     pub sign: HexSign<I>,
@@ -179,12 +183,9 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{
-        Digits, Dot, Ex, Exp, HexDigits, HexNumUnit, HexSign, KeywordExp, LitHexNum, LitNum, Minus,
-        NumUnit, Percent, Plus, TokenStream, Underscore,
-    };
+    use crate::lang::inputs::TokenStream;
 
-    use super::Sign;
+    use super::*;
 
     #[test]
     fn test_sign() {

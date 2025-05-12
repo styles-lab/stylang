@@ -1,12 +1,14 @@
+//! An untility to help parse punctuated token stream.
+
 use parserc::{Parse, Parser, ParserExt};
 
-use super::{ParseError, S, StylangInput};
+use super::{errors::LangError, inputs::LangInput, tokens::S};
 
 /// Parse `[S] punctuation [S]` ...
-fn parse_punctuation_sep<I, P>() -> impl Parser<I, Error = ParseError, Output = P>
+fn parse_punctuation_sep<I, P>() -> impl Parser<I, Error = LangError, Output = P>
 where
-    I: StylangInput,
-    P: Parse<I, Error = ParseError>,
+    I: LangInput,
+    P: Parse<I, Error = LangError>,
 {
     move |input: I| {
         let (_, input) = S::into_parser().ok().parse(input)?;
@@ -29,11 +31,11 @@ pub struct Punctuated<T, P> {
 
 impl<I, T, P> Parse<I> for Punctuated<T, P>
 where
-    I: StylangInput,
-    T: Parse<I, Error = ParseError>,
-    P: Parse<I, Error = ParseError>,
+    I: LangInput,
+    T: Parse<I, Error = LangError>,
+    P: Parse<I, Error = LangError>,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
         let mut items = vec![];
@@ -72,7 +74,11 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{Comma, I32, Lit, LitStr, TokenStream};
+    use crate::lang::{
+        inputs::TokenStream,
+        lit::{Lit, LitStr},
+        tokens::{Comma, I32},
+    };
 
     use super::Punctuated;
 

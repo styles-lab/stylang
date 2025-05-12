@@ -1,6 +1,6 @@
 use parserc::{Parse, Parser, next, take_till};
 
-use super::{ParseError, StylangInput};
+use crate::lang::{errors::LangError, inputs::LangInput};
 
 /// literal string value, be like: `"...\"... "`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -9,9 +9,9 @@ pub struct LitStr<I>(pub I);
 
 impl<I> Parse<I> for LitStr<I>
 where
-    I: StylangInput,
+    I: LangInput,
 {
-    type Error = ParseError;
+    type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (_, mut input) = next(b'"').parse(input)?;
@@ -45,7 +45,9 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{LitStr, TokenStream};
+    use crate::lang::inputs::TokenStream;
+
+    use super::*;
 
     #[test]
     fn test_lit_str() {

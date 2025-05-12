@@ -1,9 +1,11 @@
+//! [`Input`] types used by `stylang`.
+
 use std::{fmt::Debug, iter::Enumerate, str::Bytes};
 
 use parserc::{AsBytes, AsStr, Input, span::WithSpan};
 
 /// `Input` type alias for `stylang` parser combinator.
-pub trait StylangInput: Input<Item = u8> + AsBytes + AsStr + Clone + WithSpan + Debug {}
+pub trait LangInput: Input<Item = u8> + AsBytes + AsStr + Clone + WithSpan + Debug {}
 
 /// Input type used by stylang compiler.
 #[derive(Debug, PartialEq, Clone)]
@@ -91,4 +93,4 @@ impl<'a> WithSpan for TokenStream<'a> {
     }
 }
 
-impl<'a> StylangInput for TokenStream<'a> {}
+impl<'a> LangInput for TokenStream<'a> {}
