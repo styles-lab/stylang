@@ -1,6 +1,8 @@
 //! The syntax analyser for `stylang` items.
 
-use parserc::derive_parse;
+use parserc::{Parse, Parser, ParserExt, derive_parse};
+
+use crate::lang::errors::ItemKind;
 
 use super::{
     errors::LangError,
@@ -230,7 +232,7 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub struct Mod<I>
+pub struct ItemMod<I>
 where
     I: LangInput,
 {
@@ -297,7 +299,7 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub struct Use<I>
+pub struct ItemUse<I>
 where
     I: LangInput,
 {
@@ -316,7 +318,7 @@ where
 /// stylang item variant.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+// #[derive_parse(error = LangError,input = I)]
 pub enum Item<I>
 where
     I: LangInput,
@@ -325,8 +327,37 @@ where
     Data(ItemData<I>),
     Enum(ItemEnum<I>),
     Fn(ItemFn<I>),
-    Mod(Mod<I>),
-    Use(Use<I>),
+    Mod(ItemMod<I>),
+    Use(ItemUse<I>),
+}
+
+impl<I> Parse<I> for Item<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        ItemClass::into_parser()
+            .map(|v| Self::Class(v))
+            .map_err(|input: I, err| LangError::from((err, ItemKind::Class(input.span()))))
+            .or(ItemData::into_parser()
+                .map(|v| Self::Data(v))
+                .map_err(|input: I, err| LangError::from((err, ItemKind::Data(input.span())))))
+            .or(ItemEnum::into_parser()
+                .map(|v| Self::Enum(v))
+                .map_err(|input: I, err| LangError::from((err, ItemKind::Enum(input.span())))))
+            .or(ItemFn::into_parser()
+                .map(|v| Self::Fn(v))
+                .map_err(|input: I, err| LangError::from((err, ItemKind::Fn(input.span())))))
+            .or(ItemMod::into_parser()
+                .map(|v| Self::Mod(v))
+                .map_err(|input: I, err| LangError::from((err, ItemKind::Mod(input.span())))))
+            .or(ItemUse::into_parser()
+                .map(|v| Self::Use(v))
+                .map_err(|input: I, err| LangError::from((err, ItemKind::Use(input.span())))))
+            .parse(input)
+    }
 }
 
 #[cfg(test)]
