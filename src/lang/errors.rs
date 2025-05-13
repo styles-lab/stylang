@@ -7,7 +7,7 @@ use parserc::span::Span;
 pub enum LangError {
     /// Fallback error that catching the parserc raw error kind.
     #[error(transparent)]
-    ParserC(#[from] parserc::Kind),
+    Fallback(#[from] parserc::Kind),
     /// Report an unexpect token error with span information.
     #[error("unexpect {kind} {span:?}")]
     Unexpect {

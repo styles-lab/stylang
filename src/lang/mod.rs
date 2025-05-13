@@ -12,4 +12,3 @@ pub mod script;
 pub mod tokens;
 pub mod ty;
 pub mod vs;
-pub mod xml;
