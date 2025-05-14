@@ -118,4 +118,7 @@ pub enum TokenKind {
     Ident,
     #[error("`xml-ident`")]
     XmlIdent,
+
+    #[error("`.. or ..=`")]
+    RangeLimits,
 }
