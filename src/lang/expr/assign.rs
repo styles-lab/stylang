@@ -81,3 +81,39 @@ where
         ))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use parserc::Parse;
+
+    use crate::lang::{
+        expr::{Expr, ExprPath, assign::ExprAssign},
+        inputs::TokenStream,
+        meta::MetaList,
+        tokens::{Eq, Ident},
+    };
+
+    #[test]
+    fn test_assing() {
+        assert_eq!(
+            Expr::parse(TokenStream::from((1, "a = b"))),
+            Ok((
+                Expr::Assign(ExprAssign {
+                    meta_list: MetaList(vec![]),
+                    left: Box::new(Expr::Path(ExprPath {
+                        meta_list: MetaList(vec![]),
+                        first: Ident(TokenStream::from((1, "a"))),
+                        segments: vec![]
+                    })),
+                    eq_token: Eq(TokenStream::from((2, "="))),
+                    right: Box::new(Expr::Path(ExprPath {
+                        meta_list: MetaList(vec![]),
+                        first: Ident(TokenStream::from((4, "b"))),
+                        segments: vec![]
+                    }))
+                }),
+                TokenStream::from((1, ""))
+            ))
+        );
+    }
+}
