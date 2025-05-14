@@ -105,14 +105,14 @@ mod test {
                         first: Ident(TokenStream::from((1, "a"))),
                         segments: vec![]
                     })),
-                    eq_token: Eq(TokenStream::from((2, "="))),
+                    eq_token: Eq(TokenStream::from((3, "="))),
                     right: Box::new(Expr::Path(ExprPath {
                         meta_list: MetaList(vec![]),
-                        first: Ident(TokenStream::from((4, "b"))),
+                        first: Ident(TokenStream::from((5, "b"))),
                         segments: vec![]
                     }))
                 }),
-                TokenStream::from((1, ""))
+                TokenStream::from((6, ""))
             ))
         );
     }
