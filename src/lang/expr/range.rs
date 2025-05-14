@@ -9,6 +9,19 @@ use crate::lang::{
 
 use super::{Expr, ExprLit, XmlEnd, XmlStart};
 
+/// inner start field parser.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+enum RangeStart<I>
+where
+    I: LangInput,
+{
+    Lit(ExprLit<I>),
+    XmlStart(XmlStart<I>),
+    XmlEnd(XmlEnd<I>),
+}
+
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
@@ -30,18 +43,6 @@ where
             RangeLimits::HalfOpen(v) => v.0.span(),
         }
     }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-enum RangeStart<I>
-where
-    I: LangInput,
-{
-    Lit(ExprLit<I>),
-    XmlStart(XmlStart<I>),
-    XmlEnd(XmlEnd<I>),
 }
 
 impl<I> From<RangeStart<I>> for Expr<I>

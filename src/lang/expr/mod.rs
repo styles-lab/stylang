@@ -8,3 +8,9 @@ pub use expr::*;
 
 mod range;
 pub use range::*;
+
+mod path;
+pub use path::*;
+
+mod field;
+pub use field::*;

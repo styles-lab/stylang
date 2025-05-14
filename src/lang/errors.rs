@@ -121,4 +121,10 @@ pub enum TokenKind {
 
     #[error("`.. or ..=`")]
     RangeLimits,
+
+    #[error("`expr-field`")]
+    ExprField,
+
+    #[error("`expr-member`")]
+    Member,
 }

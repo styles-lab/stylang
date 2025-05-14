@@ -2,7 +2,7 @@ use parserc::derive_parse;
 
 use crate::lang::{errors::LangError, inputs::LangInput, lit::Lit, meta::MetaList};
 
-use super::{ExprRange, XmlEnd, XmlStart};
+use super::{ExprField, ExprPath, ExprRange, XmlEnd, XmlStart};
 
 /// A variable expr
 #[derive(Debug, PartialEq, Clone)]
@@ -24,8 +24,10 @@ pub enum Expr<I>
 where
     I: LangInput,
 {
+    Field(ExprField<I>),
     XmlStart(XmlStart<I>),
     XmlEnd(XmlEnd<I>),
     Range(ExprRange<I>),
+    Path(ExprPath<I>),
     Lit(ExprLit<I>),
 }

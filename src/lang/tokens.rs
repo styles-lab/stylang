@@ -1,6 +1,6 @@
 //! Lexical token for `stylang`
 
-use parserc::{ControlFlow, Kind, Parse, Parser, ParserExt, satisfy, take_while};
+use parserc::{ControlFlow, Kind, Parse, Parser, ParserExt, derive_parse, satisfy, take_while};
 
 use crate::lang::errors::TokenKind;
 
@@ -477,6 +477,18 @@ where
 
         Ok((Self(content.split_to(input.start() - start)), input))
     }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub(super) enum DotStart<I>
+where
+    I: LangInput,
+{
+    DotDotEq(DotDotEq<I>),
+    DotDot(DotDot<I>),
+    Dot(Dot<I>),
 }
 
 #[cfg(test)]
