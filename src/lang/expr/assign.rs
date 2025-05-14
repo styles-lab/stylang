@@ -7,7 +7,7 @@ use crate::lang::{
     tokens::{Eq, S},
 };
 
-use super::{Expr, ExprField, ExprPath};
+use super::{Expr, ExprBinary, ExprField, ExprPath, ExprUnary};
 
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -28,6 +28,33 @@ where
         match value {
             LeftOperand::Field(v) => Self::Field(v),
             LeftOperand::Path(v) => Self::Path(v),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+enum RightOperand<I>
+where
+    I: LangInput,
+{
+    Field(ExprField<I>),
+    Path(ExprPath<I>),
+    Binary(ExprBinary<I>),
+    Unary(ExprUnary<I>),
+}
+
+impl<I> From<RightOperand<I>> for Expr<I>
+where
+    I: LangInput,
+{
+    fn from(value: RightOperand<I>) -> Self {
+        match value {
+            RightOperand::Field(v) => Self::Field(v),
+            RightOperand::Path(v) => Self::Path(v),
+            RightOperand::Binary(v) => Self::Binary(v),
+            RightOperand::Unary(v) => Self::Unary(v),
         }
     }
 }
@@ -64,10 +91,11 @@ where
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (eq_token, input) = Eq::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (right, input) = Expr::into_parser()
+        let (right, input) = RightOperand::into_parser()
+            .map(|v| Expr::from(v))
+            .boxed()
             .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
             .fatal()
-            .boxed()
             .parse(input)?;
 
         Ok((

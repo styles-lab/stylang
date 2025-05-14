@@ -145,6 +145,7 @@ pub enum Type<I>
 where
     I: LangInput,
 {
+    Bool(Bool<I>),
     I8(I8<I>),
     I16(I16<I>),
     I32(I32<I>),

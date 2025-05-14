@@ -2,7 +2,9 @@ use parserc::derive_parse;
 
 use crate::lang::{errors::LangError, inputs::LangInput, lit::Lit, meta::MetaList};
 
-use super::{ExprField, ExprPath, ExprRange, XmlEnd, XmlStart, assign::ExprAssign};
+use super::{
+    ExprBinary, ExprField, ExprPath, ExprRange, ExprUnary, XmlEnd, XmlStart, assign::ExprAssign,
+};
 
 /// A variable expr
 #[derive(Debug, PartialEq, Clone)]
@@ -26,9 +28,11 @@ where
 {
     Assign(ExprAssign<I>),
     Field(ExprField<I>),
+    Binary(ExprBinary<I>),
+    Unary(ExprUnary<I>),
     XmlStart(XmlStart<I>),
     XmlEnd(XmlEnd<I>),
     Range(ExprRange<I>),
-    Path(ExprPath<I>),
     Lit(ExprLit<I>),
+    Path(ExprPath<I>),
 }

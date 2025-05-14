@@ -99,9 +99,9 @@ where
             (_, input) = S::into_parser().ok().parse(input)?;
             let dot_token: Dot<I>;
 
-            (dot_token, input) = match DotStart::into_parser().ok().parse(input)? {
+            (dot_token, input) = match DotStart::into_parser().ok().parse(input.clone())? {
                 (Some(DotStart::Dot(dot)), input) => (dot, input),
-                (_, input) => {
+                _ => {
                     return Self::try_from((target, span)).map(|mut v| {
                         v.meta_list = meta_list;
                         (v, input)
