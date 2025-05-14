@@ -2,7 +2,7 @@
 
 use parserc::derive_parse;
 
-use super::{
+use crate::lang::{
     errors::LangError, inputs::LangInput, item::Block, lit::Lit, meta::MetaList, tokens::*,
 };
 
