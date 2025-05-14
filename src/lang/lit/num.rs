@@ -98,33 +98,30 @@ where
         let (sign, input) = Sign::into_parser().ok().parse(input)?;
         let (trunc, input) = Digits::into_parser().ok().parse(input)?;
 
-        let (None, _) = DotDotEq::into_parser()
-            .map(|_| ())
-            .or(DotDot::into_parser().map(|_| ()))
-            .ok()
-            .parse(input.clone())?
-        else {
-            if trunc.is_none() {
-                return Err(ControlFlow::Recovable(LangError::expect(
-                    TokenKind::Digits,
-                    input.span(),
-                )));
+        let (dot, input) = match DotStart::into_parser().ok().parse(input.clone())? {
+            (Some(DotStart::Dot(dot)), input) => (Some(dot), input),
+            (None, input) => (None, input),
+            _ => {
+                if trunc.is_none() {
+                    return Err(ControlFlow::Recovable(LangError::expect(
+                        TokenKind::Digits,
+                        input.span(),
+                    )));
+                }
+
+                return Ok((
+                    Self {
+                        sign,
+                        trunc,
+                        dot: None,
+                        fract: None,
+                        exp: None,
+                        unit: None,
+                    },
+                    input,
+                ));
             }
-
-            return Ok((
-                Self {
-                    sign,
-                    trunc,
-                    dot: None,
-                    fract: None,
-                    exp: None,
-                    unit: None,
-                },
-                input,
-            ));
         };
-
-        let (dot, input) = Dot::into_parser().ok().parse(input)?;
 
         let (fract, input) = if dot.is_some() {
             Digits::into_parser().ok().parse(input)?

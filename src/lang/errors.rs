@@ -127,4 +127,7 @@ pub enum TokenKind {
 
     #[error("`expr-member`")]
     Member,
+
+    #[error("`expr-member`")]
+    RightOperand,
 }
