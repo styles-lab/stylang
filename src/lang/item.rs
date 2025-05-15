@@ -6,11 +6,11 @@ use crate::lang::errors::ItemKind;
 
 use super::{
     errors::LangError,
+    expr::Block,
     inputs::LangInput,
     meta::MetaList,
     patt::PattType,
     punct::Punctuated,
-    stmt::Stmts,
     tokens::*,
     ty::{Type, TypeReturn},
     vs::Visibility,
@@ -153,25 +153,6 @@ where
     ///  variant list.
     pub variants: Punctuated<Variant<I>, Comma<I>>,
     /// delimiter `}`
-    pub delimiter_end: RightCurlyBracket<I>,
-}
-
-/// Code block with delimiter `{...}`
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct Block<I>
-where
-    I: LangInput,
-{
-    /// delimiter start token: `{`
-    #[key_field]
-    pub delimiter_start: LeftCurlyBracket<I>,
-    /// optional stmts list.
-    pub stmts: Stmts<I>,
-    /// optional tail meta list.
-    pub meta_list: MetaList<I>,
-    /// delimiter end token: `}`
     pub delimiter_end: RightCurlyBracket<I>,
 }
 

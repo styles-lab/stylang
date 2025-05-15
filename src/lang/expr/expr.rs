@@ -10,7 +10,8 @@ use crate::lang::{
 };
 
 use super::{
-    ExprBinary, ExprCall, ExprField, ExprPath, ExprRange, ExprUnary, ExprXml, assign::ExprAssign,
+    ExprBinary, ExprBlock, ExprCall, ExprField, ExprIf, ExprPath, ExprRange, ExprUnary, ExprXml,
+    assign::ExprAssign,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -61,6 +62,8 @@ where
     Binary(ExprBinary<I>),
     Unary(ExprUnary<I>),
     Range(ExprRange<I>),
+    If(ExprIf<I>),
+    Block(ExprBlock<I>),
     Lit(ExprLit<I>),
     Path(ExprPath<I>),
 }

@@ -5,13 +5,12 @@ use parserc::{Parse, Parser, ParserExt, derive_parse};
 use crate::lang::{
     errors::{LangError, TokenKind},
     inputs::LangInput,
-    item::Block,
     lit::Lit,
     meta::MetaList,
     tokens::*,
 };
 
-use super::Expr;
+use super::{Block, Expr, ExprIf};
 
 /// value expr for xml attribute.
 #[derive(Debug, PartialEq, Clone)]
@@ -149,6 +148,7 @@ where
     I: LangInput,
 {
     Xml(ExprXml<I>),
+    If(ExprIf<I>),
 }
 
 impl<I> From<XmlChild<I>> for Expr<I>
@@ -158,6 +158,7 @@ where
     fn from(value: XmlChild<I>) -> Self {
         match value {
             XmlChild::Xml(expr_xml) => Self::Xml(expr_xml),
+            XmlChild::If(v) => Self::If(v),
         }
     }
 }
@@ -241,7 +242,9 @@ where
 mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::{errors::TokenKind, inputs::TokenStream, lit::LitStr, stmt::Stmts};
+    use crate::lang::{
+        errors::TokenKind, expr::Block, inputs::TokenStream, lit::LitStr, stmt::Stmts,
+    };
 
     use super::*;
 
