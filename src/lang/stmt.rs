@@ -26,8 +26,6 @@ where
 {
     fn is_return_expr(&self) -> bool {
         match self {
-            Stmt::Expr(Expr::XmlEnd(_), _, _) => false,
-            Stmt::Expr(Expr::XmlStart(_), _, _) => false,
             Stmt::Expr(_, _, None) => true,
             _ => false,
         }
@@ -70,5 +68,28 @@ where
         }
 
         Ok((Self(stmts), input))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use parserc::{Parse, span::Span};
+
+    use crate::lang::{
+        errors::{LangError, TokenKind},
+        inputs::TokenStream,
+    };
+
+    use super::Stmts;
+
+    #[test]
+    fn test_stmts() {
+        assert_eq!(
+            Stmts::parse(TokenStream::from("a b")),
+            Err(parserc::ControlFlow::Fatal(LangError::expect(
+                TokenKind::Token("}"),
+                Span { offset: 2, len: 1 },
+            )))
+        );
     }
 }

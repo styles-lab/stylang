@@ -494,6 +494,20 @@ where
     Dot(Dot<I>),
 }
 
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub(super) enum LtStart<I>
+where
+    I: LangInput,
+{
+    ShlEq(ShlEq<I>),
+    LtSlash(LtSlash<I>),
+    Le(Le<I>),
+    Shl(Shl<I>),
+    Lt(Lt<I>),
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::Parse;

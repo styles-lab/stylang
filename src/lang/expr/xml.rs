@@ -1,10 +1,17 @@
 //! xml syntax analyser.
 
-use parserc::derive_parse;
+use parserc::{Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
-    errors::LangError, inputs::LangInput, item::Block, lit::Lit, meta::MetaList, tokens::*,
+    errors::{LangError, TokenKind},
+    inputs::LangInput,
+    item::Block,
+    lit::Lit,
+    meta::MetaList,
+    tokens::*,
 };
+
+use super::Expr;
 
 /// value expr for xml attribute.
 #[derive(Debug, PartialEq, Clone)]
@@ -54,7 +61,6 @@ where
 /// Xml start tag: `<xxx xx=xx ..>`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
 pub struct XmlStart<I>
 where
     I: LangInput,
@@ -62,14 +68,58 @@ where
     /// comment list.
     pub meta_list: MetaList<I>,
     /// delimiter start token `<`
-    #[key_field]
-    pub delimiter_start: (Lt<I>, Option<S<I>>),
+    pub delimiter_start: Lt<I>,
     /// xml tag name.
     pub ident: XmlIdent<I>,
     /// optional attribute list.
     pub attrs: Vec<(S<I>, XmlAttr<I>)>,
     /// delimiter end token `/>`
-    pub delimiter_end: (Option<S<I>>, XmlStartDelimiterEnd<I>),
+    pub delimiter_end: XmlStartDelimiterEnd<I>,
+}
+
+impl<I> Parse<I> for XmlStart<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+
+        let span = input.span();
+
+        let (delimiter_start, input) = LtStart::parse(input)?;
+
+        let LtStart::Lt(delimiter_start) = delimiter_start else {
+            return Err(parserc::ControlFlow::Recovable(LangError::expect(
+                TokenKind::Token("<"),
+                span,
+            )));
+        };
+
+        let (_, input) = S::into_parser().ok().parse(input)?;
+
+        let (ident, input) = XmlIdent::into_parser().fatal().parse(input)?;
+
+        let (attrs, input) = Vec::<(S<I>, XmlAttr<I>)>::into_parser()
+            .fatal()
+            .parse(input)?;
+
+        let (_, input) = S::into_parser().ok().parse(input)?;
+
+        let (delimiter_end, input) = XmlStartDelimiterEnd::into_parser().fatal().parse(input)?;
+
+        Ok((
+            Self {
+                meta_list,
+                delimiter_start,
+                ident,
+                attrs,
+                delimiter_end,
+            },
+            input,
+        ))
+    }
 }
 
 /// Xml end tag: `</xxx>`
@@ -89,6 +139,102 @@ where
     pub ident: (Option<S<I>>, XmlIdent<I>, Option<S<I>>),
     /// token `>`
     pub delimiter_end: Gt<I>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+enum XmlChild<I>
+where
+    I: LangInput,
+{
+    Xml(ExprXml<I>),
+}
+
+impl<I> From<XmlChild<I>> for Expr<I>
+where
+    I: LangInput,
+{
+    fn from(value: XmlChild<I>) -> Self {
+        match value {
+            XmlChild::Xml(expr_xml) => Self::Xml(expr_xml),
+        }
+    }
+}
+
+/// Declaration a xml document.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ExprXml<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// start tag.
+    pub start_tag: XmlStart<I>,
+    /// child exprs.
+    pub children: Vec<Expr<I>>,
+    /// optional end tag.
+    pub end_tag: Option<XmlEnd<I>>,
+}
+
+impl<I> Parse<I> for ExprXml<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+        let (start_tag, mut input) = XmlStart::parse(input)?;
+
+        let XmlStartDelimiterEnd::WithContent(_) = &start_tag.delimiter_end else {
+            return Ok((
+                Self {
+                    meta_list,
+                    start_tag,
+                    children: vec![],
+                    end_tag: None,
+                },
+                input,
+            ));
+        };
+
+        let mut children = vec![];
+
+        let ident_span = start_tag.ident.0.span();
+
+        loop {
+            let child;
+
+            (child, input) = XmlChild::into_parser()
+                .map(|v| Expr::from(v))
+                .ok()
+                .parse(input)?;
+
+            let Some(child) = child else {
+                let (end_tag, input) = XmlEnd::into_parser()
+                    .map_err(|input: I, _| {
+                        LangError::expect(TokenKind::XmlEndTag(ident_span), input.span())
+                    })
+                    .fatal()
+                    .parse(input)?;
+
+                return Ok((
+                    Self {
+                        meta_list,
+                        start_tag,
+                        children,
+                        end_tag: Some(end_tag),
+                    },
+                    input,
+                ));
+            };
+
+            children.push(child);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -113,13 +259,12 @@ mod tests {
             Ok((
                 XmlStart {
                     meta_list: MetaList(vec![]),
-                    delimiter_start: (Lt(TokenStream::from((0, "<"))), None),
+                    delimiter_start: Lt(TokenStream::from((0, "<"))),
                     ident: XmlIdent(TokenStream::from((1, "hello"))),
                     attrs: vec![],
-                    delimiter_end: (
-                        None,
-                        XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((6, "/>"))))
-                    )
+                    delimiter_end: XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((
+                        6, "/>"
+                    ))))
                 },
                 TokenStream::from((8, ""))
             ))
@@ -130,16 +275,12 @@ mod tests {
             Ok((
                 XmlStart {
                     meta_list: MetaList(vec![]),
-                    delimiter_start: (
-                        Lt(TokenStream::from((0, "<"))),
-                        Some(S(TokenStream::from((1, " "))))
-                    ),
+                    delimiter_start: Lt(TokenStream::from((0, "<"))),
                     ident: XmlIdent(TokenStream::from((2, "hello"))),
                     attrs: vec![],
-                    delimiter_end: (
-                        Some(S(TokenStream::from((7, " ")))),
-                        XmlStartDelimiterEnd::WithContent(Gt(TokenStream::from((8, ">"))))
-                    )
+                    delimiter_end: XmlStartDelimiterEnd::WithContent(Gt(TokenStream::from((
+                        8, ">"
+                    ))))
                 },
                 TokenStream::from((9, ""))
             ))
@@ -238,7 +379,7 @@ mod tests {
             Ok((
                 XmlStart {
                     meta_list: MetaList(vec![]),
-                    delimiter_start: (Lt(TokenStream::from("<")), None),
+                    delimiter_start: Lt(TokenStream::from("<")),
                     ident: XmlIdent(TokenStream::from((1, "text"))),
                     attrs: vec![(
                         S(TokenStream::from((5, " "))),
@@ -251,10 +392,9 @@ mod tests {
                             )))))
                         }
                     )],
-                    delimiter_end: (
-                        Some(S(TokenStream::from((25, " ")))),
-                        XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((26, "/>"))))
-                    )
+                    delimiter_end: XmlStartDelimiterEnd::Empty(SlashGt(TokenStream::from((
+                        26, "/>"
+                    ))))
                 },
                 TokenStream::from((28, ""))
             ))

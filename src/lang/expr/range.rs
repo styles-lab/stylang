@@ -7,7 +7,7 @@ use crate::lang::{
     tokens::{DotDot, DotDotEq},
 };
 
-use super::{Expr, ExprLit, XmlEnd, XmlStart};
+use super::{Expr, ExprLit};
 
 /// inner start field parser.
 #[derive(Debug, PartialEq, Clone)]
@@ -18,8 +18,6 @@ where
     I: LangInput,
 {
     Lit(ExprLit<I>),
-    XmlStart(XmlStart<I>),
-    XmlEnd(XmlEnd<I>),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -52,8 +50,6 @@ where
     fn from(value: RangeStart<I>) -> Self {
         match value {
             RangeStart::Lit(v) => Self::Lit(v),
-            RangeStart::XmlStart(v) => Self::XmlStart(v),
-            RangeStart::XmlEnd(v) => Self::XmlEnd(v),
         }
     }
 }

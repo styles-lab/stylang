@@ -10,8 +10,7 @@ use crate::lang::{
 };
 
 use super::{
-    ExprBinary, ExprCall, ExprField, ExprPath, ExprRange, ExprUnary, XmlEnd, XmlStart,
-    assign::ExprAssign,
+    ExprBinary, ExprCall, ExprField, ExprPath, ExprRange, ExprUnary, ExprXml, assign::ExprAssign,
 };
 
 /// A local let binding: let x: u64 = 10.
@@ -54,8 +53,7 @@ pub enum Expr<I>
 where
     I: LangInput,
 {
-    XmlEnd(XmlEnd<I>),
-    XmlStart(XmlStart<I>),
+    Xml(ExprXml<I>),
     Let(ExprLet<I>),
     Assign(ExprAssign<I>),
     Call(ExprCall<I>),
