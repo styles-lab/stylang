@@ -99,12 +99,12 @@ mod tests {
 
     use super::*;
 
-    // #[test]
-    // fn test_empty_tag() {
-    //     XmlStart::parse(TokenStream::from(
-    //         r#"<text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
-    //     )).unwrap();
-    // }
+    #[test]
+    fn test_empty_tag() {
+        XmlStart::parse(TokenStream::from(
+            r#"<text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>"#,
+        )).unwrap();
+    }
 
     #[test]
     fn test_start_tag() {
@@ -212,23 +212,23 @@ mod tests {
             ))
         );
 
-        // assert_eq!(
-        //     XmlAttr::parse(TokenStream::from(r#"v={}"#)),
-        //     Ok((
-        //         XmlAttr {
-        //             meta_list: MetaList(vec![]),
-        //             name: XmlIdent(TokenStream::from("v")),
-        //             eq_token: (None, Eq(TokenStream::from((1, "="))), None),
-        //             value: XmlAttrValue::Block(Block {
-        //                 delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
-        //                 stmts: vec![],
-        //                 meta_list: MetaList(vec![]),
-        //                 delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
-        //             })
-        //         },
-        //         TokenStream::from((4, ""))
-        //     ))
-        // );
+        assert_eq!(
+            XmlAttr::parse(TokenStream::from(r#"v={}"#)),
+            Ok((
+                XmlAttr {
+                    meta_list: MetaList(vec![]),
+                    name: XmlIdent(TokenStream::from("v")),
+                    eq_token: (None, Eq(TokenStream::from((1, "="))), None),
+                    value: XmlAttrValue::Block(Block {
+                        delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
+                        stmts: vec![],
+                        meta_list: MetaList(vec![]),
+                        delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
+                    })
+                },
+                TokenStream::from((4, ""))
+            ))
+        );
     }
 
     #[test]

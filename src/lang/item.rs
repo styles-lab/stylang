@@ -177,6 +177,7 @@ where
     I: LangInput,
 {
     /// delimiter start token: `{`
+    #[key_field]
     pub delimiter_start: LeftCurlyBracket<I>,
     /// optional stmts list.
     pub stmts: Vec<Stmt<I>>,
@@ -887,5 +888,20 @@ mod tests {
                 TokenStream::from((42, ""))
             ))
         );
+    }
+
+    #[test]
+    fn test_stmts() {
+        let stmt = Vec::<Stmt<_>>::parse(TokenStream::from(
+            r#"// core mod `web3`.
+                if web3::is_connected() {
+                    <label class="header" text="Sponsor styles-lab"/>
+                } else {
+                    <label class="header" text="Connect to Etherwallet to start donating"/>
+                }"#,
+        ))
+        .unwrap();
+
+        println!("{:#?}", stmt);
     }
 }

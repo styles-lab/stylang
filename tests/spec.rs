@@ -59,7 +59,7 @@ fn test_specs() {
         test_script(path);
     }
 
-    // for path in files("spec") {
-    //     test_script(path);
-    // }
+    for path in files("spec") {
+        test_script(path);
+    }
 }
