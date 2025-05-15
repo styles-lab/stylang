@@ -95,7 +95,7 @@ where
 mod tests {
     use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::{errors::TokenKind, inputs::TokenStream, lit::LitStr};
+    use crate::lang::{errors::TokenKind, inputs::TokenStream, lit::LitStr, stmt::Stmts};
 
     use super::*;
 
@@ -221,7 +221,7 @@ mod tests {
                     eq_token: (None, Eq(TokenStream::from((1, "="))), None),
                     value: XmlAttrValue::Block(Block {
                         delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
-                        stmts: vec![],
+                        stmts: Stmts(vec![]),
                         meta_list: MetaList(vec![]),
                         delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
                     })

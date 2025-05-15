@@ -205,7 +205,7 @@ where
 
         if s.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("/>"),
+                TokenKind::S,
                 input.span(),
             )));
         }

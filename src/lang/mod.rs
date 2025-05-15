@@ -9,6 +9,7 @@ pub mod meta;
 pub mod patt;
 pub mod punct;
 pub mod script;
+pub mod stmt;
 pub mod tokens;
 pub mod ty;
 pub mod vs;

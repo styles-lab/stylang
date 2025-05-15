@@ -6,27 +6,15 @@ use crate::lang::errors::ItemKind;
 
 use super::{
     errors::LangError,
-    expr::Expr,
     inputs::LangInput,
     meta::MetaList,
     patt::PattType,
     punct::Punctuated,
+    stmt::Stmts,
     tokens::*,
     ty::{Type, TypeReturn},
     vs::Visibility,
 };
-
-/// A statement, usually ending in a semicolon.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub enum Stmt<I>
-where
-    I: LangInput,
-{
-    Item(Item<I>),
-    Expr(Expr<I>, Option<SemiColon<I>>),
-}
 
 /// named field patt.
 #[derive(Debug, PartialEq, Clone)]
@@ -180,7 +168,7 @@ where
     #[key_field]
     pub delimiter_start: LeftCurlyBracket<I>,
     /// optional stmts list.
-    pub stmts: Vec<Stmt<I>>,
+    pub stmts: Stmts<I>,
     /// optional tail meta list.
     pub meta_list: MetaList<I>,
     /// delimiter end token: `}`
@@ -888,20 +876,5 @@ mod tests {
                 TokenStream::from((42, ""))
             ))
         );
-    }
-
-    #[test]
-    fn test_stmts() {
-        let stmt = Vec::<Stmt<_>>::parse(TokenStream::from(
-            r#"// core mod `web3`.
-                if web3::is_connected() {
-                    <label class="header" text="Sponsor styles-lab"/>
-                } else {
-                    <label class="header" text="Connect to Etherwallet to start donating"/>
-                }"#,
-        ))
-        .unwrap();
-
-        println!("{:#?}", stmt);
     }
 }
