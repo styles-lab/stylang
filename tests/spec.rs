@@ -55,11 +55,11 @@ fn test_script(mut path: PathBuf) {
 
 #[test]
 fn test_specs() {
-    for path in files("core") {
+    for path in files("stylang/std") {
         test_script(path);
     }
 
-    for path in files("spec") {
+    for path in files("stylang/spec") {
         test_script(path);
     }
 }
