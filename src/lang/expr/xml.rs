@@ -10,7 +10,7 @@ use crate::lang::{
     tokens::*,
 };
 
-use super::{Block, Expr, ExprIf};
+use super::{Block, Expr};
 
 /// value expr for xml attribute.
 #[derive(Debug, PartialEq, Clone)]
@@ -22,7 +22,7 @@ where
 {
     /// A lit value.
     Lit(Lit<I>),
-    /// a block value.
+    /// A code block vlaue.
     Block(Block<I>),
 }
 
@@ -148,7 +148,6 @@ where
     I: LangInput,
 {
     Xml(ExprXml<I>),
-    If(ExprIf<I>),
 }
 
 impl<I> From<XmlChild<I>> for Expr<I>
@@ -158,7 +157,6 @@ where
     fn from(value: XmlChild<I>) -> Self {
         match value {
             XmlChild::Xml(expr_xml) => Self::Xml(expr_xml),
-            XmlChild::If(v) => Self::If(v),
         }
     }
 }
