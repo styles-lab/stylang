@@ -30,6 +30,16 @@ pub enum BinOp<I>
 where
     I: LangInput,
 {
+    AndAssign(PlusEq<I>),
+    SubAssign(MinusEq<I>),
+    MulAssign(StarEq<I>),
+    DivAssign(SlashEq<I>),
+    RemAssign(PercentEq<I>),
+    BitXorAssign(CaretEq<I>),
+    BitAndAssign(AndEq<I>),
+    BitOrAssign(SlashEq<I>),
+    ShlAssign(ShlEq<I>),
+    ShrAssign(ShrEq<I>),
     Add(Plus<I>),
     Sub(Minus<I>),
     Mul(Star<I>),
@@ -43,25 +53,15 @@ where
     Shl(Shl<I>),
     Shr(Shr<I>),
     Eq(EqEq<I>),
-    Lt(Lt<I>),
     /// <=
     Le(Le<I>),
-    /// !=
-    Ne(Ne<I>),
-    /// >
-    Gt(Gt<I>),
     /// >=
     Ge(Ge<I>),
-    AndAssign(PlusEq<I>),
-    SubAssign(MinusEq<I>),
-    MulAssign(StarEq<I>),
-    DivAssign(SlashEq<I>),
-    RemAssign(PercentEq<I>),
-    BitXorAssign(CaretEq<I>),
-    BitAndAssign(AndEq<I>),
-    BitOrAssign(SlashEq<I>),
-    ShlAssign(ShlEq<I>),
-    ShrAssign(ShrEq<I>),
+    /// !=
+    Ne(Ne<I>),
+    Lt(Lt<I>),
+    /// >
+    Gt(Gt<I>),
 }
 
 /// operand for binary op.

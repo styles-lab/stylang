@@ -1,10 +1,10 @@
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
     inputs::LangInput,
     meta::MetaList,
-    tokens::{Eq, S},
+    tokens::{Eq, EqStart, S},
 };
 
 use super::{Expr, ExprBinary, ExprField, ExprPath, ExprUnary};
@@ -89,7 +89,14 @@ where
             .boxed()
             .parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (eq_token, input) = Eq::parse(input)?;
+        let (Some(EqStart::Eq(eq_token)), input) =
+            EqStart::into_parser().ok().parse(input.clone())?
+        else {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Token("="),
+                input.span(),
+            )));
+        };
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (right, input) = RightOperand::into_parser()
             .map(|v| Expr::from(v))
