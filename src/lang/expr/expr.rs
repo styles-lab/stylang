@@ -8,7 +8,7 @@ use crate::lang::{
     tokens::{Dot, DotStart, LeftBracket, LeftParenthesis},
 };
 
-use super::{ExprBlock, ExprCall, ExprIndex, ExprLet, ExprLit, ExprPath, ExprXml};
+use super::{ExprBlock, ExprCall, ExprIf, ExprIndex, ExprLet, ExprLit, ExprPath, ExprXml};
 
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -60,6 +60,7 @@ where
     Call(ExprCall<I>),
     Index(ExprIndex<I>),
     Let(ExprLet<I>),
+    If(ExprIf<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -71,6 +72,7 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (mut expr, mut input) = ExprXml::into_parser()
             .map(|v| Self::Xml(v))
+            .or(ExprIf::into_parser().map(|v| Self::If(v)))
             .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
             .or(ExprLit::into_parser().map(|v| Self::Lit(v)))
             .or(ExprLet::into_parser().map(|v| Self::Let(v)))
