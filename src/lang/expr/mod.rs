@@ -29,3 +29,6 @@ pub use cond::*;
 
 mod block;
 pub use block::*;
+
+mod index;
+pub use index::*;
