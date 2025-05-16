@@ -125,13 +125,13 @@ pub enum TokenKind {
 
     #[error("`expr-field`")]
     ExprField,
-
     #[error("`expr-member`")]
     Member,
-
     #[error("`expr-member`")]
     RightOperand,
 
     #[error("`expr-binary-op`")]
     ExprBinary,
+    #[error("expr-index")]
+    ExprIndex,
 }

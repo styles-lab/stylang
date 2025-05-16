@@ -1,5 +1,7 @@
 //! The syntax analyser for exprs.
 
+mod parse;
+
 mod xml;
 pub use xml::*;
 
@@ -8,3 +10,21 @@ pub use expr::*;
 
 mod block;
 pub use block::*;
+
+mod lit;
+pub use lit::*;
+
+mod field;
+pub use field::*;
+
+mod path;
+pub use path::*;
+
+mod call;
+pub use call::*;
+
+mod index;
+pub use index::*;
+
+mod variable;
+pub use variable::*;

@@ -202,7 +202,7 @@ where
 
         let mut children = vec![];
 
-        let ident_span = start_tag.ident.0.span();
+        // let ident_span = start_tag.ident.0.span();
 
         loop {
             let child;
@@ -214,9 +214,9 @@ where
 
             let Some(child) = child else {
                 let (end_tag, input) = XmlEnd::into_parser()
-                    .map_err(|input: I, _| {
-                        LangError::expect(TokenKind::XmlEndTag(ident_span), input.span())
-                    })
+                    // .map_err(|input: I, _| {
+                    //     LangError::expect(TokenKind::XmlEndTag(ident_span), input.span())
+                    // })
                     .fatal()
                     .parse(input)?;
 
