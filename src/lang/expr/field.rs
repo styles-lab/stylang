@@ -4,7 +4,7 @@ use crate::lang::{
     errors::{LangError, TokenKind},
     inputs::LangInput,
     meta::MetaList,
-    tokens::{Digits, Dot, Ident},
+    tokens::{Digits, Dot, Ident, S},
 };
 
 use super::{Expr, parse::PartialParse};
@@ -50,6 +50,7 @@ where
         leading_token: Self::LeadingToken,
         input: I,
     ) -> parserc::Result<Expr<I>, I, LangError> {
+        let (_, input) = S::into_parser().ok().parse(input)?;
         let (member, input) = Member::into_parser()
             .map_err(|input: I, _| LangError::expect(TokenKind::Member, input.span()))
             .fatal()

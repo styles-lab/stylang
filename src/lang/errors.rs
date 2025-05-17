@@ -134,4 +134,6 @@ pub enum TokenKind {
     ExprBinary,
     #[error("expr-index")]
     ExprIndex,
+    #[error("`.`,`(`,`[` or `=`")]
+    LeadingToken,
 }

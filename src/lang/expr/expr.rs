@@ -5,10 +5,13 @@ use crate::lang::{
     expr::{ExprField, parse::PartialParse},
     inputs::LangInput,
     meta::MetaList,
-    tokens::{Dot, DotStart, LeftBracket, LeftParenthesis},
+    tokens::{Dot, DotStart, Eq, EqStart, LeftBracket, LeftParenthesis},
 };
 
-use super::{ExprBlock, ExprCall, ExprIf, ExprIndex, ExprLet, ExprLit, ExprPath, ExprXml};
+use super::{
+    BinOp, ExprAssign, ExprBinary, ExprBlock, ExprCall, ExprIf, ExprIndex, ExprLet, ExprLit,
+    ExprPath, ExprUnary, ExprXml,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -19,6 +22,8 @@ where
     LeftParenthesis(LeftParenthesis<I>),
     LeftBracket(LeftBracket<I>),
     Dot(Dot<I>),
+    Eq(Eq<I>),
+    Binary(BinOp<I>),
 }
 
 impl<I> Parse<I> for LeadingToken<I>
@@ -32,16 +37,34 @@ where
         let (dot, input) = DotStart::into_parser().ok().parse(input)?;
 
         match dot {
-            Some(DotStart::Dot(dot)) => Ok((Self::Dot(dot), input)),
-            Some(_) => Err(parserc::ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token(". or [ or ("),
-                span,
-            ))),
-            _ => LeftBracket::into_parser()
-                .map(|v| Self::LeftBracket(v))
-                .or(LeftParenthesis::into_parser().map(|v| Self::LeftParenthesis(v)))
-                .parse(input),
+            Some(DotStart::Dot(dot)) => return Ok((Self::Dot(dot), input)),
+            Some(_) => {
+                return Err(parserc::ControlFlow::Recovable(LangError::expect(
+                    TokenKind::LeadingToken,
+                    span,
+                )));
+            }
+            _ => {}
         }
+
+        let (eq, input) = EqStart::into_parser().ok().parse(input)?;
+
+        match eq {
+            Some(EqStart::Eq(dot)) => return Ok((Self::Eq(dot), input)),
+            Some(_) => {
+                return Err(parserc::ControlFlow::Recovable(LangError::expect(
+                    TokenKind::LeadingToken,
+                    span,
+                )));
+            }
+            _ => {}
+        }
+
+        LeftBracket::into_parser()
+            .map(|v| Self::LeftBracket(v))
+            .or(LeftParenthesis::into_parser().map(|v| Self::LeftParenthesis(v)))
+            .or(BinOp::into_parser().map(|v| Self::Binary(v)))
+            .parse(input)
     }
 }
 
@@ -61,6 +84,9 @@ where
     Index(ExprIndex<I>),
     Let(ExprLet<I>),
     If(ExprIf<I>),
+    Assign(ExprAssign<I>),
+    Binary(ExprBinary<I>),
+    Unary(ExprUnary<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -73,6 +99,7 @@ where
         let (mut expr, mut input) = ExprXml::into_parser()
             .map(|v| Self::Xml(v))
             .or(ExprIf::into_parser().map(|v| Self::If(v)))
+            .or(ExprUnary::into_parser().map(|v| Self::Unary(v)))
             .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
             .or(ExprLit::into_parser().map(|v| Self::Lit(v)))
             .or(ExprLet::into_parser().map(|v| Self::Let(v)))
@@ -105,6 +132,14 @@ where
                 LeadingToken::Dot(leading_token) => {
                     (expr, input) =
                         ExprField::partial_parse(meta_list, expr, leading_token, input_leading)?;
+                }
+                LeadingToken::Eq(leading_token) => {
+                    (expr, input) =
+                        ExprAssign::partial_parse(meta_list, expr, leading_token, input_leading)?;
+                }
+                LeadingToken::Binary(leading_token) => {
+                    (expr, input) =
+                        ExprBinary::partial_parse(meta_list, expr, leading_token, input_leading)?;
                 }
             }
         }
