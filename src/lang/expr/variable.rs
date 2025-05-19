@@ -36,7 +36,7 @@ mod tests {
 
     use super::*;
     use crate::lang::{
-        expr::ExprLit,
+        expr::{ChainInit, ExprChain, ExprLit},
         inputs::TokenStream,
         lit::Lit,
         meta::{Attr, Meta},
@@ -92,9 +92,12 @@ mod tests {
                         Eq(TokenStream::from((33, "="))),
                         Some(S(TokenStream::from((34, " "))))
                     ),
-                    expr: Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
-                        lit: Lit::None(KeywordNone(TokenStream::from((35, "none"))))
+                    expr: Box::new(Expr::Chain(ExprChain {
+                        start: ChainInit::Lit(ExprLit {
+                            meta_list: MetaList(vec![]),
+                            lit: Lit::None(KeywordNone(TokenStream::from((35, "none"))))
+                        }),
+                        segments: vec![]
                     }))
                 }),
                 TokenStream::from((39, ";"))

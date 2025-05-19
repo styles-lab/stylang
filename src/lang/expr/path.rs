@@ -52,9 +52,9 @@ mod tests {
     #[test]
     fn test_path() {
         assert_eq!(
-            Expr::parse(TokenStream::from("a :: b ::c")),
+            ExprPath::parse(TokenStream::from("a :: b ::c")),
             Ok((
-                Expr::Path(ExprPath {
+                ExprPath {
                     meta_list: MetaList(vec![]),
                     first: Ident(TokenStream::from("a")),
                     segments: vec![
@@ -75,19 +75,19 @@ mod tests {
                             ident: Ident(TokenStream::from((9, "c")))
                         }
                     ]
-                }),
+                },
                 TokenStream::from((10, ""))
             ))
         );
 
         assert_eq!(
-            Expr::parse(TokenStream::from("a ")),
+            ExprPath::parse(TokenStream::from("a ")),
             Ok((
-                Expr::Path(ExprPath {
+                ExprPath {
                     meta_list: MetaList(vec![]),
                     first: Ident(TokenStream::from("a")),
                     segments: vec![]
-                }),
+                },
                 TokenStream::from((1, " "))
             ))
         );

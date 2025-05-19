@@ -132,7 +132,7 @@ mod tests {
 
     use crate::lang::{
         errors::{LangError, TokenKind},
-        expr::{Expr, ExprLit, ExprUnary, UnOp},
+        expr::{ChainInit, Expr, ExprChain, ExprLit, ExprUnary, UnOp},
         inputs::TokenStream,
         lit::{Lit, LitBool},
         meta::MetaList,
@@ -147,9 +147,12 @@ mod tests {
                 Expr::Unary(ExprUnary {
                     meta_list: MetaList(vec![]),
                     op: UnOp::Not(Not(TokenStream::from("!"))),
-                    operand: Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
-                        lit: Lit::Bool(LitBool::True(True(TokenStream::from((1, "true")))))
+                    operand: Box::new(Expr::Chain(ExprChain {
+                        start: ChainInit::Lit(ExprLit {
+                            meta_list: MetaList(vec![]),
+                            lit: Lit::Bool(LitBool::True(True(TokenStream::from((1, "true")))))
+                        }),
+                        segments: vec![]
                     }))
                 }),
                 TokenStream::from((5, ""))

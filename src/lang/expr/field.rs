@@ -6,8 +6,6 @@ use crate::lang::{
     tokens::{Digits, Dot, Ident, S},
 };
 
-use super::Target;
-
 /// A struct or tuple struct field accessed in a struct literal or field expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -50,18 +48,6 @@ where
 
         Ok((Self { dot_token, member }, input))
     }
-}
-
-/// Access of a named struct field (obj.k) or unnamed tuple struct field (obj.0).
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct ExprField<I>
-where
-    I: LangInput,
-{
-    pub target: Target<I>,
-    pub field: Field<I>,
 }
 
 #[cfg(test)]

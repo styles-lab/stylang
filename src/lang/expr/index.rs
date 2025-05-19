@@ -6,7 +6,7 @@ use crate::lang::{
     tokens::{LeftBracket, RightBracket},
 };
 
-use super::{Expr, Target};
+use super::Expr;
 
 /// The right part of indexing expression
 #[derive(Debug, PartialEq, Clone)]
@@ -19,17 +19,6 @@ where
     pub delimiter_start: LeftBracket<I>,
     pub index: Box<Expr<I>>,
     pub delimiter_end: RightBracket<I>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct ExprIndex<I>
-where
-    I: LangInput,
-{
-    pub target: Target<I>,
-    pub index: Index<I>,
 }
 #[cfg(test)]
 mod tests {
