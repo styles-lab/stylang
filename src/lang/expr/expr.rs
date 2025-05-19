@@ -5,7 +5,7 @@ use crate::lang::{
     expr::{ExprField, parse::PartialParse},
     inputs::LangInput,
     meta::MetaList,
-    tokens::{Dot, DotStart, Eq, EqStart, LeftBracket, LeftParenthesis},
+    tokens::{Dot, DotStart, Eq, EqStart, LeftBracket, LeftParen},
 };
 
 use super::{
@@ -19,7 +19,7 @@ enum LeadingToken<I>
 where
     I: LangInput,
 {
-    LeftParenthesis(LeftParenthesis<I>),
+    LeftParenthesis(LeftParen<I>),
     LeftBracket(LeftBracket<I>),
     Dot(Dot<I>),
     Eq(Eq<I>),
@@ -62,7 +62,7 @@ where
 
         LeftBracket::into_parser()
             .map(|v| Self::LeftBracket(v))
-            .or(LeftParenthesis::into_parser().map(|v| Self::LeftParenthesis(v)))
+            .or(LeftParen::into_parser().map(|v| Self::LeftParenthesis(v)))
             .or(BinOp::into_parser().map(|v| Self::Binary(v)))
             .parse(input)
     }

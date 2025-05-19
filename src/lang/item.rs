@@ -61,14 +61,14 @@ where
     I: LangInput,
 {
     Named {
-        delimiter_start: LeftCurlyBracket<I>,
+        delimiter_start: LeftBrace<I>,
         fields: Punctuated<NamedField<I>, Comma<I>>,
-        delimiter_end: RightCurlyBracket<I>,
+        delimiter_end: RightBrace<I>,
     },
     Uname {
-        delimiter_start: LeftParenthesis<I>,
+        delimiter_start: LeftParen<I>,
         fields: Punctuated<UnameField<I>, Comma<I>>,
-        delimiter_end: RightParenthesis<I>,
+        delimiter_end: RightParen<I>,
     },
 }
 
@@ -149,11 +149,11 @@ where
     /// data name.
     pub ident: (Ident<I>, Option<S<I>>),
     /// delimiter `{`
-    pub delimiter_start: LeftCurlyBracket<I>,
+    pub delimiter_start: LeftBrace<I>,
     ///  variant list.
     pub variants: Punctuated<Variant<I>, Comma<I>>,
     /// delimiter `}`
-    pub delimiter_end: RightCurlyBracket<I>,
+    pub delimiter_end: RightBrace<I>,
 }
 
 /// Fn Block.
@@ -187,11 +187,11 @@ where
     /// function name.
     pub ident: (Ident<I>, Option<S<I>>),
     /// delimiter `(`
-    pub delimiter_start: LeftParenthesis<I>,
+    pub delimiter_start: LeftParen<I>,
     /// argument list.
     pub args: Punctuated<PattType<I>, Comma<I>>,
     /// delimiter `)`
-    pub delimiter_end: RightParenthesis<I>,
+    pub delimiter_end: RightParen<I>,
     /// returns type part.
     pub return_type: Option<TypeReturn<I>>,
     /// function block part.
@@ -258,11 +258,11 @@ where
     I: LangInput,
 {
     /// brace delimiter: `{`
-    pub delimiter_start: LeftCurlyBracket<I>,
+    pub delimiter_start: LeftBrace<I>,
     /// punctuated group items: `A,B, C`
     pub items: Punctuated<UseTree<I>, Comma<I>>,
     /// brace delimiter end: `}`
-    pub delimiter_end: RightCurlyBracket<I>,
+    pub delimiter_end: RightBrace<I>,
 }
 
 /// A use statement: `use std::...;`
@@ -367,7 +367,7 @@ mod tests {
                         Some(S(TokenStream::from((56, " "))))
                     ),
                     fields: Fields::Named {
-                        delimiter_start: LeftCurlyBracket(TokenStream::from((57, "{"))),
+                        delimiter_start: LeftBrace(TokenStream::from((57, "{"))),
                         fields: Punctuated {
                             items: vec![
                                 (
@@ -405,7 +405,7 @@ mod tests {
                             ],
                             last: None
                         },
-                        delimiter_end: RightCurlyBracket(TokenStream::from((153, "}")))
+                        delimiter_end: RightBrace(TokenStream::from((153, "}")))
                     },
                     semi_colon: None
                 },
@@ -445,7 +445,7 @@ mod tests {
                         Some(S(TokenStream::from((85, " "))))
                     ),
                     fields: Fields::Named {
-                        delimiter_start: LeftCurlyBracket(TokenStream::from((86, "{"))),
+                        delimiter_start: LeftBrace(TokenStream::from((86, "{"))),
                         fields: Punctuated {
                             items: vec![
                                 (
@@ -506,14 +506,14 @@ mod tests {
                                         ),
                                         ty: Type::Fn(TypeFn {
                                             keyword_fn: KeywordFn(TokenStream::from((279, "fn"))),
-                                            delimiter_start: LeftParenthesis(TokenStream::from((
+                                            delimiter_start: LeftParen(TokenStream::from((
                                                 281, "("
                                             ))),
                                             inputs: Punctuated {
                                                 items: vec![],
                                                 last: None
                                             },
-                                            delimiter_end: RightParenthesis(TokenStream::from((
+                                            delimiter_end: RightParen(TokenStream::from((
                                                 282, ")"
                                             ))),
                                             output: Some(TypeReturn {
@@ -533,7 +533,7 @@ mod tests {
                             ],
                             last: None
                         },
-                        delimiter_end: RightCurlyBracket(TokenStream::from((305, "}"))),
+                        delimiter_end: RightBrace(TokenStream::from((305, "}"))),
                     },
                     semi_colon: None,
                 },
@@ -573,7 +573,7 @@ mod tests {
                         Ident(TokenStream::from((120, "TextDecoration"))),
                         Some(S(TokenStream::from((134, " "))))
                     ),
-                    delimiter_start: LeftCurlyBracket(TokenStream::from((135, "{"))),
+                    delimiter_start: LeftBrace(TokenStream::from((135, "{"))),
                     variants: Punctuated {
                         items: vec![
                             (
@@ -611,7 +611,7 @@ mod tests {
                         ],
                         last: None
                     },
-                    delimiter_end: RightCurlyBracket(TokenStream::from((274, "}")))
+                    delimiter_end: RightBrace(TokenStream::from((274, "}")))
                 },
                 TokenStream::from((275, "\n                "))
             ))
@@ -634,14 +634,14 @@ mod tests {
                         Ident(TokenStream::from((5, "A"))),
                         Some(S(TokenStream::from((6, " "))))
                     ),
-                    delimiter_start: LeftCurlyBracket(TokenStream::from((7, "{"))),
+                    delimiter_start: LeftBrace(TokenStream::from((7, "{"))),
                     variants: Punctuated {
                         items: vec![],
                         last: Some(Box::new(Variant {
                             meta_list: MetaList(vec![]),
                             name: (Ident(TokenStream::from((9, "V"))), None),
                             fields: Some(Fields::Uname {
-                                delimiter_start: LeftParenthesis(TokenStream::from((10, "("))),
+                                delimiter_start: LeftParen(TokenStream::from((10, "("))),
                                 fields: Punctuated {
                                     items: vec![],
                                     last: Some(Box::new(UnameField {
@@ -650,11 +650,11 @@ mod tests {
                                         ty: Type::I32(I32(TokenStream::from((11, "i32"))))
                                     })),
                                 },
-                                delimiter_end: RightParenthesis(TokenStream::from((14, ")")))
+                                delimiter_end: RightParen(TokenStream::from((14, ")")))
                             })
                         }))
                     },
-                    delimiter_end: RightCurlyBracket(TokenStream::from((16, "}")))
+                    delimiter_end: RightBrace(TokenStream::from((16, "}")))
                 },
                 TokenStream::from((17, ""))
             ))
@@ -677,7 +677,7 @@ mod tests {
                         Ident(TokenStream::from((5, "A"))),
                         Some(S(TokenStream::from((6, " "))))
                     ),
-                    delimiter_start: LeftCurlyBracket(TokenStream::from((7, "{"))),
+                    delimiter_start: LeftBrace(TokenStream::from((7, "{"))),
                     variants: Punctuated {
                         items: vec![],
                         last: Some(Box::new(Variant {
@@ -687,7 +687,7 @@ mod tests {
                                 Some(S(TokenStream::from((10, " "))))
                             ),
                             fields: Some(Fields::Named {
-                                delimiter_start: LeftCurlyBracket(TokenStream::from((11, "{"))),
+                                delimiter_start: LeftBrace(TokenStream::from((11, "{"))),
                                 fields: Punctuated {
                                     items: vec![],
                                     last: Some(Box::new(NamedField {
@@ -698,11 +698,11 @@ mod tests {
                                         ty: Type::I32(I32(TokenStream::from((14, "i32"))))
                                     })),
                                 },
-                                delimiter_end: RightCurlyBracket(TokenStream::from((17, "}")))
+                                delimiter_end: RightBrace(TokenStream::from((17, "}")))
                             })
                         }))
                     },
-                    delimiter_end: RightCurlyBracket(TokenStream::from((19, "}")))
+                    delimiter_end: RightBrace(TokenStream::from((19, "}")))
                 },
                 TokenStream::from((20, ""))
             ))
@@ -735,7 +735,7 @@ mod tests {
                         S(TokenStream::from((19, " ")))
                     ),
                     ident: (Ident(TokenStream::from((20, "label"))), None),
-                    delimiter_start: LeftParenthesis(TokenStream::from((25, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((25, "("))),
                     args: Punctuated {
                         items: vec![
                             (
@@ -788,7 +788,7 @@ mod tests {
                             }))
                         })),
                     },
-                    delimiter_end: RightParenthesis(TokenStream::from((70, ")"))),
+                    delimiter_end: RightParen(TokenStream::from((70, ")"))),
                     return_type: None,
                     block: (
                         None,
@@ -819,7 +819,7 @@ mod tests {
                         S(TokenStream::from((9, " ")))
                     ),
                     ident: (Ident(TokenStream::from((10, "label"))), None),
-                    delimiter_start: LeftParenthesis(TokenStream::from((15, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((15, "("))),
                     args: Punctuated {
                         items: vec![],
                         last: Some(Box::new(PattType {
@@ -840,7 +840,7 @@ mod tests {
                             ty: Box::new(Type::F32(F32(TokenStream::from((29, "f32")))))
                         })),
                     },
-                    delimiter_end: RightParenthesis(TokenStream::from((32, ")"))),
+                    delimiter_end: RightParen(TokenStream::from((32, ")"))),
                     return_type: Some(TypeReturn {
                         arrow_right: (
                             Some(S(TokenStream::from((33, " ")))),

@@ -15,21 +15,21 @@ where
     PublicCrate {
         keyword_pub: KeywordPub<I>,
         s1: Option<S<I>>,
-        delimiter_start: LeftParenthesis<I>,
+        delimiter_start: LeftParen<I>,
         s2: Option<S<I>>,
         keyword_crate: KeywordCrate<I>,
         s3: Option<S<I>>,
-        delimiter_end: RightParenthesis<I>,
+        delimiter_end: RightParen<I>,
     },
 
     PublicSuper {
         keyword_pub: KeywordPub<I>,
         s1: Option<S<I>>,
-        delimiter_start: LeftParenthesis<I>,
+        delimiter_start: LeftParen<I>,
         s2: Option<S<I>>,
         keyword_super: KeywordSuper<I>,
         s3: Option<S<I>>,
-        delimiter_end: RightParenthesis<I>,
+        delimiter_end: RightParen<I>,
     },
     Public(KeywordPub<I>),
 }
@@ -58,11 +58,11 @@ mod tests {
                 Visibility::PublicCrate {
                     keyword_pub: KeywordPub(TokenStream::from("pub")),
                     s1: Some(S(TokenStream::from((3, " ")))),
-                    delimiter_start: LeftParenthesis(TokenStream::from((4, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((4, "("))),
                     s2: None,
                     keyword_crate: KeywordCrate(TokenStream::from((5, "crate"))),
                     s3: None,
-                    delimiter_end: RightParenthesis(TokenStream::from((10, ")")))
+                    delimiter_end: RightParen(TokenStream::from((10, ")")))
                 },
                 TokenStream::from((11, ""))
             ))
@@ -74,11 +74,11 @@ mod tests {
                 Visibility::PublicSuper {
                     keyword_pub: KeywordPub(TokenStream::from("pub")),
                     s1: Some(S(TokenStream::from((3, " ")))),
-                    delimiter_start: LeftParenthesis(TokenStream::from((4, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((4, "("))),
                     s2: None,
                     keyword_super: KeywordSuper(TokenStream::from((5, "super"))),
                     s3: None,
-                    delimiter_end: RightParenthesis(TokenStream::from((10, ")")))
+                    delimiter_end: RightParen(TokenStream::from((10, ")")))
                 },
                 TokenStream::from((11, ""))
             ))

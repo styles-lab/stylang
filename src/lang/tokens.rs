@@ -9,9 +9,9 @@ use super::{errors::LangError, inputs::LangInput};
 /// token `{`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct LeftCurlyBracket<I>(pub I);
+pub struct LeftBrace<I>(pub I);
 
-impl<I> parserc::Parse<I> for LeftCurlyBracket<I>
+impl<I> parserc::Parse<I> for LeftBrace<I>
 where
     I: LangInput,
 {
@@ -32,9 +32,9 @@ where
 /// token `}`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct RightCurlyBracket<I>(pub I);
+pub struct RightBrace<I>(pub I);
 
-impl<I> parserc::Parse<I> for RightCurlyBracket<I>
+impl<I> parserc::Parse<I> for RightBrace<I>
 where
     I: LangInput,
 {
@@ -101,9 +101,9 @@ where
 /// token `(`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct LeftParenthesis<I>(pub I);
+pub struct LeftParen<I>(pub I);
 
-impl<I> parserc::Parse<I> for LeftParenthesis<I>
+impl<I> parserc::Parse<I> for LeftParen<I>
 where
     I: LangInput,
 {
@@ -124,9 +124,9 @@ where
 /// token `]`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct RightParenthesis<I>(pub I);
+pub struct RightParen<I>(pub I);
 
-impl<I> parserc::Parse<I> for RightParenthesis<I>
+impl<I> parserc::Parse<I> for RightParen<I>
 where
     I: LangInput,
 {

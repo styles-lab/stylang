@@ -5,7 +5,7 @@ use crate::lang::{
     inputs::LangInput,
     meta::MetaList,
     stmt::Stmts,
-    tokens::{LeftCurlyBracket, RightCurlyBracket},
+    tokens::{LeftBrace, RightBrace},
 };
 
 /// Code block with delimiter `{...}`
@@ -18,13 +18,13 @@ where
 {
     /// delimiter start token: `{`
     #[key_field]
-    pub delimiter_start: LeftCurlyBracket<I>,
+    pub delimiter_start: LeftBrace<I>,
     /// optional stmts list.
     pub stmts: Stmts<I>,
     /// optional tail meta list.
     pub meta_list: MetaList<I>,
     /// delimiter end token: `}`
-    pub delimiter_end: RightCurlyBracket<I>,
+    pub delimiter_end: RightBrace<I>,
 }
 
 /// Code block with delimiter `{...}`

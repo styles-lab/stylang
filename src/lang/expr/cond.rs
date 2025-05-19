@@ -38,9 +38,7 @@ mod tests {
         meta::{Comment, LineComment, Meta},
         punct::Punctuated,
         stmt::Stmts,
-        tokens::{
-            Ident, LeftCurlyBracket, LeftParenthesis, PathSep, RightCurlyBracket, RightParenthesis,
-        },
+        tokens::{Ident, LeftBrace, LeftParen, PathSep, RightBrace, RightParen},
     };
 
     use super::*;
@@ -73,20 +71,20 @@ mod tests {
                             }]
                         })),
                         meta_list: MetaList(vec![]),
-                        delimiter_start: LeftParenthesis(TokenStream::from((74, "("))),
+                        delimiter_start: LeftParen(TokenStream::from((74, "("))),
                         params: Punctuated {
                             items: vec![],
                             last: None
                         },
-                        delimiter_end: RightParenthesis(TokenStream::from((75, ")")))
+                        delimiter_end: RightParen(TokenStream::from((75, ")")))
                     })),
                     then_branch: ExprBlock {
                         meta_list: MetaList(vec![]),
                         block: Block {
-                            delimiter_start: LeftCurlyBracket(TokenStream::from((77, "{"))),
+                            delimiter_start: LeftBrace(TokenStream::from((77, "{"))),
                             stmts: Stmts(vec![]),
                             meta_list: MetaList(vec![]),
-                            delimiter_end: RightCurlyBracket(TokenStream::from((95, "}")))
+                            delimiter_end: RightBrace(TokenStream::from((95, "}")))
                         }
                     },
                     else_branch: Some((
@@ -96,10 +94,10 @@ mod tests {
                         Box::new(Expr::Block(ExprBlock {
                             meta_list: MetaList(vec![]),
                             block: Block {
-                                delimiter_start: LeftCurlyBracket(TokenStream::from((102, "{"))),
+                                delimiter_start: LeftBrace(TokenStream::from((102, "{"))),
                                 stmts: Stmts(vec![]),
                                 meta_list: MetaList(vec![]),
-                                delimiter_end: RightCurlyBracket(TokenStream::from((120, "}")))
+                                delimiter_end: RightBrace(TokenStream::from((120, "}")))
                             }
                         }))
                     ))

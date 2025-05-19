@@ -15,11 +15,11 @@ where
     /// prefix keyword `fn`
     pub keyword_fn: KeywordFn<I>,
     /// delimiter start token `(`
-    pub delimiter_start: LeftParenthesis<I>,
+    pub delimiter_start: LeftParen<I>,
     /// input parameter list.
     pub inputs: Punctuated<Type<I>, Comma<I>>,
     /// delimiter end `)`
-    pub delimiter_end: RightParenthesis<I>,
+    pub delimiter_end: RightParen<I>,
     /// optional returns type.
     pub output: Option<TypeReturn<I>>,
 }
@@ -235,7 +235,7 @@ mod tests {
             Ok((
                 Type::Fn(TypeFn {
                     keyword_fn: KeywordFn(TokenStream::from("fn")),
-                    delimiter_start: LeftParenthesis(TokenStream::from((2, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((2, "("))),
                     inputs: Punctuated {
                         items: vec![
                             (
@@ -253,7 +253,7 @@ mod tests {
                         ],
                         last: None
                     },
-                    delimiter_end: RightParenthesis(TokenStream::from((23, ")"))),
+                    delimiter_end: RightParen(TokenStream::from((23, ")"))),
                     output: None
                 }),
                 TokenStream::from((24, ""))
@@ -265,7 +265,7 @@ mod tests {
             Ok((
                 Type::Fn(TypeFn {
                     keyword_fn: KeywordFn(TokenStream::from("fn")),
-                    delimiter_start: LeftParenthesis(TokenStream::from((2, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((2, "("))),
                     inputs: Punctuated {
                         items: vec![
                             (
@@ -283,7 +283,7 @@ mod tests {
                         ],
                         last: None
                     },
-                    delimiter_end: RightParenthesis(TokenStream::from((23, ")"))),
+                    delimiter_end: RightParen(TokenStream::from((23, ")"))),
                     output: Some(TypeReturn {
                         arrow_right: (
                             Some(S(TokenStream::from((24, " ")))),

@@ -364,10 +364,10 @@ mod tests {
                     name: XmlIdent(TokenStream::from("v")),
                     eq_token: (None, Eq(TokenStream::from((1, "="))), None),
                     value: XmlAttrValue::Block(Block {
-                        delimiter_start: LeftCurlyBracket(TokenStream::from((2, "{"))),
+                        delimiter_start: LeftBrace(TokenStream::from((2, "{"))),
                         stmts: Stmts(vec![]),
                         meta_list: MetaList(vec![]),
-                        delimiter_end: RightCurlyBracket(TokenStream::from((3, "}")))
+                        delimiter_end: RightBrace(TokenStream::from((3, "}")))
                     })
                 },
                 TokenStream::from((4, ""))

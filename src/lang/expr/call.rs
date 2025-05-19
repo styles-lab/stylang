@@ -5,7 +5,7 @@ use crate::lang::{
     inputs::LangInput,
     meta::MetaList,
     punct::Punctuated,
-    tokens::{Comma, LeftParenthesis, RightParenthesis, S},
+    tokens::{Comma, LeftParen, RightParen, S},
 };
 
 use super::{Expr, parse::PartialParse};
@@ -22,18 +22,18 @@ where
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
     /// delimiter start token: `(`
-    pub delimiter_start: LeftParenthesis<I>,
+    pub delimiter_start: LeftParen<I>,
     /// params list.
     pub params: Punctuated<Expr<I>, Comma<I>>,
     /// delimiter end token: `)`
-    pub delimiter_end: RightParenthesis<I>,
+    pub delimiter_end: RightParen<I>,
 }
 
 impl<I> PartialParse<I> for ExprCall<I>
 where
     I: LangInput,
 {
-    type LeadingToken = LeftParenthesis<I>;
+    type LeadingToken = LeftParen<I>;
 
     fn partial_parse(
         meta_list: crate::lang::meta::MetaList<I>,
@@ -43,7 +43,7 @@ where
     ) -> parserc::Result<Expr<I>, I, LangError> {
         let (params, input) = Punctuated::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (delimiter_end, input) = RightParenthesis::parse(input)?;
+        let (delimiter_end, input) = RightParen::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
 
         Ok((
@@ -69,7 +69,7 @@ mod tests {
         lit::{Lit, LitNum, LitStr},
         meta::MetaList,
         punct::Punctuated,
-        tokens::{Comma, Digits, Ident, LeftParenthesis, RightParenthesis},
+        tokens::{Comma, Digits, Ident, LeftParen, RightParen},
     };
 
     #[test]
@@ -84,7 +84,7 @@ mod tests {
                         first: Ident(TokenStream::from("a")),
                         segments: vec![]
                     })),
-                    delimiter_start: LeftParenthesis(TokenStream::from((1, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((1, "("))),
                     params: Punctuated {
                         items: vec![(
                             Expr::Lit(ExprLit {
@@ -105,7 +105,7 @@ mod tests {
                             lit: Lit::String(LitStr(TokenStream::from((5, "hello"))))
                         })))
                     },
-                    delimiter_end: RightParenthesis(TokenStream::from((11, ")")))
+                    delimiter_end: RightParen(TokenStream::from((11, ")")))
                 }),
                 TokenStream::from((12, ""))
             ))

@@ -34,9 +34,9 @@ pub struct LitParams<I>
 where
     I: LangInput,
 {
-    pub delimiter_start: LeftParenthesis<I>,
+    pub delimiter_start: LeftParen<I>,
     pub params: Punctuated<Lit<I>, Comma<I>>,
-    pub delimiter_end: RightParenthesis<I>,
+    pub delimiter_end: RightParen<I>,
 }
 
 /// Outer line doc, be like: `/// ...`
@@ -215,7 +215,7 @@ mod tests {
                     ),
 
                     params: Some(LitParams {
-                        delimiter_start: LeftParenthesis(TokenStream::from((5, "("))),
+                        delimiter_start: LeftParen(TokenStream::from((5, "("))),
                         params: Punctuated {
                             items: vec![],
                             last: Some(Box::new(Lit::String(LitStr(TokenStream::from((
@@ -223,7 +223,7 @@ mod tests {
                                 "erc20.json"
                             ))))))
                         },
-                        delimiter_end: RightParenthesis(TokenStream::from((20, ")"))),
+                        delimiter_end: RightParen(TokenStream::from((20, ")"))),
                     })
                 },
                 TokenStream::from((21, ""))

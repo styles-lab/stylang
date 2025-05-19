@@ -23,13 +23,13 @@ where
     I: LangInput,
 {
     pub keyword: (KeywordRgb<I>, Option<S<I>>),
-    pub delimiter_start: LeftParenthesis<I>,
+    pub delimiter_start: LeftParen<I>,
     pub r: (Option<S<I>>, Digits<I>, Option<Percent<I>>),
     pub comma1: (Option<S<I>>, Comma<I>, Option<S<I>>),
     pub g: (Digits<I>, Option<Percent<I>>),
     pub comma2: (Option<S<I>>, Comma<I>, Option<S<I>>),
     pub b: (Digits<I>, Option<Percent<I>>, Option<S<I>>),
-    pub delimiter_end: RightParenthesis<I>,
+    pub delimiter_end: RightParen<I>,
 }
 
 /// A literial color expr.
@@ -73,7 +73,7 @@ mod tests {
             Ok((
                 Rgb {
                     keyword: (KeywordRgb(TokenStream::from("rgb")), None),
-                    delimiter_start: LeftParenthesis(TokenStream::from((3, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((3, "("))),
                     r: (None, Digits(TokenStream::from((4, "255"))), None),
                     comma1: (
                         None,
@@ -89,7 +89,7 @@ mod tests {
                     ),
 
                     b: (Digits(TokenStream::from((14, "255"))), None, None),
-                    delimiter_end: RightParenthesis(TokenStream::from((17, ")")))
+                    delimiter_end: RightParen(TokenStream::from((17, ")")))
                 },
                 TokenStream::from((18, ""))
             ))
@@ -100,7 +100,7 @@ mod tests {
             Ok((
                 Rgb {
                     keyword: (KeywordRgb(TokenStream::from("rgb")), None),
-                    delimiter_start: LeftParenthesis(TokenStream::from((3, "("))),
+                    delimiter_start: LeftParen(TokenStream::from((3, "("))),
                     r: (
                         None,
                         Digits(TokenStream::from((4, "255"))),
@@ -129,7 +129,7 @@ mod tests {
                         None
                     ),
 
-                    delimiter_end: RightParenthesis(TokenStream::from((20, ")")))
+                    delimiter_end: RightParen(TokenStream::from((20, ")")))
                 },
                 TokenStream::from((21, ""))
             ))
