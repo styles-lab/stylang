@@ -2,7 +2,7 @@ use parserc::derive_parse;
 
 use crate::lang::{errors::LangError, inputs::LangInput};
 
-use super::{ExprBlock, ExprChain, ExprIf, ExprLet, ExprUnary, ExprXml};
+use super::{ExprBinary, ExprBlock, ExprChain, ExprIf, ExprLet, ExprUnary, ExprXml};
 
 /// A Rust expression.
 #[derive(Debug, PartialEq, Clone)]
@@ -16,6 +16,7 @@ where
     If(ExprIf<I>),
     Xml(ExprXml<I>),
     Block(ExprBlock<I>),
+    Binary(ExprBinary<I>),
     Chain(ExprChain<I>),
     Unary(ExprUnary<I>),
 }

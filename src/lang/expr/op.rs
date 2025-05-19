@@ -1,4 +1,4 @@
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
@@ -7,7 +7,7 @@ use crate::lang::{
     tokens::*,
 };
 
-use super::Expr;
+use super::{Expr, ExprChain};
 
 /// A unary operation: !x, *x.
 #[derive(Debug, PartialEq, Clone)]
@@ -73,13 +73,52 @@ where
     I: LangInput,
 {
     /// left operand
-    pub left: Box<Expr<I>>,
-    /// leading meta-data list.
-    pub meta_list: MetaList<I>,
+    pub left: ExprChain<I>,
     /// operator
-    pub op: BinOp<I>,
-    /// right operand
-    pub right: Box<Expr<I>>,
+    pub right_chain: Vec<(BinOp<I>, ExprChain<I>)>,
+}
+
+impl<I> Parse<I> for ExprBinary<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (left, mut input) = ExprChain::parse(input)?;
+        let mut right_chain = vec![];
+
+        loop {
+            (_, input) = S::into_parser().ok().parse(input)?;
+            let op;
+            (op, input) = BinOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            (_, input) = S::into_parser().ok().parse(input)?;
+            let right;
+            (right, input) = ExprChain::into_parser().ok().parse(input)?;
+            let Some(right) = right else {
+                return Err(ControlFlow::Fatal(LangError::expect(
+                    TokenKind::RightOperand,
+                    input.span(),
+                )));
+            };
+
+            right_chain.push((op, right));
+        }
+
+        if right_chain.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::ExprBinary,
+                input.span(),
+            )));
+        }
+
+        Ok((Self { left, right_chain }, input))
+    }
 }
 
 /// A unary operation: !x, -x.
@@ -132,11 +171,15 @@ mod tests {
 
     use crate::lang::{
         errors::{LangError, TokenKind},
-        expr::{ChainInit, Expr, ExprChain, ExprLit, ExprUnary, UnOp},
+        expr::{
+            BinOp, Call, ChainInit, ChainSegment, Expr, ExprBinary, ExprChain, ExprLit, ExprPath,
+            ExprUnary, Field, Member, UnOp,
+        },
         inputs::TokenStream,
         lit::{Lit, LitBool},
         meta::MetaList,
-        tokens::{Not, True},
+        punct::Punctuated,
+        tokens::{Dot, Ident, LeftParen, Not, Plus, RightParen, True},
     };
 
     #[test]
@@ -165,6 +208,63 @@ mod tests {
                 TokenKind::RightOperand,
                 Span { offset: 1, len: 0 }
             )))
+        );
+    }
+
+    #[test]
+    fn test_binary() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("a + b.c() + d")),
+            Ok((
+                Expr::Binary(ExprBinary {
+                    left: ExprChain {
+                        start: ChainInit::Path(ExprPath {
+                            meta_list: MetaList(vec![]),
+                            first: Ident(TokenStream::from("a")),
+                            segments: vec![]
+                        }),
+                        segments: vec![]
+                    },
+                    right_chain: vec![
+                        (
+                            BinOp::Add(Plus(TokenStream::from((2, "+")))),
+                            ExprChain {
+                                start: ChainInit::Path(ExprPath {
+                                    meta_list: MetaList(vec![]),
+                                    first: Ident(TokenStream::from((4, "b"))),
+                                    segments: vec![]
+                                }),
+                                segments: vec![
+                                    ChainSegment::Field(Field {
+                                        dot_token: Dot(TokenStream::from((5, "."))),
+                                        member: Member::Named(Ident(TokenStream::from((6, "c"))))
+                                    }),
+                                    ChainSegment::Call(Call {
+                                        delimiter_start: LeftParen(TokenStream::from((7, "("))),
+                                        params: Punctuated {
+                                            items: vec![],
+                                            last: None
+                                        },
+                                        delimiter_end: RightParen(TokenStream::from((8, ")")))
+                                    })
+                                ]
+                            }
+                        ),
+                        (
+                            BinOp::Add(Plus(TokenStream::from((10, "+")))),
+                            ExprChain {
+                                start: ChainInit::Path(ExprPath {
+                                    meta_list: MetaList(vec![]),
+                                    first: Ident(TokenStream::from((12, "d"))),
+                                    segments: vec![]
+                                }),
+                                segments: vec![]
+                            }
+                        )
+                    ]
+                }),
+                TokenStream::from((13, ""))
+            ))
         );
     }
 }

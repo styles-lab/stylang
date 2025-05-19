@@ -1,10 +1,10 @@
 //! meta types for `stylang`
 
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use parserc::{keyword, take_till, take_until};
 
-use super::errors::LangError;
+use super::errors::{LangError, TokenKind};
 use super::inputs::LangInput;
 use super::lit::Lit;
 use super::punct::Punctuated;
@@ -55,7 +55,11 @@ where
 
         let (content, mut input) = take_till(|c| c == b'\n').parse(input)?;
 
-        Ok((Self(content), input.split_off(1)))
+        if input.is_empty() {
+            Ok((Self(content), input))
+        } else {
+            Ok((Self(content), input.split_off(1)))
+        }
     }
 }
 
@@ -75,7 +79,11 @@ where
 
         let (content, mut input) = take_till(|c| c == b'\n').parse(input)?;
 
-        Ok((Self(content), input.split_off(1)))
+        if input.is_empty() {
+            Ok((Self(content), input))
+        } else {
+            Ok((Self(content), input.split_off(1)))
+        }
     }
 }
 
@@ -131,6 +139,45 @@ where
     LineComment(LineComment<I>),
     OutBlockDoc(OutBlockDoc<I>),
     BlockComment(BlockComment<I>),
+}
+
+/// comment list.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Comments<I>(pub Vec<Comment<I>>)
+where
+    I: LangInput;
+
+impl<I> Parse<I> for Comments<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut commnets = vec![];
+        loop {
+            (_, input) = S::into_parser().ok().parse(input)?;
+
+            let meta;
+            (meta, input) = Comment::into_parser().ok().parse(input)?;
+
+            if let Some(meta) = meta {
+                commnets.push(meta);
+            } else {
+                break;
+            }
+        }
+
+        if commnets.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Comments,
+                input.span(),
+            )));
+        }
+
+        Ok((Self(commnets), input))
+    }
 }
 
 /// Metadata for item/patt...

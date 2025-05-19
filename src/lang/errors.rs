@@ -92,6 +92,8 @@ pub enum ItemKind {
     Mod(Span),
     #[error("use{0:?}")]
     Use(Span),
+    #[error("comments{0:?}")]
+    Comments(Span),
 }
 
 /// Error variants pointing to lexical tokens.
@@ -134,6 +136,6 @@ pub enum TokenKind {
     ExprBinary,
     #[error("expr-index")]
     ExprIndex,
-    #[error("`.`,`(`,`[` or `=`")]
-    LeadingToken,
+    #[error("`comments`")]
+    Comments,
 }

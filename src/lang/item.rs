@@ -8,7 +8,7 @@ use super::{
     errors::LangError,
     expr::Block,
     inputs::LangInput,
-    meta::MetaList,
+    meta::{Comments, MetaList},
     patt::PattType,
     punct::Punctuated,
     tokens::*,
@@ -299,6 +299,7 @@ where
     Fn(ItemFn<I>),
     Mod(ItemMod<I>),
     Use(ItemUse<I>),
+    Comments(Comments<I>),
 }
 
 impl<I> Parse<I> for Item<I>
@@ -325,6 +326,9 @@ where
                 .map_err(|input: I, err| LangError::from((err, ItemKind::Mod(input.span())))))
             .or(ItemUse::into_parser()
                 .map(|v| Self::Use(v))
+                .map_err(|input: I, err| LangError::from((err, ItemKind::Use(input.span())))))
+            .or(Comments::into_parser()
+                .map(|v| Self::Comments(v))
                 .map_err(|input: I, err| LangError::from((err, ItemKind::Use(input.span())))))
             .parse(input)
     }
