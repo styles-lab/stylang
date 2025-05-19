@@ -1,26 +1,22 @@
-use parserc::{Parse, Parser, ParserExt};
+use parserc::derive_parse;
 
 use crate::lang::{
     errors::LangError,
     inputs::LangInput,
-    meta::MetaList,
     punct::Punctuated,
-    tokens::{Comma, LeftParen, RightParen, S},
+    tokens::{Comma, LeftParen, RightParen},
 };
 
-use super::{Expr, parse::PartialParse};
+use super::{Expr, Target};
 
-/// A function call expression: invoke(a, b).
+/// The right part of the function call expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ExprCall<I>
+#[derive_parse(error = LangError,input = I)]
+pub struct Call<I>
 where
     I: LangInput,
 {
-    /// target expr.
-    pub target: Box<Expr<I>>,
-    /// leading meta-data list.
-    pub meta_list: MetaList<I>,
     /// delimiter start token: `(`
     pub delimiter_start: LeftParen<I>,
     /// params list.
@@ -29,34 +25,16 @@ where
     pub delimiter_end: RightParen<I>,
 }
 
-impl<I> PartialParse<I> for ExprCall<I>
+/// A function call expression: invoke(a, b).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprCall<I>
 where
     I: LangInput,
 {
-    type LeadingToken = LeftParen<I>;
-
-    fn partial_parse(
-        meta_list: crate::lang::meta::MetaList<I>,
-        parsed: Expr<I>,
-        leading_token: Self::LeadingToken,
-        input: I,
-    ) -> parserc::Result<Expr<I>, I, LangError> {
-        let (params, input) = Punctuated::parse(input)?;
-        let (_, input) = S::into_parser().ok().parse(input)?;
-        let (delimiter_end, input) = RightParen::parse(input)?;
-        let (_, input) = S::into_parser().ok().parse(input)?;
-
-        Ok((
-            Expr::Call(Self {
-                meta_list,
-                target: Box::new(parsed),
-                delimiter_start: leading_token,
-                params,
-                delimiter_end,
-            }),
-            input,
-        ))
-    }
+    pub target: Target<I>,
+    pub call: Call<I>,
 }
 
 #[cfg(test)]
@@ -64,50 +42,40 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{Expr, ExprCall, ExprLit, ExprPath},
+        expr::{Call, ExprCall, ExprPath, PathSegment, Target, TargetStart},
         inputs::TokenStream,
-        lit::{Lit, LitNum, LitStr},
         meta::MetaList,
         punct::Punctuated,
-        tokens::{Comma, Digits, Ident, LeftParen, RightParen},
+        tokens::{Ident, LeftParen, PathSep, RightParen},
     };
 
     #[test]
     fn test_call() {
         assert_eq!(
-            Expr::parse(TokenStream::from(r#"a(1,"hello")"#)),
+            ExprCall::parse(TokenStream::from("web3::is_connected()")),
             Ok((
-                Expr::Call(ExprCall {
-                    meta_list: MetaList(vec![]),
-                    target: Box::new(Expr::Path(ExprPath {
-                        meta_list: MetaList(vec![]),
-                        first: Ident(TokenStream::from("a")),
-                        segments: vec![]
-                    })),
-                    delimiter_start: LeftParen(TokenStream::from((1, "("))),
-                    params: Punctuated {
-                        items: vec![(
-                            Expr::Lit(ExprLit {
-                                meta_list: MetaList(vec![]),
-                                lit: Lit::Num(LitNum {
-                                    sign: None,
-                                    trunc: Some(Digits(TokenStream::from((2, "1")))),
-                                    dot: None,
-                                    fract: None,
-                                    exp: None,
-                                    unit: None
-                                })
-                            }),
-                            Comma(TokenStream::from((3, ",")))
-                        )],
-                        last: Some(Box::new(Expr::Lit(ExprLit {
+                ExprCall {
+                    target: Target {
+                        start: TargetStart::Path(ExprPath {
                             meta_list: MetaList(vec![]),
-                            lit: Lit::String(LitStr(TokenStream::from((5, "hello"))))
-                        })))
+                            first: Ident(TokenStream::from("web3")),
+                            segments: vec![PathSegment {
+                                sep: (None, PathSep(TokenStream::from((4, "::"))), None),
+                                ident: Ident(TokenStream::from((6, "is_connected")))
+                            }]
+                        }),
+                        segments: vec![]
                     },
-                    delimiter_end: RightParen(TokenStream::from((11, ")")))
-                }),
-                TokenStream::from((12, ""))
+                    call: Call {
+                        delimiter_start: LeftParen(TokenStream::from((18, "("))),
+                        params: Punctuated {
+                            items: vec![],
+                            last: None
+                        },
+                        delimiter_end: RightParen(TokenStream::from((19, ")")))
+                    }
+                },
+                TokenStream::from((20, ""))
             ))
         );
     }

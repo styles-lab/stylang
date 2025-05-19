@@ -7,7 +7,7 @@ use crate::lang::{
     tokens::*,
 };
 
-use super::{Expr, parse::PartialParse};
+use super::Expr;
 
 /// A unary operation: !x, *x.
 #[derive(Debug, PartialEq, Clone)]
@@ -82,37 +82,6 @@ where
     pub right: Box<Expr<I>>,
 }
 
-impl<I> PartialParse<I> for ExprBinary<I>
-where
-    I: LangInput,
-{
-    type LeadingToken = BinOp<I>;
-
-    fn partial_parse(
-        meta_list: MetaList<I>,
-        parsed: Expr<I>,
-        leading_token: Self::LeadingToken,
-        input: I,
-    ) -> parserc::Result<Expr<I>, I, LangError> {
-        let (_, input) = S::into_parser().ok().parse(input)?;
-        let (right, input) = Expr::into_parser()
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
-
-        Ok((
-            Expr::Binary(Self {
-                left: Box::new(parsed),
-                meta_list,
-                op: leading_token,
-                right,
-            }),
-            input,
-        ))
-    }
-}
-
 /// A unary operation: !x, -x.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -163,11 +132,11 @@ mod tests {
 
     use crate::lang::{
         errors::{LangError, TokenKind},
-        expr::{BinOp, Expr, ExprBinary, ExprLit, ExprPath, ExprUnary, UnOp},
+        expr::{Expr, ExprLit, ExprUnary, UnOp},
         inputs::TokenStream,
-        lit::{Lit, LitBool, LitNum},
+        lit::{Lit, LitBool},
         meta::MetaList,
-        tokens::{Digits, Ident, Minus, Ne, Not, Plus, True},
+        tokens::{Not, True},
     };
 
     #[test]
@@ -193,96 +162,6 @@ mod tests {
                 TokenKind::RightOperand,
                 Span { offset: 1, len: 0 }
             )))
-        );
-    }
-
-    #[test]
-    fn test_binary() {
-        assert_eq!(
-            Expr::parse(TokenStream::from("1 + 2 + 3")),
-            Ok((
-                Expr::Binary(ExprBinary {
-                    meta_list: MetaList(vec![]),
-                    left: Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
-                        lit: Lit::Num(LitNum {
-                            sign: None,
-                            trunc: Some(Digits(TokenStream::from((0, "1")))),
-                            dot: None,
-                            fract: None,
-                            exp: None,
-                            unit: None
-                        })
-                    })),
-                    op: BinOp::Add(Plus(TokenStream::from((2, "+")))),
-                    right: Box::new(Expr::Binary(ExprBinary {
-                        meta_list: MetaList(vec![]),
-                        left: Box::new(Expr::Lit(ExprLit {
-                            meta_list: MetaList(vec![]),
-                            lit: Lit::Num(LitNum {
-                                sign: None,
-                                trunc: Some(Digits(TokenStream::from((4, "2")))),
-                                dot: None,
-                                fract: None,
-                                exp: None,
-                                unit: None
-                            })
-                        })),
-                        op: BinOp::Add(Plus(TokenStream::from((6, "+")))),
-                        right: Box::new(Expr::Lit(ExprLit {
-                            meta_list: MetaList(vec![]),
-                            lit: Lit::Num(LitNum {
-                                sign: None,
-                                trunc: Some(Digits(TokenStream::from((8, "3")))),
-                                dot: None,
-                                fract: None,
-                                exp: None,
-                                unit: None
-                            })
-                        })),
-                    })),
-                }),
-                TokenStream::from((9, ""))
-            ))
-        );
-
-        assert_eq!(
-            Expr::parse(TokenStream::from("hello+")),
-            Err(ControlFlow::Fatal(LangError::expect(
-                TokenKind::RightOperand,
-                Span { offset: 6, len: 0 }
-            )))
-        );
-
-        assert_eq!(
-            Expr::parse(TokenStream::from("1 != -a")),
-            Ok((
-                Expr::Binary(ExprBinary {
-                    meta_list: MetaList(vec![]),
-                    left: Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
-                        lit: Lit::Num(LitNum {
-                            sign: None,
-                            trunc: Some(Digits(TokenStream::from((0, "1")))),
-                            dot: None,
-                            fract: None,
-                            exp: None,
-                            unit: None
-                        })
-                    })),
-                    op: BinOp::Ne(Ne(TokenStream::from((2, "!=")))),
-                    right: Box::new(Expr::Unary(ExprUnary {
-                        meta_list: MetaList(vec![]),
-                        op: UnOp::Neg(Minus(TokenStream::from((5, "-")))),
-                        operand: Box::new(Expr::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
-                            first: Ident(TokenStream::from((6, "a"))),
-                            segments: vec![]
-                        }))
-                    }))
-                }),
-                TokenStream::from((7, ""))
-            ))
         );
     }
 }

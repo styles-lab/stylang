@@ -3,11 +3,10 @@ use parserc::{Parse, Parser, ParserExt, derive_parse};
 use crate::lang::{
     errors::{LangError, TokenKind},
     inputs::LangInput,
-    meta::MetaList,
     tokens::{Digits, Dot, Ident, S},
 };
 
-use super::{Expr, parse::PartialParse};
+use super::Target;
 
 /// A struct or tuple struct field accessed in a struct literal or field expression.
 #[derive(Debug, PartialEq, Clone)]
@@ -21,51 +20,48 @@ where
     Unnamed(Digits<I>),
 }
 
-/// Access of a named struct field (obj.k) or unnamed tuple struct field (obj.0).
+/// Right part for accessing struct filed.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ExprField<I>
+pub struct Field<I>
 where
     I: LangInput,
 {
-    /// the target expr.
-    pub target: Box<Expr<I>>,
-    /// Optional meta list.
-    pub meta_list: MetaList<I>,
     /// dot token `.`
     pub dot_token: Dot<I>,
     /// member expr.
     pub member: Member<I>,
 }
 
-impl<I> PartialParse<I> for ExprField<I>
+impl<I> Parse<I> for Field<I>
 where
     I: LangInput,
 {
-    type LeadingToken = Dot<I>;
+    type Error = LangError;
 
-    fn partial_parse(
-        meta_list: MetaList<I>,
-        parsed: Expr<I>,
-        leading_token: Self::LeadingToken,
-        input: I,
-    ) -> parserc::Result<Expr<I>, I, LangError> {
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (_, input) = S::into_parser().ok().parse(input)?;
+        let (dot_token, input) = Dot::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (member, input) = Member::into_parser()
             .map_err(|input: I, _| LangError::expect(TokenKind::Member, input.span()))
             .fatal()
             .parse(input)?;
 
-        Ok((
-            Expr::Field(Self {
-                meta_list,
-                target: Box::new(parsed),
-                dot_token: leading_token,
-                member,
-            }),
-            input,
-        ))
+        Ok((Self { dot_token, member }, input))
     }
+}
+
+/// Access of a named struct field (obj.k) or unnamed tuple struct field (obj.0).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprField<I>
+where
+    I: LangInput,
+{
+    pub target: Target<I>,
+    pub field: Field<I>,
 }
 
 #[cfg(test)]
@@ -74,31 +70,12 @@ mod tests {
 
     use crate::lang::{
         errors::{LangError, TokenKind},
-        expr::{Expr, ExprField, ExprPath, Member},
+        expr::Expr,
         inputs::TokenStream,
-        meta::MetaList,
-        tokens::{Dot, Ident},
     };
 
     #[test]
     fn test_field() {
-        assert_eq!(
-            Expr::parse(TokenStream::from("hello.a")),
-            Ok((
-                Expr::Field(ExprField {
-                    meta_list: MetaList(vec![]),
-                    target: Box::new(Expr::Path(ExprPath {
-                        meta_list: MetaList(vec![]),
-                        first: Ident(TokenStream::from("hello")),
-                        segments: vec![]
-                    })),
-                    dot_token: Dot(TokenStream::from((5, "."))),
-                    member: Member::Named(Ident(TokenStream::from((6, "a"))))
-                }),
-                TokenStream::from((7, ""))
-            ))
-        );
-
         assert_eq!(
             Expr::parse(TokenStream::from("hello.")),
             Err(ControlFlow::Fatal(LangError::expect(
