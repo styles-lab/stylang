@@ -7,7 +7,7 @@ use crate::lang::{
     tokens::*,
 };
 
-use super::{Expr, ExprChain};
+use super::{Expr, ExprChain, partial::PartialParse};
 
 /// A unary operation: !x, *x.
 #[derive(Debug, PartialEq, Clone)]
@@ -78,14 +78,11 @@ where
     pub right_chain: Vec<(BinOp<I>, ExprChain<I>)>,
 }
 
-impl<I> Parse<I> for ExprBinary<I>
+impl<I> PartialParse<I> for ExprBinary<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (left, mut input) = ExprChain::parse(input)?;
+    fn partial_parse(left: ExprChain<I>, mut input: I) -> parserc::Result<Self, I, LangError> {
         let mut right_chain = vec![];
 
         loop {
@@ -118,6 +115,18 @@ where
         }
 
         Ok((Self { left, right_chain }, input))
+    }
+}
+
+impl<I> Parse<I> for ExprBinary<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (left, input) = ExprChain::parse(input)?;
+        Self::partial_parse(left, input)
     }
 }
 

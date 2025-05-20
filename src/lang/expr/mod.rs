@@ -1,5 +1,7 @@
 //! The syntax analyser for exprs.
 
+mod partial;
+
 mod xml;
 pub use xml::*;
 
