@@ -3,7 +3,8 @@ use parserc::{Parse, Parser, ParserExt};
 use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 
 use super::{
-    ExprAssign, ExprBinary, ExprBlock, ExprChain, ExprIf, ExprLet, ExprParen, ExprUnary, ExprXml,
+    ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprChain, ExprIf, ExprLet, ExprParen, ExprUnary,
+    ExprXml,
 };
 
 /// A Rust expression.
@@ -17,6 +18,7 @@ where
     If(ExprIf<I>),
     Xml(ExprXml<I>),
     Block(ExprBlock<I>),
+    Array(ExprArray<I>),
     Unary(ExprUnary<I>),
     Paren(ExprParen<I>),
     Binary(ExprBinary<I>),
@@ -36,6 +38,7 @@ where
             .or(ExprIf::into_parser().map(|v| Self::If(v)))
             .or(ExprXml::into_parser().map(|v| Self::Xml(v)))
             .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
+            .or(ExprArray::into_parser().map(|v| Self::Array(v)))
             .or(ExprUnary::into_parser().map(|v| Self::Unary(v)))
             .or(ExprParen::into_parser().map(|v| Self::Paren(v)))
             .ok()

@@ -43,3 +43,6 @@ pub use chain::*;
 
 mod paren;
 pub use paren::*;
+
+mod array;
+pub use array::*;
