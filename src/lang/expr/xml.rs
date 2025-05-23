@@ -210,7 +210,7 @@ where
             let child;
 
             (child, input) = XmlChild::into_parser()
-                .map(|v| Expr::from(v))
+                .map(Expr::from)
                 .ok()
                 .parse(input)?;
 

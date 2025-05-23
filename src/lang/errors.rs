@@ -124,18 +124,20 @@ pub enum TokenKind {
     XmlEndTag(Span),
     #[error("`.. or ..=`")]
     RangeLimits,
-
     #[error("`expr-field`")]
     ExprField,
     #[error("`expr-member`")]
     Member,
     #[error("`expr-member`")]
     RightOperand,
-
     #[error("`expr-binary-op`")]
     ExprBinary,
     #[error("expr-index")]
     ExprIndex,
     #[error("`comments`")]
     Comments,
+    #[error("`repeat-lit`")]
+    RepeatLit,
+    #[error("`repeat-len`")]
+    RepeatLen,
 }

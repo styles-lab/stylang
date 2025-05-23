@@ -157,7 +157,7 @@ where
         let (op, input) = UnOp::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (operand, input) = Expr::into_parser()
-            .map(|v| Expr::from(v))
+            .map(|v| v)
             .boxed()
             .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
             .fatal()

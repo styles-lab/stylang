@@ -1,9 +1,9 @@
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
     inputs::LangInput,
-    tokens::{Digits, Dot, Ident, S},
+    tokens::{Digits, Dot, DotStart, Ident, S},
 };
 
 /// A struct or tuple struct field accessed in a struct literal or field expression.
@@ -39,7 +39,14 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (dot_token, input) = Dot::parse(input)?;
+
+        let (DotStart::Dot(dot_token), input) = DotStart::parse(input.clone())? else {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Token("."),
+                input.span(),
+            )));
+        };
+
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (member, input) = Member::into_parser()
             .map_err(|input: I, _| LangError::expect(TokenKind::Member, input.span()))

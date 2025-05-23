@@ -105,4 +105,50 @@ where
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use parserc::Parse;
+
+    use crate::lang::{
+        expr::{ChainInit, Expr, ExprChain, ExprPath, ExprReturn},
+        inputs::TokenStream,
+        meta::MetaList,
+        tokens::{Ident, KeywordReturn},
+    };
+
+    #[test]
+    fn test_return() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("return;")),
+            Ok((
+                Expr::Return(ExprReturn {
+                    meta_list: MetaList(vec![]),
+                    return_token: KeywordReturn(TokenStream::from("return")),
+                    expr: None,
+                }),
+                TokenStream::from((6, ";"))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_return_with_expr() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("return a;")),
+            Ok((
+                Expr::Return(ExprReturn {
+                    meta_list: MetaList(vec![]),
+                    return_token: KeywordReturn(TokenStream::from("return")),
+                    expr: Some(Box::new(Expr::Chain(ExprChain {
+                        start: ChainInit::Path(ExprPath {
+                            meta_list: MetaList(vec![]),
+                            first: Ident(TokenStream::from((7, "a"))),
+                            segments: vec![]
+                        }),
+                        segments: vec![]
+                    }))),
+                }),
+                TokenStream::from((8, ";"))
+            ))
+        );
+    }
+}

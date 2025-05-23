@@ -46,3 +46,9 @@ pub use paren::*;
 
 mod array;
 pub use array::*;
+
+mod range;
+pub use range::*;
+
+mod repeat;
+pub use repeat::*;

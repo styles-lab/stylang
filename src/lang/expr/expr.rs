@@ -4,7 +4,7 @@ use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 
 use super::{
     ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprChain, ExprFor, ExprIf, ExprLet,
-    ExprLoop, ExprParen, ExprReturn, ExprUnary, ExprXml,
+    ExprLoop, ExprParen, ExprRange, ExprRepeat, ExprReturn, ExprUnary, ExprXml, RangeWithoutStart,
 };
 
 /// A `stylang` expression.
@@ -25,8 +25,10 @@ where
     Break(ExprBreak<I>),
     For(ExprFor<I>),
     Loop(ExprLoop<I>),
+    Repeat(ExprRepeat<I>),
     Binary(ExprBinary<I>),
     Assign(ExprAssign<I>),
+    Range(ExprRange<I>),
     Chain(ExprChain<I>),
 }
 
@@ -49,6 +51,8 @@ where
             .or(ExprBreak::into_parser().map(|v| Self::Break(v)))
             .or(ExprFor::into_parser().map(|v| Self::For(v)))
             .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
+            .or(ExprRepeat::into_parser().map(|v| Self::Repeat(v)))
+            .or(RangeWithoutStart::into_parser().map(|v| Self::Range(v.into())))
             .ok()
             .parse(input)?;
 
@@ -61,6 +65,7 @@ where
         let (expr, input) = Partial::from(chain.clone())
             .map(|v| Self::Binary(v))
             .or(Partial::from(chain.clone()).map(|v| Self::Assign(v)))
+            .or(Partial::from(chain.clone()).map(|v| Self::Range(v)))
             .ok()
             .parse(input)?;
 
@@ -68,6 +73,6 @@ where
             return Ok((expr, input));
         }
 
-        return Ok((Self::Chain(chain), input));
+        Ok((Self::Chain(chain), input))
     }
 }
