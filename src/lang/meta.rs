@@ -199,6 +199,26 @@ pub struct MetaList<I>(pub Vec<Meta<I>>)
 where
     I: LangInput;
 
+/// Create an empty meta-data list.
+impl<I> Default for MetaList<I>
+where
+    I: LangInput,
+{
+    fn default() -> Self {
+        Self::empty()
+    }
+}
+
+impl<I> MetaList<I>
+where
+    I: LangInput,
+{
+    /// Create an empty meta-data list.
+    pub fn empty() -> Self {
+        Self(vec![])
+    }
+}
+
 impl<I> Parse<I> for MetaList<I>
 where
     I: LangInput,

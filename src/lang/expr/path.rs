@@ -55,7 +55,7 @@ mod tests {
             ExprPath::parse(TokenStream::from("a :: b ::c")),
             Ok((
                 ExprPath {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     first: Ident(TokenStream::from("a")),
                     segments: vec![
                         PathSegment {
@@ -84,7 +84,7 @@ mod tests {
             ExprPath::parse(TokenStream::from("a ")),
             Ok((
                 ExprPath {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     first: Ident(TokenStream::from("a")),
                     segments: vec![]
                 },

@@ -209,10 +209,7 @@ where
         loop {
             let child;
 
-            (child, input) = XmlChild::into_parser()
-                .map(Expr::from)
-                .ok()
-                .parse(input)?;
+            (child, input) = XmlChild::into_parser().map(Expr::from).ok().parse(input)?;
 
             let Some(child) = child else {
                 let (end_tag, input) = XmlEnd::into_parser()
@@ -261,7 +258,7 @@ mod tests {
             XmlStart::parse(TokenStream::from("<hello/>")),
             Ok((
                 XmlStart {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: Lt(TokenStream::from((0, "<"))),
                     ident: XmlIdent(TokenStream::from((1, "hello"))),
                     attrs: vec![],
@@ -277,7 +274,7 @@ mod tests {
             XmlStart::parse(TokenStream::from("< hello >")),
             Ok((
                 XmlStart {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: Lt(TokenStream::from((0, "<"))),
                     ident: XmlIdent(TokenStream::from((2, "hello"))),
                     attrs: vec![],
@@ -304,7 +301,7 @@ mod tests {
             XmlEnd::parse(TokenStream::from("</ hello>")),
             Ok((
                 XmlEnd {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: LtSlash(TokenStream::from("</")),
                     ident: (
                         Some(S(TokenStream::from((2, " ")))),
@@ -347,7 +344,7 @@ mod tests {
             XmlAttr::parse(TokenStream::from(r#"v="hello""#)),
             Ok((
                 XmlAttr {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     name: XmlIdent(TokenStream::from("v")),
                     eq_token: (None, Eq(TokenStream::from((1, "="))), None),
                     value: XmlAttrValue::Lit(Lit::String(LitStr(TokenStream::from((3, "hello")))))
@@ -360,13 +357,13 @@ mod tests {
             XmlAttr::parse(TokenStream::from(r#"v={}"#)),
             Ok((
                 XmlAttr {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     name: XmlIdent(TokenStream::from("v")),
                     eq_token: (None, Eq(TokenStream::from((1, "="))), None),
                     value: XmlAttrValue::Block(Block {
                         delimiter_start: LeftBrace(TokenStream::from((2, "{"))),
                         stmts: Stmts(vec![]),
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         delimiter_end: RightBrace(TokenStream::from((3, "}")))
                     })
                 },
@@ -381,13 +378,13 @@ mod tests {
             XmlStart::parse(TokenStream::from(r#"<text font-family="serif" />"#)),
             Ok((
                 XmlStart {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: Lt(TokenStream::from("<")),
                     ident: XmlIdent(TokenStream::from((1, "text"))),
                     attrs: vec![(
                         S(TokenStream::from((5, " "))),
                         XmlAttr {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             name: XmlIdent(TokenStream::from((6, "font-family"))),
                             eq_token: (None, Eq(TokenStream::from((17, "="))), None),
                             value: XmlAttrValue::Lit(Lit::String(LitStr(TokenStream::from((

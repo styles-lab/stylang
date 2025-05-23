@@ -46,13 +46,13 @@ mod tests {
             Expr::parse(TokenStream::from("[a,b,c,]")),
             Ok((
                 Expr::Array(ExprArray {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: LeftBracket(TokenStream::from("[")),
                     els: Punctuated {
                         items: vec![
                             (
                                 Expr::Path(ExprPath {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     first: Ident(TokenStream::from((1, "a"))),
                                     segments: vec![]
                                 }),
@@ -60,7 +60,7 @@ mod tests {
                             ),
                             (
                                 Expr::Path(ExprPath {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     first: Ident(TokenStream::from((3, "b"))),
                                     segments: vec![]
                                 }),
@@ -68,7 +68,7 @@ mod tests {
                             ),
                             (
                                 Expr::Path(ExprPath {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     first: Ident(TokenStream::from((5, "c"))),
                                     segments: vec![]
                                 }),

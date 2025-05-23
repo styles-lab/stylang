@@ -217,10 +217,10 @@ mod tests {
             Expr::parse(TokenStream::from("!true")),
             Ok((
                 Expr::Unary(ExprUnary {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     op: UnOp::Not(Not(TokenStream::from("!"))),
                     operand: Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         lit: Lit::Bool(LitBool::True(True(TokenStream::from((1, "true")))))
                     }))
                 }),
@@ -245,7 +245,7 @@ mod tests {
                 Expr::Binary(ExprBinary {
                     left: Box::new(Expr::Binary(ExprBinary {
                         left: Box::new(Expr::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             first: Ident(TokenStream::from("a")),
                             segments: vec![]
                         })),
@@ -253,7 +253,7 @@ mod tests {
                         right: Box::new(Expr::Call(ExprCall {
                             target: Box::new(Expr::Field(ExprField {
                                 base: Box::new(Expr::Path(ExprPath {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     first: Ident(TokenStream::from((4, "b"))),
                                     segments: vec![]
                                 })),
@@ -270,7 +270,7 @@ mod tests {
                     })),
                     op: BinOp::Add(Plus(TokenStream::from((10, "+")))),
                     right: Box::new(Expr::Path(ExprPath {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         first: Ident(TokenStream::from((12, "d"))),
                         segments: vec![]
                     })),

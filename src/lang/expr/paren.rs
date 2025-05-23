@@ -44,17 +44,17 @@ mod tests {
             Expr::parse(TokenStream::from("(a + b)")),
             Ok((
                 Expr::Paren(ExprParen {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: LeftParen(TokenStream::from("(")),
                     expr: Box::new(Expr::Binary(ExprBinary {
                         left: Box::new(Expr::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             first: Ident(TokenStream::from((1, "a"))),
                             segments: vec![]
                         })),
                         op: BinOp::Add(Plus(TokenStream::from((3, "+")))),
                         right: Box::new(Expr::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             first: Ident(TokenStream::from((5, "b"))),
                             segments: vec![]
                         }))

@@ -122,7 +122,7 @@ mod tests {
                     start: None,
                     limits: RangeLimits::Closed(DotDotEq(TokenStream::from("..="))),
                     end: Some(Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         lit: Lit::Num(LitNum {
                             sign: None,
                             trunc: Some(Digits(TokenStream::from((3, "2")))),
@@ -142,7 +142,7 @@ mod tests {
             Ok((
                 Expr::Range(ExprRange {
                     start: Some(Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         lit: Lit::Num(LitNum {
                             sign: None,
                             trunc: Some(Digits(TokenStream::from((0, "1")))),
@@ -154,7 +154,7 @@ mod tests {
                     }))),
                     limits: RangeLimits::Closed(DotDotEq(TokenStream::from((1, "..=")))),
                     end: Some(Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         lit: Lit::Num(LitNum {
                             sign: None,
                             trunc: Some(Digits(TokenStream::from((4, "2")))),

@@ -62,7 +62,7 @@ mod tests {
             Ok((
                 Expr::Call(ExprCall {
                     target: Box::new(Expr::Path(ExprPath {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         first: Ident(TokenStream::from("web3")),
                         segments: vec![PathSegment {
                             sep: (None, PathSep(TokenStream::from((4, "::"))), None),

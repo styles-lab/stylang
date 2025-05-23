@@ -86,7 +86,7 @@ mod tests {
             Ok((
                 Expr::Assign(ExprAssign {
                     left: Box::new(Expr::Path(ExprPath {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         first: Ident(TokenStream::from("a")),
                         segments: vec![]
                     })),
@@ -94,7 +94,7 @@ mod tests {
                     right: Box::new(Expr::Binary(ExprBinary {
                         left: Box::new(Expr::Binary(ExprBinary {
                             left: Box::new(Expr::Lit(ExprLit {
-                                meta_list: MetaList(vec![]),
+                                meta_list: MetaList::default(),
                                 lit: Lit::Num(LitNum {
                                     sign: None,
                                     trunc: Some(Digits(TokenStream::from((4, "1")))),
@@ -106,14 +106,14 @@ mod tests {
                             })),
                             op: BinOp::Add(Plus(TokenStream::from((6, "+")))),
                             right: Box::new(Expr::Path(ExprPath {
-                                meta_list: MetaList(vec![]),
+                                meta_list: MetaList::default(),
                                 first: Ident(TokenStream::from((8, "b"))),
                                 segments: vec![]
                             }))
                         })),
                         op: BinOp::AndAssign(PlusEq(TokenStream::from((10, "+=")))),
                         right: Box::new(Expr::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             first: Ident(TokenStream::from((13, "c"))),
                             segments: vec![]
                         }))

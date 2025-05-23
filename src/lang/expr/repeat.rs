@@ -93,10 +93,10 @@ mod tests {
             Expr::parse(TokenStream::from("[10u8;20]")),
             Ok((
                 Expr::Repeat(ExprRepeat {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     delimiter_start: LeftBracket(TokenStream::from("[")),
                     expr: ExprLit {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         lit: Lit::Num(LitNum {
                             sign: None,
                             trunc: Some(Digits(TokenStream::from((1, "10")))),

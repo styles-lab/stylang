@@ -376,7 +376,7 @@ mod tests {
                             items: vec![
                                 (
                                     NamedField {
-                                        meta_list: MetaList(vec![]),
+                                        meta_list: MetaList::default(),
                                         vs: None,
                                         name: Ident(TokenStream::from((75, "foreground_color"))),
                                         colon: (
@@ -392,7 +392,7 @@ mod tests {
                                 ),
                                 (
                                     NamedField {
-                                        meta_list: MetaList(vec![]),
+                                        meta_list: MetaList::default(),
                                         vs: None,
                                         name: Ident(TokenStream::from((116, "background_color"))),
                                         colon: (
@@ -582,7 +582,7 @@ mod tests {
                         items: vec![
                             (
                                 Variant {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     name: (Ident(TokenStream::from((157, "Underline"))), None),
                                     fields: None
                                 },
@@ -590,7 +590,7 @@ mod tests {
                             ),
                             (
                                 Variant {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     name: (Ident(TokenStream::from((188, "Overline"))), None),
                                     fields: None
                                 },
@@ -598,7 +598,7 @@ mod tests {
                             ),
                             (
                                 Variant {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     name: (Ident(TokenStream::from((218, "LineThrough"))), None),
                                     fields: None
                                 },
@@ -606,7 +606,7 @@ mod tests {
                             ),
                             (
                                 Variant {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     name: (Ident(TokenStream::from((251, "Blink"))), None),
                                     fields: None
                                 },
@@ -628,7 +628,7 @@ mod tests {
             ItemEnum::parse(TokenStream::from(r#"enum A { V(i32) }"#)),
             Ok((
                 ItemEnum {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     vs: None,
                     keyword: (
                         KeywordEnum(TokenStream::from((0, "enum"))),
@@ -642,14 +642,14 @@ mod tests {
                     variants: Punctuated {
                         items: vec![],
                         last: Some(Box::new(Variant {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             name: (Ident(TokenStream::from((9, "V"))), None),
                             fields: Some(Fields::Uname {
                                 delimiter_start: LeftParen(TokenStream::from((10, "("))),
                                 fields: Punctuated {
                                     items: vec![],
                                     last: Some(Box::new(UnameField {
-                                        meta_list: MetaList(vec![]),
+                                        meta_list: MetaList::default(),
                                         vs: None,
                                         ty: Type::I32(I32(TokenStream::from((11, "i32"))))
                                     })),
@@ -671,7 +671,7 @@ mod tests {
             ItemEnum::parse(TokenStream::from(r#"enum A { V {v:i32} }"#)),
             Ok((
                 ItemEnum {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     vs: None,
                     keyword: (
                         KeywordEnum(TokenStream::from((0, "enum"))),
@@ -685,7 +685,7 @@ mod tests {
                     variants: Punctuated {
                         items: vec![],
                         last: Some(Box::new(Variant {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             name: (
                                 Ident(TokenStream::from((9, "V"))),
                                 Some(S(TokenStream::from((10, " "))))
@@ -695,7 +695,7 @@ mod tests {
                                 fields: Punctuated {
                                     items: vec![],
                                     last: Some(Box::new(NamedField {
-                                        meta_list: MetaList(vec![]),
+                                        meta_list: MetaList::default(),
                                         vs: None,
                                         name: Ident(TokenStream::from((12, "v"))),
                                         colon: (None, Colon(TokenStream::from((13, ":"))), None),
@@ -744,7 +744,7 @@ mod tests {
                         items: vec![
                             (
                                 PattType {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     name: Ident(TokenStream::from((26, "label"))),
                                     colon_token: (
                                         None,
@@ -752,7 +752,7 @@ mod tests {
                                         Some(S(TokenStream::from((32, " "))))
                                     ),
                                     ty: Box::new(Type::Path(TypePath {
-                                        meta_list: MetaList(vec![]),
+                                        meta_list: MetaList::default(),
                                         first: Ident(TokenStream::from((33, "Label"))),
                                         rest: vec![]
                                     }))
@@ -761,7 +761,7 @@ mod tests {
                             ),
                             (
                                 PattType {
-                                    meta_list: MetaList(vec![]),
+                                    meta_list: MetaList::default(),
                                     name: Ident(TokenStream::from((40, "layout"))),
                                     colon_token: (
                                         None,
@@ -769,7 +769,7 @@ mod tests {
                                         Some(S(TokenStream::from((47, " "))))
                                     ),
                                     ty: Box::new(Type::Path(TypePath {
-                                        meta_list: MetaList(vec![]),
+                                        meta_list: MetaList::default(),
                                         first: Ident(TokenStream::from((48, "TextLayout"))),
                                         rest: vec![]
                                     }))
@@ -778,7 +778,7 @@ mod tests {
                             )
                         ],
                         last: Some(Box::new(PattType {
-                            meta_list: MetaList(vec![]),
+                            meta_list: MetaList::default(),
                             name: Ident(TokenStream::from((60, "fill"))),
                             colon_token: (
                                 None,
@@ -786,7 +786,7 @@ mod tests {
                                 Some(S(TokenStream::from((65, " "))))
                             ),
                             ty: Box::new(Type::Path(TypePath {
-                                meta_list: MetaList(vec![]),
+                                meta_list: MetaList::default(),
                                 first: Ident(TokenStream::from((66, "Fill"))),
                                 rest: vec![]
                             }))
@@ -812,7 +812,7 @@ mod tests {
             )),
             Ok((
                 ItemFn {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     vs: None,
                     extern_token: Some((
                         KeywordExtern(TokenStream::from((0, "extern")),),

@@ -121,7 +121,7 @@ mod tests {
             Expr::parse(TokenStream::from("return;")),
             Ok((
                 Expr::Return(ExprReturn {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     return_token: KeywordReturn(TokenStream::from("return")),
                     expr: None,
                 }),
@@ -136,10 +136,10 @@ mod tests {
             Expr::parse(TokenStream::from("return a;")),
             Ok((
                 Expr::Return(ExprReturn {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     return_token: KeywordReturn(TokenStream::from("return")),
                     expr: Some(Box::new(Expr::Path(ExprPath {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         first: Ident(TokenStream::from((7, "a"))),
                         segments: vec![]
                     }))),

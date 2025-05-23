@@ -53,7 +53,7 @@ mod tests {
             )),
             Ok((
                 Expr::Let(ExprLet {
-                    meta_list: MetaList(vec![]),
+                    meta_list: MetaList::default(),
                     let_token: (
                         KeywordLet(TokenStream::from((0, "let"))),
                         S(TokenStream::from((3, " ")))
@@ -93,7 +93,7 @@ mod tests {
                         Some(S(TokenStream::from((34, " "))))
                     ),
                     expr: Box::new(Expr::Lit(ExprLit {
-                        meta_list: MetaList(vec![]),
+                        meta_list: MetaList::default(),
                         lit: Lit::None(KeywordNone(TokenStream::from((35, "none"))))
                     }))
                 }),
