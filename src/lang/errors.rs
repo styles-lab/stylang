@@ -2,7 +2,7 @@
 
 use parserc::span::Span;
 
-/// Error variants return by language parser.
+/// Error variants return by compiler frontend.
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum LangError {
     /// Fallback error that catching the parserc raw error kind.

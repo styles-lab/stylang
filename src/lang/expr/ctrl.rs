@@ -99,7 +99,7 @@ where
     /// optional meta list.
     pub meta_list: MetaList<I>,
     /// keyword `loop`
-    pub loop_token: KeywordLoop<I>,
+    pub loop_token: (KeywordLoop<I>, Option<S<I>>),
     /// block of for expr.
     pub block: Block<I>,
 }
@@ -109,10 +109,10 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{Expr, ExprPath, ExprReturn},
+        expr::{Block, Expr, ExprBreak, ExprLoop, ExprPath, ExprReturn},
         inputs::TokenStream,
         meta::MetaList,
-        tokens::{Ident, KeywordReturn},
+        tokens::{Ident, KeywordBreak, KeywordLoop, KeywordReturn, LeftBrace, RightBrace, S},
     };
 
     #[test]
@@ -145,6 +145,63 @@ mod tests {
                     }))),
                 }),
                 TokenStream::from((8, ";"))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_break() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("break;")),
+            Ok((
+                Expr::Break(ExprBreak {
+                    meta_list: MetaList::default(),
+                    break_token: KeywordBreak(TokenStream::from("break")),
+                    expr: None,
+                }),
+                TokenStream::from((5, ";"))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_break_with_expr() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("break a;")),
+            Ok((
+                Expr::Break(ExprBreak {
+                    meta_list: MetaList::default(),
+                    break_token: KeywordBreak(TokenStream::from("break")),
+                    expr: Some(Box::new(Expr::Path(ExprPath {
+                        meta_list: MetaList::default(),
+                        first: Ident(TokenStream::from((6, "a"))),
+                        segments: vec![]
+                    }))),
+                }),
+                TokenStream::from((7, ";"))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_loop() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("loop {}")),
+            Ok((
+                Expr::Loop(ExprLoop {
+                    meta_list: Default::default(),
+                    loop_token: (
+                        KeywordLoop(TokenStream::from("loop")),
+                        Some(S(TokenStream::from((4, " "))))
+                    ),
+                    block: Block {
+                        delimiter_start: LeftBrace(TokenStream::from((5, "{"))),
+                        stmts: Default::default(),
+                        meta_list: Default::default(),
+                        delimiter_end: RightBrace(TokenStream::from((6, "}")))
+                    }
+                }),
+                TokenStream::from((7, ""))
             ))
         );
     }

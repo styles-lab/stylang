@@ -31,28 +31,51 @@ pub enum BinOp<I>
 where
     I: LangInput,
 {
+    /// +=
     AndAssign(PlusEq<I>),
+    /// -=
     SubAssign(MinusEq<I>),
+    /// *=
     MulAssign(StarEq<I>),
+    /// /=
     DivAssign(SlashEq<I>),
+    /// %=
     RemAssign(PercentEq<I>),
+    /// ^=
     BitXorAssign(CaretEq<I>),
+    /// &=
     BitAndAssign(AndEq<I>),
+    /// |=
     BitOrAssign(SlashEq<I>),
+    /// <<=
     ShlAssign(ShlEq<I>),
+    /// >>=
     ShrAssign(ShrEq<I>),
+    /// +
     Add(Plus<I>),
+    /// -
     Sub(Minus<I>),
+    /// *
     Mul(Star<I>),
+    /// `/`
     Div(Slash<I>),
+    /// `%`
     Rem(Percent<I>),
+    /// `&&`
     And(AndAnd<I>),
+    /// `||`
     Or(OrOr<I>),
+    /// `^`
     BitXor(Caret<I>),
+    /// `&`
     BitAnd(And<I>),
+    /// `|`
     BitOr(Or<I>),
+    /// `<<`
     Shl(Shl<I>),
+    /// `>>`
     Shr(Shr<I>),
+    /// `==`
     Eq(EqEq<I>),
     /// <=
     Le(Le<I>),

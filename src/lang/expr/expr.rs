@@ -65,12 +65,12 @@ where
             return Ok((expr, input));
         }
 
-        let (chain, input) = CaudalRecursion::parse(input)?;
+        let (cr, input) = CaudalRecursion::parse(input)?;
 
-        let (expr, input) = Partial::from(chain.clone())
+        let (expr, input) = Partial::from(cr.clone())
             .map(|v| Self::Binary(v))
-            .or(Partial::from(chain.clone()).map(|v| Self::Assign(v)))
-            .or(Partial::from(chain.clone()).map(|v| Self::Range(v)))
+            .or(Partial::from(cr.clone()).map(|v| Self::Assign(v)))
+            .or(Partial::from(cr.clone()).map(|v| Self::Range(v)))
             .ok()
             .parse(input)?;
 
@@ -78,6 +78,6 @@ where
             return Ok((expr, input));
         }
 
-        Ok((chain.into(), input))
+        Ok((cr.into(), input))
     }
 }

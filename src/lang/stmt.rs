@@ -41,6 +41,15 @@ pub struct Stmts<I>(pub Vec<Stmt<I>>)
 where
     I: LangInput;
 
+impl<I> Default for Stmts<I>
+where
+    I: LangInput,
+{
+    fn default() -> Self {
+        Self(vec![])
+    }
+}
+
 impl<I> Parse<I> for Stmts<I>
 where
     I: LangInput,
