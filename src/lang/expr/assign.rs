@@ -8,8 +8,8 @@ use crate::lang::{
 
 use super::{
     Expr,
+    caudal::CaudalRecursion,
     partial::{Partial, PartialParse},
-    rr::RightRecursive,
 };
 
 /// A struct or tuple struct field accessed in a struct literal or field expression.
@@ -32,14 +32,14 @@ where
     I: LangInput,
 {
     fn partial_parse(
-        left: RightRecursive<I>,
+        left: CaudalRecursion<I>,
         input: I,
     ) -> parserc::Result<Self, I, crate::lang::errors::LangError> {
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (eq_token, input) = Eq::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
 
-        let (chain, input) = RightRecursive::into_parser()
+        let (chain, input) = CaudalRecursion::into_parser()
             .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
             .parse(input)?;
 

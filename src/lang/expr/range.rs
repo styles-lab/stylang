@@ -6,7 +6,7 @@ use crate::lang::{
     tokens::{DotDot, DotDotEq, S},
 };
 
-use super::{Expr, partial::PartialParse, rr::RightRecursive};
+use super::{Expr, caudal::CaudalRecursion, partial::PartialParse};
 
 /// Limit types of a range, inclusive or exclusive.
 #[derive(Debug, PartialEq, Clone)]
@@ -24,17 +24,17 @@ where
 
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(super) struct RangeWithoutStart<I>
+pub(super) struct RangeTail<I>
 where
     I: LangInput,
 {
     /// limit types.
     pub limits: RangeLimits<I>,
     /// optional end operand.
-    pub end: RightRecursive<I>,
+    pub end: CaudalRecursion<I>,
 }
 
-impl<I> Parse<I> for RangeWithoutStart<I>
+impl<I> Parse<I> for RangeTail<I>
 where
     I: LangInput,
 {
@@ -44,17 +44,17 @@ where
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (limits, input) = RangeLimits::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (end, input) = RightRecursive::into_parser().parse(input)?;
+        let (end, input) = CaudalRecursion::into_parser().parse(input)?;
 
         Ok((Self { limits, end }, input))
     }
 }
 
-impl<I> From<RangeWithoutStart<I>> for ExprRange<I>
+impl<I> From<RangeTail<I>> for ExprRange<I>
 where
     I: LangInput,
 {
-    fn from(value: RangeWithoutStart<I>) -> Self {
+    fn from(value: RangeTail<I>) -> Self {
         Self {
             start: None,
             limits: value.limits,
@@ -82,11 +82,11 @@ impl<I> PartialParse<I> for ExprRange<I>
 where
     I: LangInput,
 {
-    fn partial_parse(left: RightRecursive<I>, input: I) -> parserc::Result<Self, I, LangError> {
+    fn partial_parse(left: CaudalRecursion<I>, input: I) -> parserc::Result<Self, I, LangError> {
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (limits, input) = RangeLimits::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (end, input) = RightRecursive::into_parser().ok().parse(input)?;
+        let (end, input) = CaudalRecursion::into_parser().ok().parse(input)?;
 
         Ok((
             Self {

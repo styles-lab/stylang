@@ -5,7 +5,7 @@ use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 use super::{
     ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprField, ExprFor, ExprIf,
     ExprIndex, ExprLet, ExprLit, ExprLoop, ExprParen, ExprPath, ExprRange, ExprRepeat, ExprReturn,
-    ExprUnary, ExprXml, RangeWithoutStart, rr::RightRecursive,
+    ExprUnary, ExprXml, RangeTail, caudal::CaudalRecursion,
 };
 
 /// A `stylang` expression.
@@ -57,7 +57,7 @@ where
             .or(ExprFor::into_parser().map(|v| Self::For(v)))
             .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
             .or(ExprRepeat::into_parser().map(|v| Self::Repeat(v)))
-            .or(RangeWithoutStart::into_parser().map(|v| Self::Range(v.into())))
+            .or(RangeTail::into_parser().map(|v| Self::Range(v.into())))
             .ok()
             .parse(input)?;
 
@@ -65,7 +65,7 @@ where
             return Ok((expr, input));
         }
 
-        let (chain, input) = RightRecursive::parse(input)?;
+        let (chain, input) = CaudalRecursion::parse(input)?;
 
         let (expr, input) = Partial::from(chain.clone())
             .map(|v| Self::Binary(v))

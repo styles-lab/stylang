@@ -1,7 +1,7 @@
 //! The syntax analyser for exprs.
 
+mod caudal;
 mod partial;
-mod rr;
 
 mod xml;
 pub use xml::*;

@@ -7,7 +7,7 @@ use crate::lang::{
     tokens::*,
 };
 
-use super::{Expr, partial::PartialParse, rr::RightRecursive};
+use super::{Expr, caudal::CaudalRecursion, partial::PartialParse};
 
 /// A unary operation: !x, *x.
 #[derive(Debug, PartialEq, Clone)]
@@ -84,7 +84,10 @@ impl<I> PartialParse<I> for ExprBinary<I>
 where
     I: LangInput,
 {
-    fn partial_parse(left: RightRecursive<I>, mut input: I) -> parserc::Result<Self, I, LangError> {
+    fn partial_parse(
+        left: CaudalRecursion<I>,
+        mut input: I,
+    ) -> parserc::Result<Self, I, LangError> {
         let mut right_chain = vec![];
 
         loop {
@@ -98,7 +101,7 @@ where
 
             (_, input) = S::into_parser().ok().parse(input)?;
             let right;
-            (right, input) = RightRecursive::into_parser().ok().parse(input)?;
+            (right, input) = CaudalRecursion::into_parser().ok().parse(input)?;
             let Some(right) = right else {
                 return Err(ControlFlow::Fatal(LangError::expect(
                     TokenKind::RightOperand,
@@ -145,7 +148,7 @@ where
     type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (left, input) = RightRecursive::parse(input)?;
+        let (left, input) = CaudalRecursion::parse(input)?;
         Self::partial_parse(left, input)
     }
 }
