@@ -7,7 +7,7 @@ use super::{
     ExprLoop, ExprParen, ExprReturn, ExprUnary, ExprXml,
 };
 
-/// A Rust expression.
+/// A `stylang` expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Expr<I>
