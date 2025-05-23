@@ -3,8 +3,8 @@ use parserc::{Parse, Parser, ParserExt};
 use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 
 use super::{
-    ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprChain, ExprIf, ExprLet, ExprParen, ExprUnary,
-    ExprXml,
+    ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprChain, ExprFor, ExprIf, ExprLet,
+    ExprLoop, ExprParen, ExprReturn, ExprUnary, ExprXml,
 };
 
 /// A Rust expression.
@@ -21,6 +21,10 @@ where
     Array(ExprArray<I>),
     Unary(ExprUnary<I>),
     Paren(ExprParen<I>),
+    Return(ExprReturn<I>),
+    Break(ExprBreak<I>),
+    For(ExprFor<I>),
+    Loop(ExprLoop<I>),
     Binary(ExprBinary<I>),
     Assign(ExprAssign<I>),
     Chain(ExprChain<I>),
@@ -41,6 +45,10 @@ where
             .or(ExprArray::into_parser().map(|v| Self::Array(v)))
             .or(ExprUnary::into_parser().map(|v| Self::Unary(v)))
             .or(ExprParen::into_parser().map(|v| Self::Paren(v)))
+            .or(ExprReturn::into_parser().map(|v| Self::Return(v)))
+            .or(ExprBreak::into_parser().map(|v| Self::Break(v)))
+            .or(ExprFor::into_parser().map(|v| Self::For(v)))
+            .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
             .ok()
             .parse(input)?;
 

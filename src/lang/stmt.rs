@@ -26,7 +26,7 @@ where
 {
     fn is_return_expr(&self) -> bool {
         match self {
-            Stmt::Expr(_, _, None) => true,
+            Stmt::Expr(Expr::Return(_), _, Some(_)) | Stmt::Expr(_, _, None) => true,
             _ => false,
         }
     }

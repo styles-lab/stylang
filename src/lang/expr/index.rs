@@ -8,6 +8,19 @@ use crate::lang::{
 
 use super::Expr;
 
+/// A range expression: 1..2, 1.., ..2, 1..=2, ..=2.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct Range<I>
+where
+    I: LangInput,
+{
+    pub delimiter_start: LeftBracket<I>,
+    pub index: Box<Expr<I>>,
+    pub delimiter_end: RightBracket<I>,
+}
+
 /// The right part of indexing expression
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -20,6 +33,7 @@ where
     pub index: Box<Expr<I>>,
     pub delimiter_end: RightBracket<I>,
 }
+
 #[cfg(test)]
 mod tests {
 
