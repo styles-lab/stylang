@@ -3,8 +3,9 @@ use parserc::{Parse, Parser, ParserExt};
 use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 
 use super::{
-    ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprChain, ExprFor, ExprIf, ExprLet,
-    ExprLoop, ExprParen, ExprRange, ExprRepeat, ExprReturn, ExprUnary, ExprXml, RangeWithoutStart,
+    ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprField, ExprFor, ExprIf,
+    ExprIndex, ExprLet, ExprLit, ExprLoop, ExprParen, ExprPath, ExprRange, ExprRepeat, ExprReturn,
+    ExprUnary, ExprXml, RangeWithoutStart, rr::RightRecursive,
 };
 
 /// A `stylang` expression.
@@ -29,7 +30,11 @@ where
     Binary(ExprBinary<I>),
     Assign(ExprAssign<I>),
     Range(ExprRange<I>),
-    Chain(ExprChain<I>),
+    Lit(ExprLit<I>),
+    Path(ExprPath<I>),
+    Call(ExprCall<I>),
+    Index(ExprIndex<I>),
+    Field(ExprField<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -60,7 +65,7 @@ where
             return Ok((expr, input));
         }
 
-        let (chain, input) = ExprChain::parse(input)?;
+        let (chain, input) = RightRecursive::parse(input)?;
 
         let (expr, input) = Partial::from(chain.clone())
             .map(|v| Self::Binary(v))
@@ -73,6 +78,6 @@ where
             return Ok((expr, input));
         }
 
-        Ok((Self::Chain(chain), input))
+        Ok((chain.into(), input))
     }
 }

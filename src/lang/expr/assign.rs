@@ -7,8 +7,9 @@ use crate::lang::{
 };
 
 use super::{
-    Expr, ExprChain,
+    Expr,
     partial::{Partial, PartialParse},
+    rr::RightRecursive,
 };
 
 /// A struct or tuple struct field accessed in a struct literal or field expression.
@@ -19,7 +20,7 @@ where
     I: LangInput,
 {
     /// Reft operand
-    pub left: ExprChain<I>,
+    pub left: Box<Expr<I>>,
     /// token `=`
     pub eq_token: Eq<I>,
     /// Right operand.
@@ -31,14 +32,14 @@ where
     I: LangInput,
 {
     fn partial_parse(
-        left: ExprChain<I>,
+        left: RightRecursive<I>,
         input: I,
     ) -> parserc::Result<Self, I, crate::lang::errors::LangError> {
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (eq_token, input) = Eq::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
 
-        let (chain, input) = ExprChain::into_parser()
+        let (chain, input) = RightRecursive::into_parser()
             .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
             .parse(input)?;
 
@@ -51,12 +52,12 @@ where
         let right = if let Some(right) = right {
             right
         } else {
-            Box::new(Expr::Chain(chain))
+            Box::new(chain.into())
         };
 
         Ok((
             Self {
-                left,
+                left: Box::new(left.into()),
                 eq_token,
                 right,
             },
@@ -71,7 +72,7 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{BinOp, ChainInit, Expr, ExprAssign, ExprBinary, ExprChain, ExprLit, ExprPath},
+        expr::{BinOp, Expr, ExprAssign, ExprBinary, ExprLit, ExprPath},
         inputs::TokenStream,
         lit::{Lit, LitNum},
         meta::MetaList,
@@ -84,18 +85,15 @@ mod tests {
             Expr::parse(TokenStream::from("a = 1 + b += c = 4")),
             Ok((
                 Expr::Assign(ExprAssign {
-                    left: ExprChain {
-                        start: ChainInit::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
-                            first: Ident(TokenStream::from("a")),
-                            segments: vec![]
-                        }),
+                    left: Box::new(Expr::Path(ExprPath {
+                        meta_list: MetaList(vec![]),
+                        first: Ident(TokenStream::from("a")),
                         segments: vec![]
-                    },
+                    })),
                     eq_token: Eq(TokenStream::from((2, "="))),
                     right: Box::new(Expr::Binary(ExprBinary {
-                        left: ExprChain {
-                            start: ChainInit::Lit(ExprLit {
+                        left: Box::new(Expr::Binary(ExprBinary {
+                            left: Box::new(Expr::Lit(ExprLit {
                                 meta_list: MetaList(vec![]),
                                 lit: Lit::Num(LitNum {
                                     sign: None,
@@ -103,35 +101,22 @@ mod tests {
                                     dot: None,
                                     fract: None,
                                     exp: None,
-                                    unit: None
+                                    unit: None,
                                 })
-                            }),
+                            })),
+                            op: BinOp::Add(Plus(TokenStream::from((6, "+")))),
+                            right: Box::new(Expr::Path(ExprPath {
+                                meta_list: MetaList(vec![]),
+                                first: Ident(TokenStream::from((8, "b"))),
+                                segments: vec![]
+                            }))
+                        })),
+                        op: BinOp::AndAssign(PlusEq(TokenStream::from((10, "+=")))),
+                        right: Box::new(Expr::Path(ExprPath {
+                            meta_list: MetaList(vec![]),
+                            first: Ident(TokenStream::from((13, "c"))),
                             segments: vec![]
-                        },
-                        right_chain: vec![
-                            (
-                                BinOp::Add(Plus(TokenStream::from((6, "+")))),
-                                ExprChain {
-                                    start: ChainInit::Path(ExprPath {
-                                        meta_list: MetaList(vec![]),
-                                        first: Ident(TokenStream::from((8, "b"))),
-                                        segments: vec![]
-                                    }),
-                                    segments: vec![]
-                                }
-                            ),
-                            (
-                                BinOp::AndAssign(PlusEq(TokenStream::from((10, "+=")))),
-                                ExprChain {
-                                    start: ChainInit::Path(ExprPath {
-                                        meta_list: MetaList(vec![]),
-                                        first: Ident(TokenStream::from((13, "c"))),
-                                        segments: vec![]
-                                    }),
-                                    segments: vec![]
-                                }
-                            )
-                        ]
+                        }))
                     }))
                 }),
                 TokenStream::from((15, "= 4"))

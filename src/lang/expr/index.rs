@@ -12,10 +12,24 @@ use super::Expr;
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub struct Index<I>
+pub(super) struct Index<I>
 where
     I: LangInput,
 {
+    pub delimiter_start: LeftBracket<I>,
+    pub index: Box<Expr<I>>,
+    pub delimiter_end: RightBracket<I>,
+}
+
+/// A square bracketed indexing expression: vector[2].
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprIndex<I>
+where
+    I: LangInput,
+{
+    pub base: Box<Expr<I>>,
     pub delimiter_start: LeftBracket<I>,
     pub index: Box<Expr<I>>,
     pub delimiter_end: RightBracket<I>,

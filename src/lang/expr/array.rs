@@ -33,7 +33,7 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{ChainInit, Expr, ExprArray, ExprChain, ExprPath},
+        expr::{Expr, ExprArray, ExprPath},
         inputs::TokenStream,
         meta::MetaList,
         punct::Punctuated,
@@ -51,34 +51,25 @@ mod tests {
                     els: Punctuated {
                         items: vec![
                             (
-                                Expr::Chain(ExprChain {
-                                    start: ChainInit::Path(ExprPath {
-                                        meta_list: MetaList(vec![]),
-                                        first: Ident(TokenStream::from((1, "a"))),
-                                        segments: vec![]
-                                    }),
+                                Expr::Path(ExprPath {
+                                    meta_list: MetaList(vec![]),
+                                    first: Ident(TokenStream::from((1, "a"))),
                                     segments: vec![]
                                 }),
                                 Comma(TokenStream::from((2, ",")))
                             ),
                             (
-                                Expr::Chain(ExprChain {
-                                    start: ChainInit::Path(ExprPath {
-                                        meta_list: MetaList(vec![]),
-                                        first: Ident(TokenStream::from((3, "b"))),
-                                        segments: vec![]
-                                    }),
+                                Expr::Path(ExprPath {
+                                    meta_list: MetaList(vec![]),
+                                    first: Ident(TokenStream::from((3, "b"))),
                                     segments: vec![]
                                 }),
                                 Comma(TokenStream::from((4, ",")))
                             ),
                             (
-                                Expr::Chain(ExprChain {
-                                    start: ChainInit::Path(ExprPath {
-                                        meta_list: MetaList(vec![]),
-                                        first: Ident(TokenStream::from((5, "c"))),
-                                        segments: vec![]
-                                    }),
+                                Expr::Path(ExprPath {
+                                    meta_list: MetaList(vec![]),
+                                    first: Ident(TokenStream::from((5, "c"))),
                                     segments: vec![]
                                 }),
                                 Comma(TokenStream::from((6, ",")))

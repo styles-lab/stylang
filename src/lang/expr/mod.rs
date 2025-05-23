@@ -1,6 +1,7 @@
 //! The syntax analyser for exprs.
 
 mod partial;
+mod rr;
 
 mod xml;
 pub use xml::*;
@@ -37,9 +38,6 @@ pub use assign::*;
 
 mod op;
 pub use op::*;
-
-mod chain;
-pub use chain::*;
 
 mod paren;
 pub use paren::*;

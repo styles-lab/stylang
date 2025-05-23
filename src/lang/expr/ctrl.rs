@@ -109,7 +109,7 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{ChainInit, Expr, ExprChain, ExprPath, ExprReturn},
+        expr::{Expr, ExprPath, ExprReturn},
         inputs::TokenStream,
         meta::MetaList,
         tokens::{Ident, KeywordReturn},
@@ -138,12 +138,9 @@ mod tests {
                 Expr::Return(ExprReturn {
                     meta_list: MetaList(vec![]),
                     return_token: KeywordReturn(TokenStream::from("return")),
-                    expr: Some(Box::new(Expr::Chain(ExprChain {
-                        start: ChainInit::Path(ExprPath {
-                            meta_list: MetaList(vec![]),
-                            first: Ident(TokenStream::from((7, "a"))),
-                            segments: vec![]
-                        }),
+                    expr: Some(Box::new(Expr::Path(ExprPath {
+                        meta_list: MetaList(vec![]),
+                        first: Ident(TokenStream::from((7, "a"))),
                         segments: vec![]
                     }))),
                 }),

@@ -6,7 +6,7 @@ use crate::lang::{
     tokens::{DotDot, DotDotEq, S},
 };
 
-use super::{ExprChain, partial::PartialParse};
+use super::{Expr, partial::PartialParse, rr::RightRecursive};
 
 /// Limit types of a range, inclusive or exclusive.
 #[derive(Debug, PartialEq, Clone)]
@@ -31,7 +31,7 @@ where
     /// limit types.
     pub limits: RangeLimits<I>,
     /// optional end operand.
-    pub end: ExprChain<I>,
+    pub end: RightRecursive<I>,
 }
 
 impl<I> Parse<I> for RangeWithoutStart<I>
@@ -44,7 +44,7 @@ where
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (limits, input) = RangeLimits::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (end, input) = ExprChain::into_parser().parse(input)?;
+        let (end, input) = RightRecursive::into_parser().parse(input)?;
 
         Ok((Self { limits, end }, input))
     }
@@ -58,7 +58,7 @@ where
         Self {
             start: None,
             limits: value.limits,
-            end: Some(value.end),
+            end: Some(Box::new(value.end.into())),
         }
     }
 }
@@ -71,28 +71,28 @@ where
     I: LangInput,
 {
     /// optional start operand.
-    pub start: Option<ExprChain<I>>,
+    pub start: Option<Box<Expr<I>>>,
     /// limit types.
     pub limits: RangeLimits<I>,
     /// optional end operand.
-    pub end: Option<ExprChain<I>>,
+    pub end: Option<Box<Expr<I>>>,
 }
 
 impl<I> PartialParse<I> for ExprRange<I>
 where
     I: LangInput,
 {
-    fn partial_parse(left: ExprChain<I>, input: I) -> parserc::Result<Self, I, LangError> {
+    fn partial_parse(left: RightRecursive<I>, input: I) -> parserc::Result<Self, I, LangError> {
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (limits, input) = RangeLimits::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;
-        let (end, input) = ExprChain::into_parser().ok().parse(input)?;
+        let (end, input) = RightRecursive::into_parser().ok().parse(input)?;
 
         Ok((
             Self {
-                start: Some(left),
+                start: Some(Box::new(left.into())),
                 limits,
-                end,
+                end: end.map(|v| Box::new(v.into())),
             },
             input,
         ))
@@ -104,7 +104,7 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{ChainInit, Expr, ExprChain, ExprLit, RangeLimits},
+        expr::{Expr, ExprLit, RangeLimits},
         inputs::TokenStream,
         lit::{Lit, LitNum},
         meta::MetaList,
@@ -121,20 +121,17 @@ mod tests {
                 Expr::Range(ExprRange {
                     start: None,
                     limits: RangeLimits::Closed(DotDotEq(TokenStream::from("..="))),
-                    end: Some(ExprChain {
-                        start: ChainInit::Lit(ExprLit {
-                            meta_list: MetaList(vec![]),
-                            lit: Lit::Num(LitNum {
-                                sign: None,
-                                trunc: Some(Digits(TokenStream::from((3, "2")))),
-                                dot: None,
-                                fract: None,
-                                exp: None,
-                                unit: None,
-                            })
-                        }),
-                        segments: vec![]
-                    })
+                    end: Some(Box::new(Expr::Lit(ExprLit {
+                        meta_list: MetaList(vec![]),
+                        lit: Lit::Num(LitNum {
+                            sign: None,
+                            trunc: Some(Digits(TokenStream::from((3, "2")))),
+                            dot: None,
+                            fract: None,
+                            exp: None,
+                            unit: None,
+                        })
+                    })))
                 }),
                 TokenStream::from((4, ""))
             ))
@@ -144,35 +141,29 @@ mod tests {
             Expr::parse(TokenStream::from("1..=2")),
             Ok((
                 Expr::Range(ExprRange {
-                    start: Some(ExprChain {
-                        start: ChainInit::Lit(ExprLit {
-                            meta_list: MetaList(vec![]),
-                            lit: Lit::Num(LitNum {
-                                sign: None,
-                                trunc: Some(Digits(TokenStream::from((0, "1")))),
-                                dot: None,
-                                fract: None,
-                                exp: None,
-                                unit: None,
-                            })
-                        }),
-                        segments: vec![]
-                    }),
+                    start: Some(Box::new(Expr::Lit(ExprLit {
+                        meta_list: MetaList(vec![]),
+                        lit: Lit::Num(LitNum {
+                            sign: None,
+                            trunc: Some(Digits(TokenStream::from((0, "1")))),
+                            dot: None,
+                            fract: None,
+                            exp: None,
+                            unit: None,
+                        })
+                    }))),
                     limits: RangeLimits::Closed(DotDotEq(TokenStream::from((1, "..=")))),
-                    end: Some(ExprChain {
-                        start: ChainInit::Lit(ExprLit {
-                            meta_list: MetaList(vec![]),
-                            lit: Lit::Num(LitNum {
-                                sign: None,
-                                trunc: Some(Digits(TokenStream::from((4, "2")))),
-                                dot: None,
-                                fract: None,
-                                exp: None,
-                                unit: None,
-                            })
-                        }),
-                        segments: vec![]
-                    })
+                    end: Some(Box::new(Expr::Lit(ExprLit {
+                        meta_list: MetaList(vec![]),
+                        lit: Lit::Num(LitNum {
+                            sign: None,
+                            trunc: Some(Digits(TokenStream::from((4, "2")))),
+                            dot: None,
+                            fract: None,
+                            exp: None,
+                            unit: None,
+                        })
+                    })))
                 }),
                 TokenStream::from((5, ""))
             ))

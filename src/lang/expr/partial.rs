@@ -4,25 +4,25 @@ use parserc::Parser;
 
 use crate::lang::{errors::LangError, inputs::LangInput};
 
-use super::ExprChain;
+use super::rr::RightRecursive;
 
 pub(super) trait PartialParse<I>: Sized
 where
     I: LangInput,
 {
-    fn partial_parse(left: ExprChain<I>, input: I) -> parserc::Result<Self, I, LangError>;
+    fn partial_parse(left: RightRecursive<I>, input: I) -> parserc::Result<Self, I, LangError>;
 }
 
-pub(super) struct Partial<T, I>(ExprChain<I>, PhantomData<T>)
+pub(super) struct Partial<T, I>(RightRecursive<I>, PhantomData<T>)
 where
     I: LangInput;
 
-impl<T, I> From<ExprChain<I>> for Partial<T, I>
+impl<T, I> From<RightRecursive<I>> for Partial<T, I>
 where
     I: LangInput,
     T: PartialParse<I>,
 {
-    fn from(value: ExprChain<I>) -> Self {
+    fn from(value: RightRecursive<I>) -> Self {
         Self(value, Default::default())
     }
 }
