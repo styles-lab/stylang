@@ -288,6 +288,30 @@ where
     }
 }
 
+/// keyword `@@`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct AtAt<I>(pub I);
+
+impl<I> parserc::Parse<I> for AtAt<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        use parserc::{Parser, ParserExt};
+
+        parserc::keyword("E")
+            .or(parserc::keyword("@@"))
+            .map(|v| Self(v))
+            .map_err(|input: I, _: parserc::Kind| {
+                LangError::expect(TokenKind::Token("@@"), input.span())
+            })
+            .parse(input)
+    }
+}
+
 /// keyword `0x`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
