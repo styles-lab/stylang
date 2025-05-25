@@ -141,6 +141,24 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
+pub struct TypeTuple<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// delimiter start : `(`
+    pub delimiter_start: LeftParen<I>,
+    /// tuple element type list.
+    pub elms: Punctuated<Type<I>, Comma<I>>,
+    /// delimiter end : `)`
+    pub delimiter_end: RightParen<I>,
+}
+
+/// Type declaration.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
 pub enum Type<I>
 where
     I: LangInput,
@@ -169,6 +187,7 @@ where
     Array(TypeArray<I>),
     Fn(TypeFn<I>),
     Path(TypePath<I>),
+    Tuple(TypeTuple<I>),
 }
 
 #[cfg(test)]
@@ -294,6 +313,38 @@ mod tests {
                     })
                 }),
                 TokenStream::from((32, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_tuple() {
+        assert_eq!(
+            Type::parse(TokenStream::from("(i32,string,f32,)")),
+            Ok((
+                Type::Tuple(TypeTuple {
+                    meta_list: Default::default(),
+                    delimiter_start: LeftParen(TokenStream::from("(")),
+                    elms: Punctuated {
+                        items: vec![
+                            (
+                                Type::I32(I32(TokenStream::from((1, "i32")))),
+                                Comma(TokenStream::from((4, ",")))
+                            ),
+                            (
+                                Type::String(KeywordString(TokenStream::from((5, "string")))),
+                                Comma(TokenStream::from((11, ",")))
+                            ),
+                            (
+                                Type::F32(F32(TokenStream::from((12, "f32")))),
+                                Comma(TokenStream::from((15, ",")))
+                            )
+                        ],
+                        last: None
+                    },
+                    delimiter_end: RightParen(TokenStream::from((16, ")")))
+                }),
+                TokenStream::from((17, ""))
             ))
         );
     }

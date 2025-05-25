@@ -5,7 +5,7 @@ use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 use super::{
     ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprField, ExprFor, ExprIf,
     ExprIndex, ExprLet, ExprLit, ExprLoop, ExprParen, ExprPath, ExprRange, ExprRepeat, ExprReturn,
-    ExprUnary, ExprXml, RangeTail, caudal::CaudalRecursion,
+    ExprTuple, ExprUnary, ExprXml, RangeTail, caudal::CaudalRecursion,
 };
 
 /// A `stylang` expression.
@@ -35,6 +35,7 @@ where
     Call(ExprCall<I>),
     Index(ExprIndex<I>),
     Field(ExprField<I>),
+    Tuple(ExprTuple<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -48,10 +49,11 @@ where
             .map(|v| Self::Let(v))
             .or(ExprIf::into_parser().map(|v| Self::If(v)))
             .or(ExprXml::into_parser().map(|v| Self::Xml(v)))
+            .or(ExprParen::into_parser().map(|v| Self::Paren(v)))
+            .or(ExprTuple::into_parser().map(|v| Self::Tuple(v)))
             .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
             .or(ExprArray::into_parser().map(|v| Self::Array(v)))
             .or(ExprUnary::into_parser().map(|v| Self::Unary(v)))
-            .or(ExprParen::into_parser().map(|v| Self::Paren(v)))
             .or(ExprReturn::into_parser().map(|v| Self::Return(v)))
             .or(ExprBreak::into_parser().map(|v| Self::Break(v)))
             .or(ExprFor::into_parser().map(|v| Self::For(v)))

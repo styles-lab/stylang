@@ -52,6 +52,8 @@ where
     U32(U32<I>),
     U64(U64<I>),
     U128(U128<I>),
+    F32(F32<I>),
+    F64(F64<I>),
     BigInt(BigInt<I>),
     BigNum(BigNum<I>),
     Ex(Ex<I>),

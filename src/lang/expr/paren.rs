@@ -4,7 +4,8 @@ use crate::lang::{
     errors::LangError,
     inputs::LangInput,
     meta::MetaList,
-    tokens::{LeftParen, RightParen},
+    punct::Punctuated,
+    tokens::{Comma, LeftParen, RightParen},
 };
 
 use super::Expr;
@@ -27,15 +28,36 @@ where
     pub delimiter_end: RightParen<I>,
 }
 
+/// A local let binding: let x: u64 = 10.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprTuple<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// delimiter start : `(`
+    pub delimiter_start: LeftParen<I>,
+    /// tuple elems list.
+    pub elms: Punctuated<Expr<I>, Comma<I>>,
+    /// delimiter end : `)`
+    pub delimiter_end: RightParen<I>,
+}
+
 #[cfg(test)]
 mod tests {
+
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{BinOp, Expr, ExprBinary, ExprParen, ExprPath},
+        expr::{BinOp, Expr, ExprBinary, ExprLit, ExprParen, ExprPath, ExprTuple},
         inputs::TokenStream,
+        lit::{Lit, LitNum, NumUnit},
         meta::MetaList,
-        tokens::{Ident, LeftParen, Plus, RightParen},
+        punct::Punctuated,
+        tokens::{Comma, Digits, F32, I32, Ident, LeftParen, Plus, RightParen},
     };
 
     #[test]
@@ -62,6 +84,58 @@ mod tests {
                     delimiter_end: RightParen(TokenStream::from((6, ")")))
                 }),
                 TokenStream::from((7, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_tuple() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("(1i32,2f32,)")),
+            Ok((
+                Expr::Tuple(ExprTuple {
+                    meta_list: Default::default(),
+                    delimiter_start: LeftParen(TokenStream::from("(")),
+                    elms: Punctuated {
+                        items: vec![
+                            (
+                                Expr::Lit(ExprLit {
+                                    meta_list: Default::default(),
+                                    lit: Lit::Num(LitNum {
+                                        sign: None,
+                                        trunc: Some(Digits(TokenStream::from((1, "1")))),
+                                        dot: None,
+                                        fract: None,
+                                        exp: None,
+                                        unit: Some(NumUnit::I32(I32(TokenStream::from((
+                                            2, "i32"
+                                        ))))),
+                                    })
+                                }),
+                                Comma(TokenStream::from((5, ",")))
+                            ),
+                            (
+                                Expr::Lit(ExprLit {
+                                    meta_list: Default::default(),
+                                    lit: Lit::Num(LitNum {
+                                        sign: None,
+                                        trunc: Some(Digits(TokenStream::from((6, "2")))),
+                                        dot: None,
+                                        fract: None,
+                                        exp: None,
+                                        unit: Some(NumUnit::F32(F32(TokenStream::from((
+                                            7, "f32"
+                                        ))))),
+                                    })
+                                }),
+                                Comma(TokenStream::from((10, ",")))
+                            )
+                        ],
+                        last: None
+                    },
+                    delimiter_end: RightParen(TokenStream::from((11, ")")))
+                }),
+                TokenStream::from((12, ""))
             ))
         );
     }
