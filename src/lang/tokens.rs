@@ -302,8 +302,7 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         use parserc::{Parser, ParserExt};
 
-        parserc::keyword("E")
-            .or(parserc::keyword("@@"))
+        parserc::keyword("@@")
             .map(|v| Self(v))
             .map_err(|input: I, _: parserc::Kind| {
                 LangError::expect(TokenKind::Token("@@"), input.span())

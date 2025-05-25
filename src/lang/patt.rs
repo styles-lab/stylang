@@ -211,8 +211,6 @@ where
     I: LangInput,
 {
     Type(PattType<I>),
-    Path(PattPath<I>),
-    Lit(PattLit<I>),
     Ident(PattIdent<I>),
     Rest(PattRest<I>),
     Paren(PattParen<I>),
@@ -220,4 +218,81 @@ where
     Range(PattRange<I>),
     Or(PattOr<I>),
     Slice(PattSlice<I>),
+    Path(PattPath<I>),
+    Lit(PattLit<I>),
+}
+
+#[cfg(test)]
+mod tests {
+    use parserc::Parse;
+
+    use crate::lang::{
+        inputs::TokenStream,
+        meta::{Attr, Meta, MetaList},
+        patt::{PattIdent, PattRest, PattType},
+        tokens::{At, AtAt, Colon, DotDot, Ident, KeywordString, S},
+        ty::Type,
+    };
+
+    use super::Patt;
+
+    #[test]
+    fn test_patt_ident() {
+        assert_eq!(
+            Patt::parse(TokenStream::from("a @@ ..")),
+            Ok((
+                Patt::Ident(PattIdent {
+                    meta_list: Default::default(),
+                    ident: Ident(TokenStream::from("a")),
+                    subpatt: Some((
+                        AtAt(TokenStream::from((2, "@@"))),
+                        Box::new(Patt::Rest(PattRest {
+                            meta_list: Default::default(),
+                            dot_dot_token: DotDot(TokenStream::from((5, "..")))
+                        }))
+                    ))
+                }),
+                TokenStream::from((7, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_patt_type() {
+        assert_eq!(
+            Patt::parse(TokenStream::from("@state @option value: string")),
+            Ok((
+                Patt::Type(PattType {
+                    meta_list: MetaList(vec![
+                        Meta::Attr(Attr {
+                            keyword: At(TokenStream::from("@")),
+                            ident: (
+                                Ident(TokenStream::from((1, "state"))),
+                                Some(S(TokenStream::from((6, " "))))
+                            ),
+                            params: None
+                        }),
+                        Meta::Attr(Attr {
+                            keyword: At(TokenStream::from((7, "@"))),
+                            ident: (
+                                Ident(TokenStream::from((8, "option"))),
+                                Some(S(TokenStream::from((14, " "))))
+                            ),
+                            params: None
+                        })
+                    ]),
+                    name: Ident(TokenStream::from((15, "value"))),
+                    colon_token: (
+                        None,
+                        Colon(TokenStream::from((20, ":"))),
+                        Some(S(TokenStream::from((21, " "))))
+                    ),
+                    ty: Box::new(Type::String(KeywordString(TokenStream::from((
+                        22, "string"
+                    )))))
+                }),
+                TokenStream::from((28, ""))
+            ))
+        );
+    }
 }
