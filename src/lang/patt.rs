@@ -1,6 +1,6 @@
 //! The parser for pattern syntax .
 
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use super::{
     errors::{LangError, TokenKind},
@@ -202,6 +202,51 @@ where
     pub delimiter_end: RightBrace<I>,
 }
 
+/// A pattern that matches any value: `_`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct PattWild<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// token `_`
+    pub under_score_token: Underscore<I>,
+}
+
+impl<I> Parse<I> for PattWild<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+        let span = input.span();
+        let (under_score_token, input) = Underscore::parse(input)?;
+
+        match input.iter().next() {
+            Some(c) if c.is_ascii_whitespace() => {}
+            None => {}
+            _ => {
+                return Err(ControlFlow::Recovable(LangError::expect(
+                    TokenKind::Token("_"),
+                    span,
+                )));
+            }
+        }
+
+        Ok((
+            Self {
+                meta_list,
+                under_score_token,
+            },
+            input,
+        ))
+    }
+}
+
 /// A pattern in a local binding, function signature, match expression, or various other places.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -211,6 +256,7 @@ where
     I: LangInput,
 {
     Type(PattType<I>),
+    Wild(PattWild<I>),
     Ident(PattIdent<I>),
     Rest(PattRest<I>),
     Paren(PattParen<I>),
@@ -229,8 +275,8 @@ mod tests {
     use crate::lang::{
         inputs::TokenStream,
         meta::{Attr, Meta, MetaList},
-        patt::{PattIdent, PattRest, PattType},
-        tokens::{At, AtAt, Colon, DotDot, Ident, KeywordString, S},
+        patt::{PattIdent, PattRest, PattType, PattWild},
+        tokens::{At, AtAt, Colon, DotDot, Ident, KeywordString, S, Underscore},
         ty::Type,
     };
 
@@ -292,6 +338,20 @@ mod tests {
                     )))))
                 }),
                 TokenStream::from((28, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_patt_wild() {
+        assert_eq!(
+            Patt::parse(TokenStream::from("_")),
+            Ok((
+                Patt::Wild(PattWild {
+                    meta_list: Default::default(),
+                    under_score_token: Underscore(TokenStream::from("_"))
+                }),
+                TokenStream::from((1, ""))
             ))
         );
     }
