@@ -81,11 +81,11 @@ where
     /// for pattern expr.
     pub patt: Box<Patt<I>>,
     /// keyword `in`
-    pub in_token: KeywordIn<I>,
+    pub in_token: (S<I>, KeywordIn<I>),
     /// in expr.
     pub expr: Box<Expr<I>>,
     /// block of for expr.
-    pub block: Block<I>,
+    pub block: ExprBlock<I>,
 }
 
 /// Conditionless loop: loop { ... }.
@@ -109,10 +109,15 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{Block, Expr, ExprBreak, ExprLoop, ExprPath, ExprReturn},
+        expr::{Block, Expr, ExprBlock, ExprBreak, ExprFor, ExprLoop, ExprPath, ExprReturn},
         inputs::TokenStream,
         meta::MetaList,
-        tokens::{Ident, KeywordBreak, KeywordLoop, KeywordReturn, LeftBrace, RightBrace, S},
+        patt::{Patt, PattIdent, PattTuple, PattWild},
+        punct::Punctuated,
+        tokens::{
+            Comma, Ident, KeywordBreak, KeywordFor, KeywordIn, KeywordLoop, KeywordReturn,
+            LeftBrace, LeftParen, RightBrace, RightParen, S, Underscore,
+        },
     };
 
     #[test]
@@ -202,6 +207,57 @@ mod tests {
                     }
                 }),
                 TokenStream::from((7, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_for_loop() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("for (a,_) in c {}")),
+            Ok((
+                Expr::For(ExprFor {
+                    meta_list: Default::default(),
+                    for_token: KeywordFor(TokenStream::from("for")),
+                    patt: Box::new(Patt::Tuple(PattTuple {
+                        meta_list: Default::default(),
+                        delimiter_start: LeftParen(TokenStream::from((4, "("))),
+                        elems: Punctuated {
+                            items: vec![(
+                                Patt::Ident(PattIdent {
+                                    meta_list: Default::default(),
+                                    ident: Ident(TokenStream::from((5, "a"))),
+                                    subpatt: None
+                                }),
+                                Comma(TokenStream::from((6, ",")))
+                            )],
+                            last: Some(Box::new(Patt::Wild(PattWild {
+                                meta_list: Default::default(),
+                                under_score_token: Underscore(TokenStream::from((7, "_")))
+                            })))
+                        },
+                        delimiter_end: RightParen(TokenStream::from((8, ")")))
+                    })),
+                    in_token: (
+                        S(TokenStream::from((9, " "))),
+                        KeywordIn(TokenStream::from((10, "in")))
+                    ),
+                    expr: Box::new(Expr::Path(ExprPath {
+                        meta_list: Default::default(),
+                        first: Ident(TokenStream::from((13, "c"))),
+                        segments: vec![]
+                    })),
+                    block: ExprBlock {
+                        meta_list: Default::default(),
+                        block: Block {
+                            delimiter_start: LeftBrace(TokenStream::from((15, "{"))),
+                            stmts: Default::default(),
+                            meta_list: Default::default(),
+                            delimiter_end: RightBrace(TokenStream::from((16, "}")))
+                        },
+                    }
+                },),
+                TokenStream::from((17, ""))
             ))
         );
     }

@@ -227,7 +227,7 @@ where
         let (under_score_token, input) = Underscore::parse(input)?;
 
         match input.iter().next() {
-            Some(c) if c.is_ascii_whitespace() => {}
+            Some(c) if c != b'_' && !c.is_ascii_alphanumeric() => {}
             None => {}
             _ => {
                 return Err(ControlFlow::Recovable(LangError::expect(
@@ -275,8 +275,12 @@ mod tests {
     use crate::lang::{
         inputs::TokenStream,
         meta::{Attr, Meta, MetaList},
-        patt::{PattIdent, PattRest, PattType, PattWild},
-        tokens::{At, AtAt, Colon, DotDot, Ident, KeywordString, S, Underscore},
+        patt::{PattIdent, PattRest, PattTuple, PattType, PattWild},
+        punct::Punctuated,
+        tokens::{
+            At, AtAt, Colon, Comma, DotDot, Ident, KeywordString, LeftParen, RightParen, S,
+            Underscore,
+        },
         ty::Type,
     };
 
@@ -352,6 +356,35 @@ mod tests {
                     under_score_token: Underscore(TokenStream::from("_"))
                 }),
                 TokenStream::from((1, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_patt_tuple() {
+        assert_eq!(
+            Patt::parse(TokenStream::from((4, "(a,_)"))),
+            Ok((
+                Patt::Tuple(PattTuple {
+                    meta_list: Default::default(),
+                    delimiter_start: LeftParen(TokenStream::from((4, "("))),
+                    elems: Punctuated {
+                        items: vec![(
+                            Patt::Ident(PattIdent {
+                                meta_list: Default::default(),
+                                ident: Ident(TokenStream::from((5, "a"))),
+                                subpatt: None
+                            }),
+                            Comma(TokenStream::from((6, ",")))
+                        )],
+                        last: Some(Box::new(Patt::Wild(PattWild {
+                            meta_list: Default::default(),
+                            under_score_token: Underscore(TokenStream::from((7, "_")))
+                        })))
+                    },
+                    delimiter_end: RightParen(TokenStream::from((8, ")")))
+                }),
+                TokenStream::from((9, ""))
             ))
         );
     }
