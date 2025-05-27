@@ -140,4 +140,10 @@ pub enum TokenKind {
     RepeatLit,
     #[error("`repeat-len`")]
     RepeatLen,
+    #[error("`expr-cond`")]
+    Cond,
+    #[error("`then-branch`")]
+    Then,
+    #[error("`else-branch`")]
+    Else,
 }

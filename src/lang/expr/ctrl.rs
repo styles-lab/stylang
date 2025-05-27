@@ -1,7 +1,7 @@
-use parserc::derive_parse;
+use parserc::{Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
-    errors::LangError,
+    errors::{LangError, TokenKind},
     inputs::LangInput,
     meta::MetaList,
     patt::Patt,
@@ -17,7 +17,6 @@ use super::{Block, Expr, ExprBlock};
 /// The else branch expression may only be an If or Block expression, not any of the other types of expression.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
 pub struct ExprIf<I>
 where
     I: LangInput,
@@ -31,7 +30,64 @@ where
     /// required then code block.
     pub then_branch: ExprBlock<I>,
     /// optional else block.
-    pub else_branch: Option<(Option<S<I>>, KeywordElse<I>, Option<S<I>>, Box<Expr<I>>)>,
+    pub else_branch: Option<(KeywordElse<I>, Box<Expr<I>>)>,
+}
+
+impl<I> Parse<I> for ExprIf<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+        let (if_token, input) = KeywordIf::parse(input)?;
+        let (cond, input) = Expr::into_parser()
+            .map_err(|input: I, _| LangError::expect(TokenKind::Cond, input.span()))
+            .fatal()
+            .boxed()
+            .parse(input)?;
+
+        let (then_branch, input) = ExprBlock::into_parser()
+            .map_err(|input: I, _| LangError::expect(TokenKind::Then, input.span()))
+            .fatal()
+            .parse(input)?;
+
+        let (_, input) = S::into_parser().ok().parse(input)?;
+
+        let (Some(else_token), input) = KeywordElse::into_parser().ok().parse(input.clone())?
+        else {
+            return Ok((
+                Self {
+                    meta_list,
+                    if_token,
+                    cond,
+                    then_branch,
+                    else_branch: None,
+                },
+                input,
+            ));
+        };
+
+        let (_, input) = S::into_parser().ok().parse(input)?;
+
+        let (else_branch, input) = Expr::into_parser()
+            .map_err(|input: I, _| LangError::expect(TokenKind::Else, input.span()))
+            .fatal()
+            .boxed()
+            .parse(input)?;
+
+        Ok((
+            Self {
+                meta_list,
+                if_token,
+                cond,
+                then_branch,
+                else_branch: Some((else_token, else_branch)),
+            },
+            input,
+        ))
+    }
 }
 
 /// A return, with an optional value to be returned.
@@ -109,16 +165,96 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{Block, Expr, ExprBlock, ExprBreak, ExprFor, ExprLoop, ExprPath, ExprReturn},
+        expr::{
+            BinOp, Block, Expr, ExprBinary, ExprBlock, ExprBreak, ExprFor, ExprIf, ExprLit,
+            ExprLoop, ExprPath, ExprReturn,
+        },
         inputs::TokenStream,
+        lit::{Lit, LitNum},
         meta::MetaList,
         patt::{Patt, PattIdent, PattTuple, PattWild},
         punct::Punctuated,
         tokens::{
-            Comma, Ident, KeywordBreak, KeywordFor, KeywordIn, KeywordLoop, KeywordReturn,
-            LeftBrace, LeftParen, RightBrace, RightParen, S, Underscore,
+            Comma, Digits, Ident, KeywordBreak, KeywordElse, KeywordFor, KeywordIf, KeywordIn,
+            KeywordLoop, KeywordReturn, LeftBrace, LeftParen, Lt, RightBrace, RightParen, S,
+            Underscore,
         },
     };
+
+    #[test]
+    fn test_if() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("if a {} else if b < 4 {} else {}")),
+            Ok((
+                Expr::If(ExprIf {
+                    meta_list: Default::default(),
+                    if_token: KeywordIf(TokenStream::from("if")),
+                    cond: Box::new(Expr::Path(ExprPath {
+                        meta_list: Default::default(),
+                        first: Ident(TokenStream::from((3, "a"))),
+                        segments: vec![]
+                    })),
+                    then_branch: ExprBlock {
+                        meta_list: Default::default(),
+                        block: Block {
+                            delimiter_start: LeftBrace(TokenStream::from((5, "{"))),
+                            stmts: Default::default(),
+                            meta_list: Default::default(),
+                            delimiter_end: RightBrace(TokenStream::from((6, "}")))
+                        }
+                    },
+                    else_branch: Some((
+                        KeywordElse(TokenStream::from((8, "else"))),
+                        Box::new(Expr::If(ExprIf {
+                            meta_list: Default::default(),
+                            if_token: KeywordIf(TokenStream::from((13, "if"))),
+                            cond: Box::new(Expr::Binary(ExprBinary {
+                                left: Box::new(Expr::Path(ExprPath {
+                                    meta_list: Default::default(),
+                                    first: Ident(TokenStream::from((16, "b"))),
+                                    segments: vec![]
+                                })),
+                                op: BinOp::Lt(Lt(TokenStream::from((18, "<")))),
+                                right: Box::new(Expr::Lit(ExprLit {
+                                    meta_list: Default::default(),
+                                    lit: Lit::Num(LitNum {
+                                        sign: None,
+                                        trunc: Some(Digits(TokenStream::from((20, "4")))),
+                                        dot: None,
+                                        fract: None,
+                                        exp: None,
+                                        unit: None,
+                                    })
+                                })),
+                            })),
+                            then_branch: ExprBlock {
+                                meta_list: Default::default(),
+                                block: Block {
+                                    delimiter_start: LeftBrace(TokenStream::from((22, "{"))),
+                                    stmts: Default::default(),
+                                    meta_list: Default::default(),
+                                    delimiter_end: RightBrace(TokenStream::from((23, "}")))
+                                }
+                            },
+                            else_branch: Some((
+                                KeywordElse(TokenStream::from((25, "else"))),
+                                Box::new(Expr::Block(ExprBlock {
+                                    meta_list: Default::default(),
+                                    block: Block {
+                                        delimiter_start: LeftBrace(TokenStream::from((30, "{"))),
+                                        stmts: Default::default(),
+                                        meta_list: Default::default(),
+                                        delimiter_end: RightBrace(TokenStream::from((31, "}")))
+                                    }
+                                }))
+                            ))
+                        }))
+                    ))
+                }),
+                TokenStream::from((32, ""))
+            ))
+        );
+    }
 
     #[test]
     fn test_return() {
