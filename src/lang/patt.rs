@@ -79,18 +79,104 @@ where
     pub dot_dot_token: DotDot<I>,
 }
 
-/// A pattern that matches any one of a set of cases.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
+enum _PattOr<I>
+where
+    I: LangInput,
+{
+    Type(PattType<I>),
+    Ident(PattIdent<I>),
+    Tuple(PattTuple<I>),
+    Range(PattRange<I>),
+    Slice(PattSlice<I>),
+    Path(PattPath<I>),
+    Lit(PattLit<I>),
+}
+
+impl<I> From<_PattOr<I>> for Patt<I>
+where
+    I: LangInput,
+{
+    fn from(value: _PattOr<I>) -> Self {
+        match value {
+            _PattOr::Type(patt_type) => Self::Type(patt_type),
+            _PattOr::Ident(v) => Self::Ident(v),
+            _PattOr::Tuple(v) => Self::Tuple(v),
+            _PattOr::Range(v) => Self::Range(v),
+            _PattOr::Slice(v) => Self::Slice(v),
+            _PattOr::Path(v) => Self::Path(v),
+            _PattOr::Lit(v) => Self::Lit(v),
+        }
+    }
+}
+
+/// A pattern that matches any one of a set of cases.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PattOr<I>
 where
     I: LangInput,
 {
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
-    /// cases `a | b ..`
-    pub cases: Punctuated<Patt<I>, Or<I>>,
+    /// the first pattern.
+    pub first: Box<Patt<I>>,
+    /// rest segments.
+    pub rest: Vec<(Or<I>, Patt<I>)>,
+}
+
+impl<I> Parse<I> for PattOr<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+        let (left, mut input) = _PattOr::into_parser()
+            .map(|v| Patt::from(v))
+            .boxed()
+            .parse(input)?;
+
+        let mut rest = vec![];
+
+        loop {
+            (_, input) = S::into_parser().ok().parse(input)?;
+            let or_token;
+            (or_token, input) = Or::into_parser().ok().parse(input)?;
+
+            if let Some(or_token) = or_token {
+                (_, input) = S::into_parser().ok().parse(input)?;
+                let patt;
+                (patt, input) = _PattOr::into_parser()
+                    .map(|v| Patt::from(v))
+                    .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                    .fatal()
+                    .parse(input)?;
+                rest.push((or_token, patt));
+            } else {
+                break;
+            }
+        }
+
+        if rest.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        Ok((
+            Self {
+                meta_list,
+                first: left,
+                rest,
+            },
+            input,
+        ))
+    }
 }
 
 /// The dots in a tuple or slice pattern: [0, 1, ..].

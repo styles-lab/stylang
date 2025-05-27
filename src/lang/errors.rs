@@ -146,4 +146,8 @@ pub enum TokenKind {
     Then,
     #[error("`else-branch`")]
     Else,
+    #[error("`if-branch`")]
+    If,
+    #[error("`arm-expr`")]
+    ArmExpr,
 }

@@ -30,8 +30,8 @@ pub use index::*;
 mod variable;
 pub use variable::*;
 
-mod ctrl;
-pub use ctrl::*;
+mod cond;
+pub use cond::*;
 
 mod assign;
 pub use assign::*;
@@ -50,3 +50,6 @@ pub use range::*;
 
 mod repeat;
 pub use repeat::*;
+
+mod r#match;
+pub use r#match::*;

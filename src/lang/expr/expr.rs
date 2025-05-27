@@ -4,8 +4,8 @@ use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
 
 use super::{
     ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprField, ExprFor, ExprIf,
-    ExprIndex, ExprLet, ExprLit, ExprLoop, ExprParen, ExprPath, ExprRange, ExprRepeat, ExprReturn,
-    ExprTuple, ExprUnary, ExprXml, RangeTail, caudal::CaudalRecursion,
+    ExprIndex, ExprLet, ExprLit, ExprLoop, ExprMatch, ExprParen, ExprPath, ExprRange, ExprRepeat,
+    ExprReturn, ExprTuple, ExprUnary, ExprXml, RangeTail, caudal::CaudalRecursion,
 };
 
 /// A `stylang` expression.
@@ -36,6 +36,7 @@ where
     Index(ExprIndex<I>),
     Field(ExprField<I>),
     Tuple(ExprTuple<I>),
+    Match(ExprMatch<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -60,6 +61,7 @@ where
             .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
             .or(ExprRepeat::into_parser().map(|v| Self::Repeat(v)))
             .or(RangeTail::into_parser().map(|v| Self::Range(v.into())))
+            .or(ExprMatch::into_parser().map(|v| Self::Match(v.into())))
             .ok()
             .parse(input)?;
 
