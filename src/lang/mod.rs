@@ -6,6 +6,7 @@ pub mod inputs;
 pub mod item;
 pub mod lit;
 pub mod meta;
+pub mod path;
 pub mod patt;
 pub mod punct;
 pub mod script;

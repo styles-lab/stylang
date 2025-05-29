@@ -333,6 +333,26 @@ where
     }
 }
 
+/// A tuple struct or tuple variant pattern: Variant(x, y, .., z).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct PattTupleStruct<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// tuple struct type path.
+    pub path: (TypePath<I>, Option<S<I>>),
+    /// delimiter start token: `(`
+    pub delimiter_start: LeftParen<I>,
+    /// tuple elems list.
+    pub elems: Punctuated<Patt<I>, Comma<I>>,
+    /// delimiter end token: `)`
+    pub delimiter_end: RightParen<I>,
+}
+
 /// A pattern in a local binding, function signature, match expression, or various other places.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -341,16 +361,17 @@ pub enum Patt<I>
 where
     I: LangInput,
 {
+    Or(PattOr<I>),
     Type(PattType<I>),
     Wild(PattWild<I>),
+    TupleStruct(PattTupleStruct<I>),
     Ident(PattIdent<I>),
+    Path(PattPath<I>),
     Rest(PattRest<I>),
     Paren(PattParen<I>),
     Tuple(PattTuple<I>),
     Range(PattRange<I>),
-    Or(PattOr<I>),
     Slice(PattSlice<I>),
-    Path(PattPath<I>),
     Lit(PattLit<I>),
 }
 
@@ -361,13 +382,13 @@ mod tests {
     use crate::lang::{
         inputs::TokenStream,
         meta::{Attr, Meta, MetaList},
-        patt::{PattIdent, PattRest, PattTuple, PattType, PattWild},
+        patt::{PattIdent, PattRest, PattTuple, PattTupleStruct, PattType, PattWild},
         punct::Punctuated,
         tokens::{
             At, AtAt, Colon, Comma, DotDot, Ident, KeywordString, LeftParen, RightParen, S,
             Underscore,
         },
-        ty::Type,
+        ty::{Type, TypePath},
     };
 
     use super::Patt;
@@ -471,6 +492,37 @@ mod tests {
                     delimiter_end: RightParen(TokenStream::from((8, ")")))
                 }),
                 TokenStream::from((9, ""))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_patt_tuple_struct() {
+        assert_eq!(
+            Patt::parse(TokenStream::from("Some(a)")),
+            Ok((
+                Patt::TupleStruct(PattTupleStruct {
+                    meta_list: Default::default(),
+                    path: (
+                        TypePath {
+                            meta_list: Default::default(),
+                            first: Ident(TokenStream::from("Some")),
+                            segments: vec![]
+                        },
+                        None
+                    ),
+                    delimiter_start: LeftParen(TokenStream::from((4, "("))),
+                    elems: Punctuated {
+                        items: vec![],
+                        last: Some(Box::new(Patt::Ident(PattIdent {
+                            meta_list: Default::default(),
+                            ident: Ident(TokenStream::from((5, "a"))),
+                            subpatt: None
+                        })))
+                    },
+                    delimiter_end: RightParen(TokenStream::from((6, ")")))
+                }),
+                TokenStream::from((7, ""))
             ))
         );
     }

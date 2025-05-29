@@ -48,9 +48,10 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{Expr, ExprCall, ExprPath, PathSegment},
+        expr::{Expr, ExprCall, ExprPath},
         inputs::TokenStream,
         meta::MetaList,
+        path::PathSegment,
         punct::Punctuated,
         tokens::{Ident, LeftParen, PathSep, RightParen},
     };

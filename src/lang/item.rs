@@ -754,7 +754,7 @@ mod tests {
                                     ty: Box::new(Type::Path(TypePath {
                                         meta_list: MetaList::default(),
                                         first: Ident(TokenStream::from((33, "Label"))),
-                                        rest: vec![]
+                                        segments: vec![]
                                     }))
                                 },
                                 Comma(TokenStream::from((38, ",")))
@@ -771,7 +771,7 @@ mod tests {
                                     ty: Box::new(Type::Path(TypePath {
                                         meta_list: MetaList::default(),
                                         first: Ident(TokenStream::from((48, "TextLayout"))),
-                                        rest: vec![]
+                                        segments: vec![]
                                     }))
                                 },
                                 Comma(TokenStream::from((58, ",")))
@@ -788,7 +788,7 @@ mod tests {
                             ty: Box::new(Type::Path(TypePath {
                                 meta_list: MetaList::default(),
                                 first: Ident(TokenStream::from((66, "Fill"))),
-                                rest: vec![]
+                                segments: vec![]
                             }))
                         })),
                     },

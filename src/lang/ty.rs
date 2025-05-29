@@ -1,8 +1,10 @@
 //! syntax analyser for type declaration.
 
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::derive_parse;
 
-use super::{errors::LangError, inputs::LangInput, meta::MetaList, punct::Punctuated, tokens::*};
+use super::{
+    errors::LangError, inputs::LangInput, meta::MetaList, path::Path, punct::Punctuated, tokens::*,
+};
 
 /// Fn type declaration tokens.
 #[derive(Debug, PartialEq, Clone)]
@@ -82,60 +84,7 @@ where
     pub delimiter_end: RightBracket<I>,
 }
 
-/// Type path.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct TypePath<I>
-where
-    I: LangInput,
-{
-    /// optional meta information list.
-    pub meta_list: MetaList<I>,
-    /// first segment .
-    pub first: Ident<I>,
-    /// The remaining segments of the path.
-    pub rest: Vec<(PathSep<I>, Ident<I>)>,
-}
-
-impl<I> Parse<I> for TypePath<I>
-where
-    I: LangInput,
-{
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (meta_list, input) = MetaList::parse(input)?;
-
-        let (first, mut input) = Ident::parse(input)?;
-
-        let mut rest = vec![];
-
-        loop {
-            (_, input) = S::into_parser().ok().parse(input)?;
-            let sep;
-            (sep, input) = PathSep::into_parser().ok().parse(input)?;
-
-            if let Some(sep) = sep {
-                (_, input) = S::into_parser().ok().parse(input)?;
-                let ident;
-                (ident, input) = Ident::into_parser().fatal().parse(input)?;
-                rest.push((sep, ident));
-                continue;
-            }
-
-            break;
-        }
-
-        Ok((
-            Self {
-                meta_list,
-                first,
-                rest,
-            },
-            input,
-        ))
-    }
-}
+pub type TypePath<I> = Path<I>;
 
 /// Type declaration.
 #[derive(Debug, PartialEq, Clone)]
