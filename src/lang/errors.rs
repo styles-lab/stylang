@@ -150,4 +150,6 @@ pub enum TokenKind {
     If,
     #[error("`arm-expr`")]
     ArmExpr,
+    #[error("`type`")]
+    Type,
 }

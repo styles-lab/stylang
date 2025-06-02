@@ -1,6 +1,6 @@
 //! The parser for pattern syntax .
 
-use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
+use parserc::{ControlFlow, Parse, Parser, ParserExt, PartialParse, derive_parse};
 
 use super::{
     errors::{LangError, TokenKind},
@@ -13,38 +13,8 @@ use super::{
     ty::{Type, TypePath},
 };
 
-/// A type ascription pattern: foo: f64.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct PattType<I>
-where
-    I: LangInput,
-{
-    /// meta data list.
-    pub meta_list: MetaList<I>,
-    /// named variable.
-    pub name: Ident<I>,
-    /// token `:`
-    #[key_field]
-    pub colon_token: (Option<S<I>>, Colon<I>, Option<S<I>>),
-    /// type declaration.
-    pub ty: Box<Type<I>>,
-}
-
 /// A type ascription pattern: text::Fill.
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct PattPath<I>
-where
-    I: LangInput,
-{
-    /// meta data list.
-    pub meta_list: MetaList<I>,
-    /// type declaration.
-    pub path: TypePath<I>,
-}
+pub type PattPath<I> = TypePath<I>;
 
 /// A literal in place of an expression: 1, "foo".
 pub type PattLit<I> = ExprLit<I>;
@@ -119,119 +89,10 @@ pub struct PattOr<I>
 where
     I: LangInput,
 {
-    /// leading meta-data list.
-    pub meta_list: MetaList<I>,
     /// the first pattern.
     pub first: Box<Patt<I>>,
     /// rest segments.
     pub rest: Vec<(Or<I>, Patt<I>)>,
-}
-
-impl<I> Parse<I> for PattOr<I>
-where
-    I: LangInput,
-{
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (meta_list, input) = MetaList::parse(input)?;
-        let (left, mut input) = _PattOr::into_parser()
-            .map(|v| Patt::from(v))
-            .boxed()
-            .parse(input)?;
-
-        let mut rest = vec![];
-
-        loop {
-            (_, input) = S::into_parser().ok().parse(input)?;
-            let or_token;
-            (or_token, input) = Or::into_parser().ok().parse(input)?;
-
-            if let Some(or_token) = or_token {
-                (_, input) = S::into_parser().ok().parse(input)?;
-                let patt;
-                (patt, input) = _PattOr::into_parser()
-                    .map(|v| Patt::from(v))
-                    .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-                    .fatal()
-                    .parse(input)?;
-                rest.push((or_token, patt));
-            } else {
-                break;
-            }
-        }
-
-        if rest.is_empty() {
-            return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
-                input.span(),
-            )));
-        }
-
-        Ok((
-            Self {
-                meta_list,
-                first: left,
-                rest,
-            },
-            input,
-        ))
-    }
-}
-
-/// The dots in a tuple or slice pattern: [0, 1, ..].
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct PattIdent<I>
-where
-    I: LangInput,
-{
-    /// leading meta-data list.
-    pub meta_list: MetaList<I>,
-    /// ident name.
-    pub ident: Ident<I>,
-    /// the subpattern of the ident: binding @..
-    pub subpatt: Option<(AtAt<I>, Box<Patt<I>>)>,
-}
-
-impl<I> Parse<I> for PattIdent<I>
-where
-    I: LangInput,
-{
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (meta_list, input) = MetaList::parse(input)?;
-        let (ident, input) = Ident::parse(input)?;
-        let (_, input) = S::into_parser().ok().parse(input)?;
-        let (Some(token), input) = AtAt::into_parser().ok().parse(input.clone())? else {
-            return Ok((
-                Self {
-                    meta_list,
-                    ident,
-                    subpatt: None,
-                },
-                input,
-            ));
-        };
-
-        let (_, input) = S::into_parser().ok().parse(input)?;
-
-        let (patt, input) = Patt::into_parser()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .boxed()
-            .parse(input)?;
-
-        return Ok((
-            Self {
-                meta_list,
-                ident,
-                subpatt: Some((token, patt)),
-            },
-            input,
-        ));
-    }
 }
 
 /// A parenthesized pattern: (A | B).
@@ -333,6 +194,122 @@ where
     }
 }
 
+/// A type ascription pattern: foo: f64.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct PattType<I>
+where
+    I: LangInput,
+{
+    /// meta data list.
+    pub meta_list: MetaList<I>,
+    /// named variable.
+    pub name: Ident<I>,
+    /// token `:`
+    #[key_field]
+    pub colon_token: (Option<S<I>>, Colon<I>, Option<S<I>>),
+    /// type declaration.
+    pub ty: Box<Type<I>>,
+}
+
+impl<I> PartialParse<I> for PattType<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+    type Parsed = (MetaList<I>, Ident<I>);
+
+    fn parse((meta_list, name): Self::Parsed, input: I) -> parserc::Result<Self, I, Self::Error> {
+        use parserc::InputParse;
+
+        let (colon_token, input) = input.parse()?;
+        let (ty, input) = Type::into_parser()
+            .map_err(|input: I, _| LangError::expect(TokenKind::Type, input.span()))
+            .fatal()
+            .boxed()
+            .parse(input)?;
+
+        Ok((
+            Self {
+                meta_list,
+                name,
+                colon_token,
+                ty,
+            },
+            input,
+        ))
+    }
+}
+
+/// The dots in a tuple or slice pattern: [0, 1, ..].
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct PattIdent<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// ident name.
+    pub ident: Ident<I>,
+    /// the subpattern of the ident: binding @..
+    pub subpatt: Option<(AtAt<I>, Box<Patt<I>>)>,
+}
+
+impl<I> PartialParse<I> for PattIdent<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    type Parsed = (MetaList<I>, Ident<I>);
+
+    fn parse((meta_list, ident): Self::Parsed, input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (_, input) = S::into_parser().ok().parse(input)?;
+        let (Some(token), input) = AtAt::into_parser().ok().parse(input.clone())? else {
+            return Ok((
+                Self {
+                    meta_list,
+                    ident,
+                    subpatt: None,
+                },
+                input,
+            ));
+        };
+
+        let (_, input) = S::into_parser().ok().parse(input)?;
+
+        let (patt, input) = Patt::into_parser()
+            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+            .fatal()
+            .boxed()
+            .parse(input)?;
+
+        return Ok((
+            Self {
+                meta_list,
+                ident,
+                subpatt: Some((token, patt)),
+            },
+            input,
+        ));
+    }
+}
+
+impl<I> Parse<I> for PattIdent<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (meta_list, input) = MetaList::parse(input)?;
+        let (ident, input) = Ident::parse(input)?;
+        <Self as PartialParse<_>>::parse((meta_list, ident), input)
+    }
+}
+
 /// A tuple struct or tuple variant pattern: Variant(x, y, .., z).
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -341,8 +318,6 @@ pub struct PattTupleStruct<I>
 where
     I: LangInput,
 {
-    /// leading meta-data list.
-    pub meta_list: MetaList<I>,
     /// tuple struct type path.
     pub path: (TypePath<I>, Option<S<I>>),
     /// delimiter start token: `(`
@@ -353,26 +328,219 @@ where
     pub delimiter_end: RightParen<I>,
 }
 
-/// A pattern in a local binding, function signature, match expression, or various other places.
+impl<I> PartialParse<I> for PattTupleStruct<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+    type Parsed = TypePath<I>;
+
+    fn parse(parsed: Self::Parsed, input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (s, input) = S::into_parser().ok().parse(input)?;
+        let (delimiter_start, input) = LeftParen::into_parser().parse(input)?;
+        let (elems, input) = Punctuated::parse(input)?;
+        let (delimiter_end, input) = RightParen::into_parser().parse(input)?;
+
+        Ok((
+            Self {
+                path: (parsed, s),
+                delimiter_start,
+                elems,
+                delimiter_end,
+            },
+            input,
+        ))
+    }
+}
+
+/// Simple Patt types.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
+enum SimplePatt<I>
+where
+    I: LangInput,
+{
+    /// ...
+    Rest(PattRest<I>),
+    /// (...)
+    Paren(PattParen<I>),
+    /// (a,b,c)
+    Tuple(PattTuple<I>),
+    /// a..=b, a..b
+    Range(PattRange<I>),
+    /// [a,b,c]
+    Slice(PattSlice<I>),
+    /// 1,"hello"
+    Lit(PattLit<I>),
+    /// `_`
+    Wild(PattWild<I>),
+}
+
+impl<I> From<SimplePatt<I>> for Patt<I>
+where
+    I: LangInput,
+{
+    fn from(value: SimplePatt<I>) -> Self {
+        match value {
+            SimplePatt::Rest(patt_rest) => Self::Rest(patt_rest),
+            SimplePatt::Paren(patt_paren) => Self::Paren(patt_paren),
+            SimplePatt::Tuple(patt_tuple) => Self::Tuple(patt_tuple),
+            SimplePatt::Range(patt_range) => Self::Range(patt_range),
+            SimplePatt::Slice(patt_slice) => Self::Slice(patt_slice),
+            SimplePatt::Lit(expr_lit) => Self::Lit(expr_lit),
+            SimplePatt::Wild(patt_wild) => Self::Wild(patt_wild),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+enum ComplexPatt<I>
+where
+    I: LangInput,
+{
+    /// a,b,...
+    Ident(PattIdent<I>),
+    /// a: i32, b: f32,...
+    Type(PattType<I>),
+    /// Some(a), None, ...
+    TupleStruct(PattTupleStruct<I>),
+    /// std::path::Path
+    Path(PattPath<I>),
+}
+
+impl<I> Parse<I> for ComplexPatt<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (path, input) = PattPath::parse(input)?;
+
+        let (expr, input) = <PattTupleStruct<_> as PartialParse<_>>::into_parser(path.clone())
+            .map(|v| Self::TupleStruct(v))
+            .ok()
+            .parse(input)?;
+
+        if let Some(expr) = expr {
+            return Ok((expr, input));
+        }
+
+        if path.segments.is_empty() {
+            let ident = <PattIdent<_> as PartialParse<_>>::into_parser((
+                path.meta_list.clone(),
+                path.first.clone(),
+            ))
+            .map(|v| Self::Ident(v));
+
+            let ty = <PattType<_> as PartialParse<_>>::into_parser((
+                path.meta_list.clone(),
+                path.first.clone(),
+            ))
+            .map(|v| Self::Type(v));
+
+            return ty.or(ident).parse(input);
+        }
+
+        return Ok((Self::Path(path), input));
+    }
+}
+
+impl<I> From<ComplexPatt<I>> for Patt<I>
+where
+    I: LangInput,
+{
+    fn from(value: ComplexPatt<I>) -> Self {
+        match value {
+            ComplexPatt::Ident(patt_ident) => Self::Ident(patt_ident),
+            ComplexPatt::Type(patt_type) => Self::Type(patt_type),
+            ComplexPatt::TupleStruct(patt_tuple_struct) => Self::TupleStruct(patt_tuple_struct),
+            ComplexPatt::Path(path) => Self::Path(path),
+        }
+    }
+}
+
+/// A pattern in a local binding, function signature, match expression, or various other places.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Patt<I>
 where
     I: LangInput,
 {
-    Or(PattOr<I>),
-    Type(PattType<I>),
-    Wild(PattWild<I>),
-    TupleStruct(PattTupleStruct<I>),
-    Ident(PattIdent<I>),
-    Path(PattPath<I>),
+    /// ...
     Rest(PattRest<I>),
+    /// (...)
     Paren(PattParen<I>),
+    /// (a,b,c)
     Tuple(PattTuple<I>),
+    /// a..=b, a..b
     Range(PattRange<I>),
+    /// [a,b,c]
     Slice(PattSlice<I>),
+    /// 1,"hello"
     Lit(PattLit<I>),
+    /// `_`
+    Wild(PattWild<I>),
+    /// a,b,...
+    Ident(PattIdent<I>),
+    /// a: i32, b: f32,...
+    Type(PattType<I>),
+    /// Some(a), None, ...
+    TupleStruct(PattTupleStruct<I>),
+    /// std::path::Path
+    Path(PattPath<I>),
+    /// patt | patt..
+    Or(PattOr<I>),
+}
+
+impl<I> Parse<I> for Patt<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (first, mut input) = SimplePatt::into_parser()
+            .map(|v| Self::from(v))
+            .or(ComplexPatt::into_parser().map(|v| Self::from(v)))
+            .parse(input)?;
+
+        let mut rest = vec![];
+
+        loop {
+            let or_token;
+            (or_token, input) = <(Option<S<_>>, Or<_>, Option<S<_>>)>::into_parser()
+                .ok()
+                .parse(input)?;
+
+            if let Some((_, or_token, _)) = or_token {
+                (_, input) = S::into_parser().ok().parse(input)?;
+                let patt;
+                (patt, input) = _PattOr::into_parser()
+                    .map(|v| Patt::from(v))
+                    .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                    .fatal()
+                    .parse(input)?;
+                rest.push((or_token, patt));
+            } else {
+                break;
+            }
+        }
+
+        if rest.is_empty() {
+            Ok((first, input))
+        } else {
+            Ok((
+                Patt::Or(PattOr {
+                    first: Box::new(first),
+                    rest,
+                }),
+                input,
+            ))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -502,7 +670,6 @@ mod tests {
             Patt::parse(TokenStream::from("Some(a)")),
             Ok((
                 Patt::TupleStruct(PattTupleStruct {
-                    meta_list: Default::default(),
                     path: (
                         TypePath {
                             meta_list: Default::default(),
