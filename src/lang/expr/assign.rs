@@ -1,16 +1,13 @@
-use parserc::{Parse, Parser, ParserExt};
+use parserc::{Parse, Parser, ParserExt, PartialParse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
+    expr::ExprBinary,
     inputs::LangInput,
     tokens::{Eq, S},
 };
 
-use super::{
-    Expr,
-    caudal::CaudalRecursion,
-    partial::{Partial, PartialParse},
-};
+use super::{Expr, caudal::CaudalRecursion};
 
 /// A struct or tuple struct field accessed in a struct literal or field expression.
 #[derive(Debug, PartialEq, Clone)]
@@ -31,7 +28,10 @@ impl<I> PartialParse<I> for ExprAssign<I>
 where
     I: LangInput,
 {
-    fn partial_parse(
+    type Error = LangError;
+    type Parsed = CaudalRecursion<I>;
+
+    fn parse(
         left: CaudalRecursion<I>,
         input: I,
     ) -> parserc::Result<Self, I, crate::lang::errors::LangError> {
@@ -43,7 +43,7 @@ where
             .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
             .parse(input)?;
 
-        let (right, input) = Partial::from(chain.clone())
+        let (right, input) = ExprBinary::into_parser_with(chain.clone())
             .map(|v| Expr::Binary(v))
             .boxed()
             .ok()

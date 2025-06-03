@@ -419,7 +419,7 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (path, input) = PattPath::parse(input)?;
 
-        let (expr, input) = <PattTupleStruct<_> as PartialParse<_>>::into_parser(path.clone())
+        let (expr, input) = PattTupleStruct::into_parser_with(path.clone())
             .map(|v| Self::TupleStruct(v))
             .ok()
             .parse(input)?;
@@ -429,19 +429,13 @@ where
         }
 
         if path.segments.is_empty() {
-            let ident = <PattIdent<_> as PartialParse<_>>::into_parser((
-                path.meta_list.clone(),
-                path.first.clone(),
-            ))
-            .map(|v| Self::Ident(v));
-
-            let ty = <PattType<_> as PartialParse<_>>::into_parser((
-                path.meta_list.clone(),
-                path.first.clone(),
-            ))
-            .map(|v| Self::Type(v));
-
-            return ty.or(ident).parse(input);
+            return PattType::into_parser_with((path.meta_list.clone(), path.first.clone()))
+                .map(|v| Self::Type(v))
+                .or(
+                    PattIdent::into_parser_with((path.meta_list.clone(), path.first.clone()))
+                        .map(|v| Self::Ident(v)),
+                )
+                .parse(input);
         }
 
         return Ok((Self::Path(path), input));

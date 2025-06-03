@@ -1,6 +1,6 @@
-use parserc::{Parse, Parser, ParserExt};
+use parserc::{Parse, Parser, ParserExt, PartialParse};
 
-use crate::lang::{errors::LangError, expr::partial::Partial, inputs::LangInput};
+use crate::lang::{errors::LangError, inputs::LangInput};
 
 use super::{
     ExprArray, ExprAssign, ExprBinary, ExprBlock, ExprBreak, ExprCall, ExprField, ExprFor, ExprIf,
@@ -71,10 +71,10 @@ where
 
         let (cr, input) = CaudalRecursion::parse(input)?;
 
-        let (expr, input) = Partial::from(cr.clone())
+        let (expr, input) = ExprBinary::into_parser_with(cr.clone())
             .map(|v| Self::Binary(v))
-            .or(Partial::from(cr.clone()).map(|v| Self::Assign(v)))
-            .or(Partial::from(cr.clone()).map(|v| Self::Range(v)))
+            .or(ExprAssign::into_parser_with(cr.clone()).map(|v| Self::Assign(v)))
+            .or(ExprRange::into_parser_with(cr.clone()).map(|v| Self::Range(v)))
             .ok()
             .parse(input)?;
 

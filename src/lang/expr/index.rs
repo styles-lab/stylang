@@ -12,7 +12,7 @@ use super::Expr;
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub(super) struct Index<I>
+pub struct Index<I>
 where
     I: LangInput,
 {

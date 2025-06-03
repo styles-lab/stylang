@@ -1,4 +1,4 @@
-use parserc::{Parse, Parser, ParserExt, derive_parse};
+use parserc::{Parse, Parser, ParserExt, PartialParse, derive_parse};
 
 use crate::lang::{
     errors::LangError,
@@ -6,7 +6,7 @@ use crate::lang::{
     tokens::{DotDot, DotDotEq, S},
 };
 
-use super::{Expr, caudal::CaudalRecursion, partial::PartialParse};
+use super::{Expr, caudal::CaudalRecursion};
 
 /// Limit types of a range, inclusive or exclusive.
 #[derive(Debug, PartialEq, Clone)]
@@ -82,7 +82,10 @@ impl<I> PartialParse<I> for ExprRange<I>
 where
     I: LangInput,
 {
-    fn partial_parse(left: CaudalRecursion<I>, input: I) -> parserc::Result<Self, I, LangError> {
+    type Error = LangError;
+    type Parsed = CaudalRecursion<I>;
+
+    fn parse(left: CaudalRecursion<I>, input: I) -> parserc::Result<Self, I, LangError> {
         let (_, input) = S::into_parser().ok().parse(input)?;
         let (limits, input) = RangeLimits::parse(input)?;
         let (_, input) = S::into_parser().ok().parse(input)?;

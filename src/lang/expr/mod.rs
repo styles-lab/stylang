@@ -1,7 +1,6 @@
 //! The syntax analyser for exprs.
 
 mod caudal;
-mod partial;
 
 mod xml;
 pub use xml::*;

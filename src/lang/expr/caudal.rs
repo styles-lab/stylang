@@ -7,7 +7,7 @@ use super::{Call, Expr, ExprCall, ExprField, ExprIndex, ExprLit, ExprPath, Field
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub(super) enum CaudalStart<I>
+pub enum CaudalStart<I>
 where
     I: LangInput,
 {
@@ -30,7 +30,7 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub(super) enum CaudalSegment<I>
+pub enum CaudalSegment<I>
 where
     I: LangInput,
 {
@@ -69,7 +69,7 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub(super) struct CaudalRecursion<I>
+pub struct CaudalRecursion<I>
 where
     I: LangInput,
 {

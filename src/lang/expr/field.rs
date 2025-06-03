@@ -23,7 +23,7 @@ where
 /// Right part for accessing struct filed.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(super) struct Field<I>
+pub struct Field<I>
 where
     I: LangInput,
 {
