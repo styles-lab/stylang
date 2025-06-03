@@ -338,7 +338,7 @@ where
 mod tests {
     use parserc::Parse;
 
-    use crate::lang::{inputs::TokenStream, meta::*, ty::*};
+    use crate::lang::{inputs::TokenStream, meta::*, path::TypePath, ty::*};
 
     use super::*;
 

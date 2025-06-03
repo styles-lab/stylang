@@ -2,15 +2,17 @@
 
 use parserc::{ControlFlow, Parse, Parser, ParserExt, PartialParse, derive_parse};
 
+use crate::lang::path::TypePath;
+
 use super::{
     errors::{LangError, TokenKind},
-    expr::{ExprLit, RangeLimits},
+    expr::ExprLit,
     inputs::LangInput,
     lit::Lit,
     meta::MetaList,
     punct::Punctuated,
     tokens::*,
-    ty::{Type, TypePath},
+    ty::Type,
 };
 
 /// A type ascription pattern: text::Fill.
@@ -544,13 +546,14 @@ mod tests {
     use crate::lang::{
         inputs::TokenStream,
         meta::{Attr, Meta, MetaList},
+        path::TypePath,
         patt::{PattIdent, PattRest, PattTuple, PattTupleStruct, PattType, PattWild},
         punct::Punctuated,
         tokens::{
             At, AtAt, Colon, Comma, DotDot, Ident, KeywordString, LeftParen, RightParen, S,
             Underscore,
         },
-        ty::{Type, TypePath},
+        ty::Type,
     };
 
     use super::Patt;

@@ -3,7 +3,8 @@
 use parserc::derive_parse;
 
 use super::{
-    errors::LangError, inputs::LangInput, meta::MetaList, path::Path, punct::Punctuated, tokens::*,
+    errors::LangError, inputs::LangInput, meta::MetaList, path::TypePath, punct::Punctuated,
+    tokens::*,
 };
 
 /// Fn type declaration tokens.
@@ -83,8 +84,6 @@ where
     /// delimiter end token `]`
     pub delimiter_end: RightBracket<I>,
 }
-
-pub type TypePath<I> = Path<I>;
 
 /// Type declaration.
 #[derive(Debug, PartialEq, Clone)]

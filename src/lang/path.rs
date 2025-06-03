@@ -7,22 +7,7 @@ use crate::lang::{
     tokens::{Ident, PathSep, S},
 };
 
-/// A path at which a named item is exported (e.g. std::collections::HashMap).
-#[derive(Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct Path<I>
-where
-    I: LangInput,
-{
-    /// optional metalist.
-    pub meta_list: MetaList<I>,
-    /// The first segment of a path.
-    pub first: Ident<I>,
-    /// The rest segments.
-    pub segments: Vec<PathSegment<I>>,
-}
-
+/// A segment of one [`TypePath`]
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
@@ -35,6 +20,22 @@ where
     pub sep: (Option<S<I>>, PathSep<I>, Option<S<I>>),
     /// segment ident.
     pub ident: Ident<I>,
+}
+
+/// A path at which a named item is exported (e.g. std::collections::HashMap).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct TypePath<I>
+where
+    I: LangInput,
+{
+    /// optional metalist.
+    pub meta_list: MetaList<I>,
+    /// The first segment of a path.
+    pub first: Ident<I>,
+    /// The rest segments.
+    pub segments: Vec<PathSegment<I>>,
 }
 
 #[cfg(test)]
@@ -51,9 +52,9 @@ mod tests {
     #[test]
     fn test_path() {
         assert_eq!(
-            Path::parse(TokenStream::from("a :: b ::c")),
+            TypePath::parse(TokenStream::from("a :: b ::c")),
             Ok((
-                Path {
+                TypePath {
                     meta_list: MetaList::default(),
                     first: Ident(TokenStream::from("a")),
                     segments: vec![
@@ -80,9 +81,9 @@ mod tests {
         );
 
         assert_eq!(
-            Path::parse(TokenStream::from("a ")),
+            TypePath::parse(TokenStream::from("a ")),
             Ok((
-                Path {
+                TypePath {
                     meta_list: MetaList::default(),
                     first: Ident(TokenStream::from("a")),
                     segments: vec![]

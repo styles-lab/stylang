@@ -546,6 +546,20 @@ where
     Eq(Eq<I>),
 }
 
+/// Limit types of a range, inclusive or exclusive.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub enum RangeLimits<I>
+where
+    I: LangInput,
+{
+    /// ..=
+    Closed(DotDotEq<I>),
+    /// ..
+    HalfOpen(DotDot<I>),
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::Parse;
