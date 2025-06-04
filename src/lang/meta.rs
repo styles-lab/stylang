@@ -284,8 +284,8 @@ mod tests {
                     params: Some(LitParams {
                         delimiter_start: LeftParen(TokenStream::from((5, "("))),
                         params: Punctuated {
-                            items: vec![],
-                            last: Some(Box::new(Lit::String(LitStr(TokenStream::from((
+                            pairs: vec![],
+                            tail: Some(Box::new(Lit::String(LitStr(TokenStream::from((
                                 8,
                                 "erc20.json"
                             ))))))

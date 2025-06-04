@@ -373,7 +373,7 @@ mod tests {
                     fields: Fields::Named {
                         delimiter_start: LeftBrace(TokenStream::from((57, "{"))),
                         fields: Punctuated {
-                            items: vec![
+                            pairs: vec![
                                 (
                                     NamedField {
                                         meta_list: MetaList::default(),
@@ -407,7 +407,7 @@ mod tests {
                                     Comma(TokenStream::from((139, ",")))
                                 )
                             ],
-                            last: None
+                            tail: None
                         },
                         delimiter_end: RightBrace(TokenStream::from((153, "}")))
                     },
@@ -451,7 +451,7 @@ mod tests {
                     fields: Fields::Named {
                         delimiter_start: LeftBrace(TokenStream::from((86, "{"))),
                         fields: Punctuated {
-                            items: vec![
+                            pairs: vec![
                                 (
                                     NamedField {
                                         meta_list: MetaList(vec![
@@ -514,8 +514,8 @@ mod tests {
                                                 281, "("
                                             ))),
                                             inputs: Punctuated {
-                                                items: vec![],
-                                                last: None
+                                                pairs: vec![],
+                                                tail: None
                                             },
                                             delimiter_end: RightParen(TokenStream::from((
                                                 282, ")"
@@ -535,7 +535,7 @@ mod tests {
                                     Comma(TokenStream::from((291, ",")))
                                 )
                             ],
-                            last: None
+                            tail: None
                         },
                         delimiter_end: RightBrace(TokenStream::from((305, "}"))),
                     },
@@ -579,7 +579,7 @@ mod tests {
                     ),
                     delimiter_start: LeftBrace(TokenStream::from((135, "{"))),
                     variants: Punctuated {
-                        items: vec![
+                        pairs: vec![
                             (
                                 Variant {
                                     meta_list: MetaList::default(),
@@ -613,7 +613,7 @@ mod tests {
                                 Comma(TokenStream::from((256, ",")))
                             )
                         ],
-                        last: None
+                        tail: None
                     },
                     delimiter_end: RightBrace(TokenStream::from((274, "}")))
                 },
@@ -640,15 +640,15 @@ mod tests {
                     ),
                     delimiter_start: LeftBrace(TokenStream::from((7, "{"))),
                     variants: Punctuated {
-                        items: vec![],
-                        last: Some(Box::new(Variant {
+                        pairs: vec![],
+                        tail: Some(Box::new(Variant {
                             meta_list: MetaList::default(),
                             name: (Ident(TokenStream::from((9, "V"))), None),
                             fields: Some(Fields::Uname {
                                 delimiter_start: LeftParen(TokenStream::from((10, "("))),
                                 fields: Punctuated {
-                                    items: vec![],
-                                    last: Some(Box::new(UnameField {
+                                    pairs: vec![],
+                                    tail: Some(Box::new(UnameField {
                                         meta_list: MetaList::default(),
                                         vs: None,
                                         ty: Type::I32(I32(TokenStream::from((11, "i32"))))
@@ -683,8 +683,8 @@ mod tests {
                     ),
                     delimiter_start: LeftBrace(TokenStream::from((7, "{"))),
                     variants: Punctuated {
-                        items: vec![],
-                        last: Some(Box::new(Variant {
+                        pairs: vec![],
+                        tail: Some(Box::new(Variant {
                             meta_list: MetaList::default(),
                             name: (
                                 Ident(TokenStream::from((9, "V"))),
@@ -693,8 +693,8 @@ mod tests {
                             fields: Some(Fields::Named {
                                 delimiter_start: LeftBrace(TokenStream::from((11, "{"))),
                                 fields: Punctuated {
-                                    items: vec![],
-                                    last: Some(Box::new(NamedField {
+                                    pairs: vec![],
+                                    tail: Some(Box::new(NamedField {
                                         meta_list: MetaList::default(),
                                         vs: None,
                                         name: Ident(TokenStream::from((12, "v"))),
@@ -741,7 +741,7 @@ mod tests {
                     ident: (Ident(TokenStream::from((20, "label"))), None),
                     delimiter_start: LeftParen(TokenStream::from((25, "("))),
                     args: Punctuated {
-                        items: vec![
+                        pairs: vec![
                             (
                                 PattType {
                                     meta_list: MetaList::default(),
@@ -777,7 +777,7 @@ mod tests {
                                 Comma(TokenStream::from((58, ",")))
                             )
                         ],
-                        last: Some(Box::new(PattType {
+                        tail: Some(Box::new(PattType {
                             meta_list: MetaList::default(),
                             name: Ident(TokenStream::from((60, "fill"))),
                             colon_token: (
@@ -825,8 +825,8 @@ mod tests {
                     ident: (Ident(TokenStream::from((10, "label"))), None),
                     delimiter_start: LeftParen(TokenStream::from((15, "("))),
                     args: Punctuated {
-                        items: vec![],
-                        last: Some(Box::new(PattType {
+                        pairs: vec![],
+                        tail: Some(Box::new(PattType {
                             meta_list: MetaList(vec![Meta::Attr(Attr {
                                 keyword: At(TokenStream::from((16, "@"))),
                                 ident: (

@@ -223,7 +223,7 @@ where
     type Parsed = (MetaList<I>, Ident<I>);
 
     fn parse((meta_list, name): Self::Parsed, input: I) -> parserc::Result<Self, I, Self::Error> {
-        use parserc::InputParse;
+        use parserc::ParseFromInput;
 
         let (colon_token, input) = input.parse()?;
         let (ty, input) = Type::into_parser()
@@ -641,7 +641,7 @@ mod tests {
                     meta_list: Default::default(),
                     delimiter_start: LeftParen(TokenStream::from((4, "("))),
                     elems: Punctuated {
-                        items: vec![(
+                        pairs: vec![(
                             Patt::Ident(PattIdent {
                                 meta_list: Default::default(),
                                 ident: Ident(TokenStream::from((5, "a"))),
@@ -649,7 +649,7 @@ mod tests {
                             }),
                             Comma(TokenStream::from((6, ",")))
                         )],
-                        last: Some(Box::new(Patt::Wild(PattWild {
+                        tail: Some(Box::new(Patt::Wild(PattWild {
                             meta_list: Default::default(),
                             under_score_token: Underscore(TokenStream::from((7, "_")))
                         })))
@@ -677,8 +677,8 @@ mod tests {
                     ),
                     delimiter_start: LeftParen(TokenStream::from((4, "("))),
                     elems: Punctuated {
-                        items: vec![],
-                        last: Some(Box::new(Patt::Ident(PattIdent {
+                        pairs: vec![],
+                        tail: Some(Box::new(Patt::Ident(PattIdent {
                             meta_list: Default::default(),
                             ident: Ident(TokenStream::from((5, "a"))),
                             subpatt: None

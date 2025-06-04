@@ -95,7 +95,7 @@ mod tests {
         inputs::TokenStream,
         path::TypePath,
         punct::Punctuated,
-        tokens::{Ident, LeftParen, RightParen},
+        tokens::{Comma, Ident, LeftParen, RightParen},
     };
 
     #[test]
@@ -107,8 +107,31 @@ mod tests {
                     meta_list: Default::default(),
                     delimiter_start: LeftParen(TokenStream::from("(")),
                     items: Punctuated {
-                        items: vec![],
-                        last: Some(Box::new(ExprOperand::Path(ExprPath {
+                        pairs: vec![
+                            (
+                                ExprOperand::Path(ExprPath {
+                                    start: PathStart::TypePath(TypePath {
+                                        meta_list: Default::default(),
+                                        first: Ident(TokenStream::from((1, "a"))),
+                                        segments: vec![]
+                                    }),
+                                    segments: vec![]
+                                }),
+                                Comma(TokenStream::from((2, ","))),
+                            ),
+                            (
+                                ExprOperand::Path(ExprPath {
+                                    start: PathStart::TypePath(TypePath {
+                                        meta_list: Default::default(),
+                                        first: Ident(TokenStream::from((3, "b"))),
+                                        segments: vec![]
+                                    }),
+                                    segments: vec![]
+                                }),
+                                Comma(TokenStream::from((4, ",")))
+                            )
+                        ],
+                        tail: Some(Box::new(ExprOperand::Path(ExprPath {
                             start: PathStart::TypePath(TypePath {
                                 meta_list: Default::default(),
                                 first: Ident(TokenStream::from((5, "c"))),
@@ -120,6 +143,19 @@ mod tests {
                     delimiter_end: RightParen(TokenStream::from((7, ")")))
                 })),
                 TokenStream::from((8, ""))
+            ))
+        );
+
+        assert_eq!(
+            Expr::parse(TokenStream::from("( )")),
+            Ok((
+                Expr::Operand(ExprOperand::Tuple(ExprTuple {
+                    meta_list: Default::default(),
+                    delimiter_start: LeftParen(TokenStream::from("(")),
+                    items: Default::default(),
+                    delimiter_end: RightParen(TokenStream::from((2, ")"))),
+                })),
+                TokenStream::from((3, ""))
             ))
         );
     }

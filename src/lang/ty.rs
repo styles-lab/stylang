@@ -207,7 +207,7 @@ mod tests {
                     keyword_fn: KeywordFn(TokenStream::from("fn")),
                     delimiter_start: LeftParen(TokenStream::from((2, "("))),
                     inputs: Punctuated {
-                        items: vec![
+                        pairs: vec![
                             (
                                 Type::I32(I32(TokenStream::from((3, "i32")))),
                                 Comma(TokenStream::from((7, ",")))
@@ -221,7 +221,7 @@ mod tests {
                                 Comma(TokenStream::from((22, ",")))
                             )
                         ],
-                        last: None
+                        tail: None
                     },
                     delimiter_end: RightParen(TokenStream::from((23, ")"))),
                     output: None
@@ -237,7 +237,7 @@ mod tests {
                     keyword_fn: KeywordFn(TokenStream::from("fn")),
                     delimiter_start: LeftParen(TokenStream::from((2, "("))),
                     inputs: Punctuated {
-                        items: vec![
+                        pairs: vec![
                             (
                                 Type::I32(I32(TokenStream::from((3, "i32")))),
                                 Comma(TokenStream::from((7, ",")))
@@ -251,7 +251,7 @@ mod tests {
                                 Comma(TokenStream::from((22, ",")))
                             )
                         ],
-                        last: None
+                        tail: None
                     },
                     delimiter_end: RightParen(TokenStream::from((23, ")"))),
                     output: Some(TypeReturn {
@@ -277,7 +277,7 @@ mod tests {
                     meta_list: Default::default(),
                     delimiter_start: LeftParen(TokenStream::from("(")),
                     elms: Punctuated {
-                        items: vec![
+                        pairs: vec![
                             (
                                 Type::I32(I32(TokenStream::from((1, "i32")))),
                                 Comma(TokenStream::from((4, ",")))
@@ -291,7 +291,7 @@ mod tests {
                                 Comma(TokenStream::from((15, ",")))
                             )
                         ],
-                        last: None
+                        tail: None
                     },
                     delimiter_end: RightParen(TokenStream::from((16, ")")))
                 }),
