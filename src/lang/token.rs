@@ -1,7 +1,7 @@
 //! Token types for stylang.
 //!
 
-use parserc::{ControlFlow, Delimiter, Parse, Parser, ParserExt, take_while};
+use parserc::{ControlFlow, Delimiter, Kind, Parse, Parser, ParserExt, satisfy, take_while};
 
 use crate::lang::errors::{LangError, TokenKind};
 use crate::lang::input::LangInput;
@@ -28,6 +28,57 @@ where
         }
 
         Ok((Self(s), input))
+    }
+}
+
+/// `stylang` type name token.
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Ident<I>(pub I);
+
+impl<I> Parse<I> for Ident<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut content = input.clone();
+        let start = input.start();
+
+        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|input: I, _: Kind| LangError::expect(TokenKind::Ident, input.span()))
+            .parse(input)?;
+
+        let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;
+
+        Ok((Self(content.split_to(input.start() - start)), input))
+    }
+}
+
+/// Xml elem name token.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct XmlIdent<I>(pub I);
+
+impl<I> Parse<I> for XmlIdent<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let mut content = input.clone();
+        let start = input.start();
+
+        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|input: I, _: Kind| LangError::expect(TokenKind::XmlIdent, input.span()))
+            .parse(input)?;
+
+        let (_, input) =
+            take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
+
+        Ok((Self(content.split_to(input.start() - start)), input))
     }
 }
 
@@ -211,6 +262,7 @@ keyword!("loop" => KeywordLoop);
 keyword!("while" => KeywordWhile);
 keyword!("match" => KeywordMatch);
 
+token!("fn" => TokenFn);
 token!("crate" => TokenCrate);
 token!("super" => TokenSuper);
 token!("view" => TokenView);
@@ -223,12 +275,24 @@ token!("string" => TokenString);
 token!("angle" => TokenAngle);
 token!("#" => TokenNumSign);
 token!("_" => TokenUnderscore);
-token!("bool" => Bool);
-token!("true" => True);
-token!("false" => False);
+token!("bool" => TokenBool);
+token!("true" => TokenTrue);
+token!("false" => TokenFalse);
 token!("return" => TokenReturn);
 token!("break" => TokenBreak);
 token!("continue" => TokenContinue);
+token!("i8" => TokenI8);
+token!("i16" => TokenI16);
+token!("i32" => TokenI32);
+token!("i64" => TokenI64);
+token!("i128" => TokenI128);
+token!("u8" => TokenU8);
+token!("u16" => TokenU16);
+token!("u32" => TokenU32);
+token!("u64" => TokenU64);
+token!("u128" => TokenU128);
+token!("f32" => TokenF32);
+token!("f64" => TokenF64);
 
 token!("<=" => TokenLe);
 token!(">=" => TokenGe);
@@ -236,7 +300,6 @@ token!("</" => TokenLtSlash);
 token!("/>" => TokenSlashGt);
 token!("!=" => TokenNotEq);
 token!("==" => TokenEqEq);
-token!("->" => TokenArrowRight);
 token!("-=" => TokenMinusEq);
 
 token_lookahead!(
@@ -245,7 +308,7 @@ token_lookahead!(
 );
 
 token_lookahead!(
-    TokenArrowRight::into_parser().map(|_|())
+    SepArrowRight::into_parser().map(|_|())
         .or(TokenMinusEq::into_parser().map(|_|())),
     "-" => TokenMinus
 );
@@ -281,17 +344,18 @@ sep!("]" => SepRightBracket);
 sep!("{" => SepLeftBrace);
 sep!("}" => SepRightBrace);
 sep!("@@" => SepAtAt);
+sep!("->" => SepArrowRight);
 
 sep_lookahead!(SepColonColon::into_parser(),":" => SepColon);
 
 /// Delimiter group `{...}`
-pub type Brace<I, T> = Delimiter<SepLeftBrace<I>, T, SepRightBrace<I>>;
+pub type Brace<I, T> = Delimiter<SepLeftBrace<I>, SepRightBrace<I>, T>;
 
 /// Delimiter group `[...]`
-pub type Bracket<I, T> = Delimiter<SepLeftBracket<I>, T, SepRightBracket<I>>;
+pub type Bracket<I, T> = Delimiter<SepLeftBracket<I>, SepRightBracket<I>, T>;
 
 /// Delimiter group `(...)`
-pub type Paren<I, T> = Delimiter<SepLeftParen<I>, T, SepRightParen<I>>;
+pub type Paren<I, T> = Delimiter<SepLeftParen<I>, SepRightParen<I>, T>;
 
 #[cfg(test)]
 mod tests {
