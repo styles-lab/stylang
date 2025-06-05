@@ -1,4 +1,8 @@
 pub mod errors;
 pub mod input;
+pub mod item;
+pub mod lit;
+pub mod meta;
+pub mod patt;
 pub mod token;
 pub mod ty;

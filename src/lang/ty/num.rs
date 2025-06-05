@@ -25,6 +25,8 @@ where
     U128(TokenU128<I>),
     F32(TokenF32<I>),
     F64(TokenF64<I>),
+    BigInt(TokenBigInt<I>),
+    BigNum(TokenBigNum<I>),
 }
 
 #[cfg(test)]
@@ -37,6 +39,7 @@ mod tests {
     fn test_num_types() {
         let tys = [
             "i8", "i16", "i32", "i64", "i128", "u8", "u16", "u32", "u64", "u128", "f32", "f64",
+            "bigint", "bignum",
         ];
 
         for ty in tys {

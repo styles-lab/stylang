@@ -29,6 +29,16 @@ pub enum LangError {
         /// optional parsing item.
         item: Option<ItemKind>,
     },
+    /// Report a invalid literial value.
+    #[error("invalid literial value {kind} {span:?}")]
+    Invalid {
+        /// token kind.
+        kind: TokenKind,
+        /// token span.
+        span: Span,
+        /// optional parsing item.
+        item: Option<ItemKind>,
+    },
 }
 
 impl LangError {
@@ -44,6 +54,15 @@ impl LangError {
     /// Create a [`LangError::Unexpect`] error without optional `item` field.
     pub fn unexpect(kind: TokenKind, span: Span) -> Self {
         Self::Unexpect {
+            kind,
+            span,
+            item: None,
+        }
+    }
+
+    /// Create a [`LangError::Invalid`] error without optional `item` field.
+    pub fn invalid(kind: TokenKind, span: Span) -> Self {
+        Self::Invalid {
             kind,
             span,
             item: None,
@@ -68,6 +87,15 @@ impl From<(LangError, ItemKind)> for LangError {
                 span,
                 item: _,
             } => Self::Unexpect {
+                kind,
+                span,
+                item: Some(value.1),
+            },
+            LangError::Invalid {
+                kind,
+                span,
+                item: _,
+            } => Self::Invalid {
                 kind,
                 span,
                 item: Some(value.1),
@@ -152,4 +180,8 @@ pub enum TokenKind {
     ArmExpr,
     #[error("`type`")]
     Type,
+    #[error("`hex-color`")]
+    HexColor,
+    #[error("`rgb-digits`")]
+    RgbDigits,
 }

@@ -1,7 +1,9 @@
 //! Token types for stylang.
 //!
 
-use parserc::{ControlFlow, Delimiter, Kind, Parse, Parser, ParserExt, satisfy, take_while};
+use parserc::{
+    ControlFlow, Delimiter, Kind, Parse, Parser, ParserExt, keyword, satisfy, take_while,
+};
 
 use crate::lang::errors::{LangError, TokenKind};
 use crate::lang::input::LangInput;
@@ -79,6 +81,56 @@ where
             take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
 
         Ok((Self(content.split_to(input.start() - start)), input))
+    }
+}
+
+/// An ascii digit characters sequence: [0-9]+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Digits<I>(pub I);
+
+impl<I> Parse<I> for Digits<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (digits, input) = take_while(|c: u8| c.is_ascii_digit()).parse(input)?;
+
+        if digits.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Digits,
+                input.span(),
+            )));
+        }
+
+        Ok((Digits(digits), input))
+    }
+}
+
+/// An ascii hex-digit characters sequence: [0-9a-f]+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct HexDigits<I>(pub I);
+
+impl<I> Parse<I> for HexDigits<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (digits, input) = take_while(|c: u8| c.is_ascii_hexdigit()).parse(input)?;
+
+        if digits.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::HexDigits,
+                input.span(),
+            )));
+        }
+
+        Ok((HexDigits(digits), input))
     }
 }
 
@@ -263,6 +315,7 @@ keyword!("while" => KeywordWhile);
 keyword!("match" => KeywordMatch);
 
 token!("fn" => TokenFn);
+token!("pub" => TokenPub);
 token!("crate" => TokenCrate);
 token!("super" => TokenSuper);
 token!("view" => TokenView);
@@ -273,6 +326,7 @@ token!("color" => TokenColor);
 token!("length" => TokenLength);
 token!("string" => TokenString);
 token!("angle" => TokenAngle);
+token!("rgb" => TokenRgb);
 token!("#" => TokenNumSign);
 token!("_" => TokenUnderscore);
 token!("bool" => TokenBool);
@@ -293,6 +347,21 @@ token!("u64" => TokenU64);
 token!("u128" => TokenU128);
 token!("f32" => TokenF32);
 token!("f64" => TokenF64);
+token!("bigint" => TokenBigInt);
+token!("bignum" => TokenBigNum);
+token!("ex" => TokenEx);
+token!("px" => TokenPx);
+token!("in" => TokenIn);
+token!("cm" => TokenCm);
+token!("mm" => TokenMm);
+token!("pt" => TokenPt);
+token!("pc" => TokenPc);
+token!("percent" => TokenPercent);
+token!("deg" => TokenDeg);
+token!("grad" => TokenGrad);
+token!("rad" => TokenRad);
+token!("0x" => TokenHexSign);
+token!("none" => TokenNone);
 
 token!("<=" => TokenLe);
 token!(">=" => TokenGe);
@@ -301,10 +370,18 @@ token!("/>" => TokenSlashGt);
 token!("!=" => TokenNotEq);
 token!("==" => TokenEqEq);
 token!("-=" => TokenMinusEq);
+token!("+=" => TokenPlusEq);
+token!("@" => TokenAt);
+token!("///" => TokenOuterline);
+token!("//" => TokenInline);
+token!("/*" => TokenBlockStart);
+token!("*/" => TokenBlockEnd);
+token!("/**" => TokenOuterBlockStart);
+token!("\n" => TokenNewLine);
 
 token_lookahead!(
-    SepAtAt::into_parser(),
-    "@" => TokenAt
+    TokenPlusEq::into_parser().map(|_|()),
+    "+" => TokenPlus
 );
 
 token_lookahead!(
@@ -334,6 +411,29 @@ token_lookahead!(
     ">" => TokenGt
 );
 
+/// Token `E` or `e`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct TokenExp<I>(pub I);
+
+impl<I> parserc::Parse<I> for TokenExp<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        keyword("E")
+            .or(keyword("e"))
+            .map(|v| Self(v))
+            .map_err(|input: I, _: parserc::Kind| {
+                LangError::expect(TokenKind::Token("E or e"), input.span())
+            })
+            .parse(input)
+    }
+}
+
+sep!("." => SepDot);
 sep!("," => SepComma);
 sep!("::" => SepColonColon);
 sep!(";" => SepSemiColon);
@@ -343,7 +443,6 @@ sep!("[" => SepLeftBracket);
 sep!("]" => SepRightBracket);
 sep!("{" => SepLeftBrace);
 sep!("}" => SepRightBrace);
-sep!("@@" => SepAtAt);
 sep!("->" => SepArrowRight);
 
 sep_lookahead!(SepColonColon::into_parser(),":" => SepColon);
@@ -370,14 +469,6 @@ mod tests {
         assert_eq!(
             TokenAt::parse(TokenStream::from("@a")),
             Ok((TokenAt(TokenStream::from("@")), TokenStream::from((1, "a"))))
-        );
-
-        assert_eq!(
-            TokenAt::parse(TokenStream::from("@@a")),
-            Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("@"),
-                Span { offset: 0, len: 3 }
-            )))
         );
 
         assert_eq!(
