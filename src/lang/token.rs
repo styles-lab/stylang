@@ -362,6 +362,7 @@ token!("grad" => TokenGrad);
 token!("rad" => TokenRad);
 token!("0x" => TokenHexSign);
 token!("none" => TokenNone);
+token!("*" => TokenStar);
 
 token!("<=" => TokenLe);
 token!(">=" => TokenGe);

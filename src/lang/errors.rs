@@ -121,7 +121,7 @@ pub enum ItemKind {
     #[error("use{0:?}")]
     Use(Span),
     #[error("comments{0:?}")]
-    Comments(Span),
+    MetaList(Span),
 }
 
 /// Error variants pointing to lexical tokens.
