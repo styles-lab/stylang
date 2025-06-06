@@ -2,7 +2,8 @@
 //!
 
 use parserc::{
-    ControlFlow, Delimiter, Kind, Parse, Parser, ParserExt, keyword, satisfy, take_while,
+    ControlFlow, Delimiter, Kind, Parse, Parser, ParserExt, derive_parse, keyword, satisfy,
+    take_while,
 };
 
 use crate::lang::errors::{LangError, TokenKind};
@@ -434,7 +435,6 @@ where
     }
 }
 
-sep!("." => SepDot);
 sep!("," => SepComma);
 sep!("::" => SepColonColon);
 sep!(";" => SepSemiColon);
@@ -445,6 +445,23 @@ sep!("]" => SepRightBracket);
 sep!("{" => SepLeftBrace);
 sep!("}" => SepRightBrace);
 sep!("->" => SepArrowRight);
+sep!("..=" => SepDotDotEq);
+sep!("||" => SepOrOr);
+sep!("|=" => SepOrEq);
+
+sep_lookahead!(
+    SepOrEq::into_parser().map(|_|())
+        .or(SepOrOr::into_parser().map(|_|())),
+    "|" => SepOr
+);
+
+sep_lookahead!(SepDotDotEq::into_parser(),".." => SepDotDot);
+
+sep_lookahead!(
+    SepDotDotEq::into_parser().map(|_|())
+        .or(SepDotDot::into_parser().map(|_|())),
+    "." => SepDot
+);
 
 sep_lookahead!(SepColonColon::into_parser(),":" => SepColon);
 
@@ -456,6 +473,20 @@ pub type Bracket<I, T> = Delimiter<SepLeftBracket<I>, SepRightBracket<I>, T>;
 
 /// Delimiter group `(...)`
 pub type Paren<I, T> = Delimiter<SepLeftParen<I>, SepRightParen<I>, T>;
+
+/// Limit types of a range, inclusive or exclusive.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub enum RangeLimits<I>
+where
+    I: LangInput,
+{
+    /// ..=
+    Closed(SepDotDotEq<I>),
+    /// ..
+    HalfOpen(SepDotDot<I>),
+}
 
 #[cfg(test)]
 mod tests {

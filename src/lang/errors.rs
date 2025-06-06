@@ -184,4 +184,6 @@ pub enum TokenKind {
     HexColor,
     #[error("`rgb-digits`")]
     RgbDigits,
+    #[error("`class,data,fn,...`")]
+    Item,
 }

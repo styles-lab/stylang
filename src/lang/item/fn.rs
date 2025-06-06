@@ -6,6 +6,7 @@ use crate::lang::{
     item::Visibility,
     meta::MetaList,
     patt::PattType,
+    stmt::Block,
     token::{Ident, KeywordExtern, KeywordFn, Paren, SepArrowRight, SepComma, SepSemiColon},
     ty::Type,
 };
@@ -21,6 +22,8 @@ pub enum Body<I>
 where
     I: LangInput,
 {
+    /// a stmts block.
+    Block(Block<I>),
     /// Virtual function body.
     SemiColon(SepSemiColon<I>),
 }
@@ -60,6 +63,7 @@ mod tests {
         input::TokenStream,
         item::{Body, ItemFn, Param},
         meta::{Attr, Comment, Meta, OuterLineDoc},
+        stmt::{Block, Stmts},
         token::*,
         ty::{Type, TypePath},
     };
@@ -302,6 +306,83 @@ mod tests {
                 },
                 TokenStream {
                     offset: 209,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn empty_fn() {
+        assert_eq!(
+            ItemFn::parse(TokenStream::from("fn test() {}")),
+            Ok((
+                ItemFn {
+                    meta_list: vec![],
+                    extern_keyword: None,
+                    vs: None,
+                    fn_keyword: KeywordFn(
+                        TokenStream {
+                            offset: 0,
+                            value: "fn"
+                        },
+                        S(TokenStream {
+                            offset: 2,
+                            value: " "
+                        })
+                    ),
+                    ident: Ident(TokenStream {
+                        offset: 3,
+                        value: "test"
+                    }),
+                    params: Delimiter {
+                        delimiter_start: SepLeftParen(
+                            None,
+                            TokenStream {
+                                offset: 7,
+                                value: "("
+                            },
+                            None
+                        ),
+                        body: Punctuated {
+                            pairs: vec![],
+                            tail: None
+                        },
+                        delimiter_end: SepRightParen(
+                            None,
+                            TokenStream {
+                                offset: 8,
+                                value: ")"
+                            },
+                            Some(S(TokenStream {
+                                offset: 9,
+                                value: " "
+                            }))
+                        )
+                    },
+                    return_ty: None,
+                    body: Body::Block(Block(Delimiter {
+                        delimiter_start: SepLeftBrace(
+                            None,
+                            TokenStream {
+                                offset: 10,
+                                value: "{"
+                            },
+                            None
+                        ),
+                        body: Stmts(vec![]),
+                        delimiter_end: SepRightBrace(
+                            None,
+                            TokenStream {
+                                offset: 11,
+                                value: "}"
+                            },
+                            None
+                        )
+                    }))
+                },
+                TokenStream {
+                    offset: 12,
                     value: ""
                 }
             ))
