@@ -8,7 +8,7 @@ use crate::lang::{
     patt::PattType,
     token::{
         Brace, Ident, KeywordClass, KeywordData, KeywordEnum, KeywordMod, KeywordUse, Paren,
-        SepColonColon, SepComma, SepSemiColon, TokenStar,
+        SepColonColon, SepComma, SepSemiColon, SepStar,
     },
     ty::Type,
 };
@@ -193,7 +193,7 @@ where
     I: LangInput,
 {
     Ident(Ident<I>),
-    Glob(TokenStar<I>),
+    Glob(SepStar<I>),
     Group(Brace<I, Punctuated<UsePath<I>, SepComma<I>>>),
 }
 
@@ -361,10 +361,14 @@ mod tests {
                                                     },
                                                     None
                                                 ),
-                                                UseSegment::Glob(TokenStar(TokenStream {
-                                                    offset: 16,
-                                                    value: "*"
-                                                }))
+                                                UseSegment::Glob(SepStar(
+                                                    None,
+                                                    TokenStream {
+                                                        offset: 16,
+                                                        value: "*"
+                                                    },
+                                                    None
+                                                ))
                                             )]
                                         }))
                                     },

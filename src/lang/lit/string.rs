@@ -1,6 +1,9 @@
-use parserc::{Parse, Parser, next, take_till};
+use parserc::{ControlFlow, Parse, Parser, next, take_till};
 
-use crate::lang::{errors::LangError, input::LangInput};
+use crate::lang::{
+    errors::{LangError, TokenKind},
+    input::LangInput,
+};
 
 /// literal string value, be like: `"...\"... "`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -33,21 +36,39 @@ where
             input.split_to(1);
         }
 
-        content.split_off(input.start() - content.start());
+        if let Some('"') = input.as_str().chars().next() {
+            content.split_off(input.start() - content.start());
 
-        input.split_to(1);
+            input.split_to(1);
 
-        Ok((LitStr(content), input))
+            Ok((LitStr(content), input))
+        } else {
+            Err(ControlFlow::Fatal(LangError::expect(
+                TokenKind::Token("\""),
+                input.span(),
+            )))
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use parserc::Parse;
+    use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::input::TokenStream;
+    use crate::lang::{errors::TokenKind, input::TokenStream};
 
     use super::*;
+
+    #[test]
+    fn incomplete_str() {
+        assert_eq!(
+            LitStr::parse(TokenStream::from(r#""hello"#)),
+            Err(ControlFlow::Fatal(LangError::expect(
+                TokenKind::Token("\""),
+                Span { offset: 6, len: 0 }
+            )))
+        );
+    }
 
     #[test]
     fn test_lit_str() {

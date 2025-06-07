@@ -193,6 +193,7 @@ macro_rules! token {
     };
 }
 
+#[allow(unused)]
 macro_rules! token_lookahead {
     ($lookahead: expr, $expr: literal => $ident: ident) => {
         /// Token: `
@@ -357,61 +358,21 @@ token!("cm" => TokenCm);
 token!("mm" => TokenMm);
 token!("pt" => TokenPt);
 token!("pc" => TokenPc);
-token!("percent" => TokenPercent);
 token!("deg" => TokenDeg);
 token!("grad" => TokenGrad);
 token!("rad" => TokenRad);
+token!("%" => TokenPercent);
 token!("0x" => TokenHexSign);
 token!("none" => TokenNone);
-token!("*" => TokenStar);
-
-token!("<=" => TokenLe);
-token!(">=" => TokenGe);
-token!("</" => TokenLtSlash);
-token!("/>" => TokenSlashGt);
-token!("!=" => TokenNotEq);
-token!("==" => TokenEqEq);
-token!("-=" => TokenMinusEq);
-token!("+=" => TokenPlusEq);
 token!("@" => TokenAt);
+
+token!("/*" => TokenSlashEq);
 token!("///" => TokenOuterline);
 token!("//" => TokenInline);
 token!("/*" => TokenBlockStart);
 token!("*/" => TokenBlockEnd);
 token!("/**" => TokenOuterBlockStart);
 token!("\n" => TokenNewLine);
-
-token_lookahead!(
-    TokenPlusEq::into_parser().map(|_|()),
-    "+" => TokenPlus
-);
-
-token_lookahead!(
-    SepArrowRight::into_parser().map(|_|())
-        .or(TokenMinusEq::into_parser().map(|_|())),
-    "-" => TokenMinus
-);
-
-token_lookahead!(
-    TokenEqEq::into_parser(),
-    "=" => TokenEq
-);
-
-token_lookahead!(
-    TokenNotEq::into_parser(),
-    "!" => TokenNot
-);
-
-token_lookahead!(
-    TokenLe::into_parser().map(|_|())
-        .or(TokenLtSlash::into_parser().map(|_|())),
-    "<" => TokenLt
-);
-
-token_lookahead!(
-    TokenGe::into_parser(),
-    ">" => TokenGt
-);
 
 /// Token `E` or `e`
 #[derive(Debug, PartialEq, Clone)]
@@ -435,6 +396,15 @@ where
     }
 }
 
+sep!("<=" => SepLe);
+sep!(">=" => SepGe);
+sep!("</" => SepLtSlash);
+sep!("/>" => SepSlashGt);
+sep!("!=" => SepNotEq);
+sep!("==" => SepEqEq);
+sep!("-=" => SepMinusEq);
+sep!("*=" => SepStarEq);
+sep!("+=" => SepPlusEq);
 sep!("," => SepComma);
 sep!("::" => SepColonColon);
 sep!(";" => SepSemiColon);
@@ -448,6 +418,82 @@ sep!("->" => SepArrowRight);
 sep!("..=" => SepDotDotEq);
 sep!("||" => SepOrOr);
 sep!("|=" => SepOrEq);
+sep!("%=" => SepPercentEq);
+sep!("^=" => SepCaretEq);
+sep!("&=" => SepAndEq);
+sep!("/=" => SepSlashEq);
+sep!("<<=" => SepShlEq);
+sep!(">>=" => SepShrEq);
+sep!("&&" => SepAndAnd);
+sep!("!=" => SepNe);
+
+sep_lookahead!(
+    SepShlEq::into_parser().map(|_|()),
+    "<<" => SepShl
+);
+
+sep_lookahead!(
+    SepShrEq::into_parser().map(|_|()),
+    ">>" => SepShr
+);
+
+sep_lookahead!(
+    SepAndAnd::into_parser().map(|_|()),
+    "&" => SepAnd
+);
+
+sep_lookahead!(
+    SepCaretEq::into_parser().map(|_|()),
+    "^" => SepCaret
+);
+
+sep_lookahead!(
+    SepPercentEq::into_parser().map(|_|()),
+    "%" => SepPercent
+);
+
+sep_lookahead!(
+    SepSlashEq::into_parser().map(|_|())
+        .or(SepSlashGt::into_parser().map(|_|())),
+    "/" => SepSlash
+);
+
+sep_lookahead!(
+    SepStarEq::into_parser().map(|_|()),
+    "*" => SepStar
+);
+
+sep_lookahead!(
+    SepPlusEq::into_parser().map(|_|()),
+    "+" => SepPlus
+);
+
+sep_lookahead!(
+    SepArrowRight::into_parser().map(|_|())
+        .or(SepMinusEq::into_parser().map(|_|())),
+    "-" => SepMinus
+);
+
+sep_lookahead!(
+    SepEqEq::into_parser(),
+    "=" => SepEq
+);
+
+sep_lookahead!(
+   SepNotEq::into_parser(),
+    "!" => SepNot
+);
+
+sep_lookahead!(
+    SepLe::into_parser().map(|_|())
+        .or(SepLtSlash::into_parser().map(|_|())),
+    "<" => SepLt
+);
+
+sep_lookahead!(
+    SepGe::into_parser(),
+    ">" => SepGt
+);
 
 sep_lookahead!(
     SepOrEq::into_parser().map(|_|())
@@ -512,7 +558,7 @@ mod tests {
         );
 
         assert_eq!(
-            TokenMinus::parse(TokenStream::from("->")),
+            SepMinus::parse(TokenStream::from("->")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("-"),
                 Span { offset: 0, len: 2 }
@@ -520,7 +566,7 @@ mod tests {
         );
 
         assert_eq!(
-            TokenMinus::parse(TokenStream::from("-=")),
+            SepMinus::parse(TokenStream::from("-=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("-"),
                 Span { offset: 0, len: 2 }
@@ -528,7 +574,7 @@ mod tests {
         );
 
         assert_eq!(
-            TokenEq::parse(TokenStream::from("==")),
+            SepEq::parse(TokenStream::from("==")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("="),
                 Span { offset: 0, len: 2 }
@@ -536,7 +582,7 @@ mod tests {
         );
 
         assert_eq!(
-            TokenNot::parse(TokenStream::from("!=")),
+            SepNot::parse(TokenStream::from("!=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("!"),
                 Span { offset: 0, len: 2 }
@@ -544,7 +590,7 @@ mod tests {
         );
 
         assert_eq!(
-            TokenLt::parse(TokenStream::from("<=")),
+            SepLt::parse(TokenStream::from("<=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("<"),
                 Span { offset: 0, len: 2 }
@@ -552,7 +598,7 @@ mod tests {
         );
 
         assert_eq!(
-            TokenGt::parse(TokenStream::from(">=")),
+            SepGt::parse(TokenStream::from(">=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token(">"),
                 Span { offset: 0, len: 2 }

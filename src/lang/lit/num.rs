@@ -16,9 +16,9 @@ where
     I: LangInput,
 {
     /// `+`
-    Plus(TokenPlus<I>),
+    Plus(SepPlus<I>),
     /// `-`
-    Minus(TokenMinus<I>),
+    Minus(SepMinus<I>),
 }
 
 /// Exponent part of literial number.
@@ -157,7 +157,7 @@ mod tests {
             LitNum::parse(TokenStream::from("+1")),
             Ok((
                 LitNum {
-                    sign: Some(Sign::Plus(TokenPlus(TokenStream::from("+")))),
+                    sign: Some(Sign::Plus(SepPlus(None, TokenStream::from("+"), None))),
                     trunc: Some(Digits(TokenStream::from((1, "1")))),
                     dot: None,
                     fract: None,
@@ -172,7 +172,7 @@ mod tests {
             LitNum::parse(TokenStream::from("+1ex")),
             Ok((
                 LitNum {
-                    sign: Some(Sign::Plus(TokenPlus(TokenStream::from("+")))),
+                    sign: Some(Sign::Plus(SepPlus(None, TokenStream::from("+"), None))),
                     trunc: Some(Digits(TokenStream::from((1, "1")))),
                     dot: None,
                     fract: None,
@@ -190,7 +190,7 @@ mod tests {
             LitNum::parse(TokenStream::from("+.123e10")),
             Ok((
                 LitNum {
-                    sign: Some(Sign::Plus(TokenPlus(TokenStream::from("+")))),
+                    sign: Some(Sign::Plus(SepPlus(None, TokenStream::from("+"), None))),
                     trunc: None,
                     dot: Some(SepDot(None, TokenStream::from((1, ".")), None)),
                     fract: Some(Digits(TokenStream::from((2, "123")))),

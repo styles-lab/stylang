@@ -1,0 +1,427 @@
+use parserc::{ControlFlow, Parse, Parser, ParserExt, Punctuated, derive_parse};
+
+use crate::lang::{
+    errors::{LangError, TokenKind},
+    expr::{BinOp, ExprBinary, ExprPath, ExprUnary},
+    input::LangInput,
+    meta::MetaList,
+    stmt::Block,
+    token::{Brace, Ident, Paren, RangeLimits, SepColon, SepComma},
+    ty::TypePath,
+};
+
+/// A group of stmts with optional meta-data list.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprBlock<I>
+where
+    I: LangInput,
+{
+    /// The leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// Stmts group by `{...}`
+    pub block: Block<I>,
+}
+
+/// A range expr: `a..b`,`a..=`,`..10`,..
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ExprRange<I>
+where
+    I: LangInput,
+{
+    // start expr.
+    pub start: Option<Box<Expr<I>>>,
+    /// rnage token: `..=` or `..`
+    pub limits: RangeLimits<I>,
+    /// end expr.
+    pub end: Option<Box<Expr<I>>>,
+}
+
+impl<I> Parse<I> for ExprRange<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (start, input) = Operand::into_parser()
+            .map(|v| Expr::from(v))
+            .boxed()
+            .ok()
+            .parse(input)?;
+
+        let (limits, input) = RangeLimits::parse(input)?;
+
+        let (end, input) = Operand::into_parser()
+            .map(|v| Expr::from(v))
+            .boxed()
+            .ok()
+            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+            .parse(input)?;
+
+        if start.is_none() && end.is_none() {
+            return Err(ControlFlow::Fatal(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        Ok((Self { start, limits, end }, input))
+    }
+}
+
+/// A tuple expression: (a, b, c, d).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprTuple<I>(
+    pub MetaList<I>,
+    pub Paren<I, Punctuated<Expr<I>, SepComma<I>>>,
+)
+where
+    I: LangInput;
+
+/// A name filed init expr: a: 10,
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprField<I>
+where
+    I: LangInput,
+{
+    /// parameter name.
+    pub ident: Ident<I>,
+    /// seperate token: `:`
+    pub sep: SepColon<I>,
+    /// type declaration clause.
+    pub value: Box<Expr<I>>,
+}
+/// fields init expr.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub enum Fields<I>
+where
+    I: LangInput,
+{
+    Name(Brace<I, Punctuated<(Ident<I>, SepColon<I>, Expr<I>), SepComma<I>>>),
+    Uname(Paren<I, Punctuated<Expr<I>, SepComma<I>>>),
+}
+
+/// A tuple expression: (a, b, c, d).
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprStruct<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// type path.
+    pub ty: TypePath<I>,
+    /// field init expr.
+    pub fields: Fields<I>,
+}
+
+/// operand for binop/ unop.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub(super) enum Operand<I>
+where
+    I: LangInput,
+{
+    Struct(ExprStruct<I>),
+    Block(ExprBlock<I>),
+    Path(ExprPath<I>),
+    Unary(ExprUnary<I>),
+}
+
+impl<I> From<Operand<I>> for Expr<I>
+where
+    I: LangInput,
+{
+    fn from(value: Operand<I>) -> Self {
+        match value {
+            Operand::Block(expr_block) => Self::Block(expr_block),
+            Operand::Path(expr_path) => Self::Path(expr_path),
+            Operand::Unary(expr_unary) => Self::Unary(expr_unary),
+            Operand::Struct(expr_struct) => Self::Struct(expr_struct),
+        }
+    }
+}
+
+// Expr parser.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum Expr<I>
+where
+    I: LangInput,
+{
+    Struct(ExprStruct<I>),
+    Range(ExprRange<I>),
+    Binary(ExprBinary<I>),
+    Unary(ExprUnary<I>),
+    Block(ExprBlock<I>),
+    Path(ExprPath<I>),
+}
+
+impl<I> Parse<I> for Expr<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (range, input) = ExprRange::into_parser().ok().parse(input)?;
+
+        if let Some(range) = range {
+            return Ok((Self::Range(range), input));
+        }
+
+        let (start, mut input) = Operand::parse(input)?;
+
+        let mut rest = vec![];
+
+        loop {
+            let op;
+
+            (op, input) = BinOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            let oprand;
+            (oprand, input) = Operand::into_parser()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            rest.push((op, oprand.into()));
+        }
+
+        if rest.is_empty() {
+            Ok((start.into(), input))
+        } else {
+            Ok((
+                Expr::Binary(ExprBinary {
+                    start: Box::new(start.into()),
+                    rest,
+                }),
+                input,
+            ))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use parserc::{Delimiter, Parse};
+
+    use crate::lang::{
+        expr::{Expr, PathStart},
+        input::TokenStream,
+        lit::{Lit, LitNum, LitStr},
+        token::*,
+    };
+
+    use super::*;
+
+    #[test]
+    fn expr_struct() {
+        assert_eq!(
+            Expr::parse(TokenStream::from(r#"Exp { a: 1, b: "hello"}"#)),
+            Ok((
+                Expr::Struct(ExprStruct {
+                    meta_list: vec![],
+                    ty: TypePath {
+                        first: Ident(TokenStream {
+                            offset: 0,
+                            value: "Exp"
+                        }),
+                        rest: vec![]
+                    },
+                    fields: Fields::Name(Delimiter {
+                        delimiter_start: SepLeftBrace(
+                            Some(S(TokenStream {
+                                offset: 3,
+                                value: " "
+                            })),
+                            TokenStream {
+                                offset: 4,
+                                value: "{"
+                            },
+                            Some(S(TokenStream {
+                                offset: 5,
+                                value: " "
+                            }))
+                        ),
+                        body: Punctuated {
+                            pairs: vec![(
+                                (
+                                    Ident(TokenStream {
+                                        offset: 6,
+                                        value: "a"
+                                    }),
+                                    SepColon(
+                                        None,
+                                        TokenStream {
+                                            offset: 7,
+                                            value: ":"
+                                        },
+                                        Some(S(TokenStream {
+                                            offset: 8,
+                                            value: " "
+                                        }))
+                                    ),
+                                    Expr::Path(ExprPath {
+                                        meta_list: vec![],
+                                        first: PathStart::Lit(Lit::Num(LitNum {
+                                            sign: None,
+                                            trunc: Some(Digits(TokenStream {
+                                                offset: 9,
+                                                value: "1"
+                                            })),
+                                            dot: None,
+                                            fract: None,
+                                            exp: None,
+                                            unit: None
+                                        })),
+                                        rest: vec![]
+                                    })
+                                ),
+                                SepComma(
+                                    None,
+                                    TokenStream {
+                                        offset: 10,
+                                        value: ","
+                                    },
+                                    Some(S(TokenStream {
+                                        offset: 11,
+                                        value: " "
+                                    }))
+                                )
+                            )],
+                            tail: Some(Box::new((
+                                Ident(TokenStream {
+                                    offset: 12,
+                                    value: "b"
+                                }),
+                                SepColon(
+                                    None,
+                                    TokenStream {
+                                        offset: 13,
+                                        value: ":"
+                                    },
+                                    Some(S(TokenStream {
+                                        offset: 14,
+                                        value: " "
+                                    }))
+                                ),
+                                Expr::Path(ExprPath {
+                                    meta_list: vec![],
+                                    first: PathStart::Lit(Lit::String(LitStr(TokenStream {
+                                        offset: 16,
+                                        value: "hello"
+                                    }))),
+                                    rest: vec![]
+                                })
+                            )))
+                        },
+                        delimiter_end: SepRightBrace(
+                            None,
+                            TokenStream {
+                                offset: 22,
+                                value: "}"
+                            },
+                            None
+                        )
+                    })
+                }),
+                TokenStream {
+                    offset: 23,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn expr_tuple_struct() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("Some(a)")),
+            Ok((
+                Expr::Struct(ExprStruct {
+                    meta_list: vec![],
+                    ty: TypePath {
+                        first: Ident(TokenStream {
+                            offset: 0,
+                            value: "Some"
+                        }),
+                        rest: vec![]
+                    },
+                    fields: Fields::Uname(Delimiter {
+                        delimiter_start: SepLeftParen(
+                            None,
+                            TokenStream {
+                                offset: 4,
+                                value: "("
+                            },
+                            None
+                        ),
+                        body: Punctuated {
+                            pairs: vec![],
+                            tail: Some(Box::new(Expr::Path(ExprPath {
+                                meta_list: vec![],
+                                first: PathStart::TypePath(TypePath {
+                                    first: Ident(TokenStream {
+                                        offset: 5,
+                                        value: "a"
+                                    }),
+                                    rest: vec![]
+                                }),
+                                rest: vec![]
+                            })))
+                        },
+                        delimiter_end: SepRightParen(
+                            None,
+                            TokenStream {
+                                offset: 6,
+                                value: ")"
+                            },
+                            None
+                        )
+                    })
+                }),
+                TokenStream {
+                    offset: 7,
+                    value: ""
+                }
+            ))
+        );
+        assert_eq!(
+            Expr::parse(TokenStream::from("None")),
+            Ok((
+                Expr::Path(ExprPath {
+                    meta_list: vec![],
+                    first: PathStart::TypePath(TypePath {
+                        first: Ident(TokenStream {
+                            offset: 0,
+                            value: "None"
+                        }),
+                        rest: vec![]
+                    }),
+                    rest: vec![]
+                }),
+                TokenStream {
+                    offset: 4,
+                    value: ""
+                }
+            ))
+        );
+    }
+}
