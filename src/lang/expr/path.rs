@@ -2,7 +2,7 @@ use parserc::{Punctuated, derive_parse};
 
 use crate::lang::{
     errors::LangError,
-    expr::{Expr, ExprRepeat, ExprTuple},
+    expr::{Expr, ExprBlock, ExprIf, ExprRepeat, ExprStruct, ExprTuple},
     input::LangInput,
     lit::Lit,
     meta::MetaList,
@@ -18,6 +18,12 @@ pub enum PathStart<I>
 where
     I: LangInput,
 {
+    /// `ident {...}`
+    Struct(ExprStruct<I>),
+    /// `if {...} else ...`
+    If(ExprIf<I>),
+    /// `{...}`
+    Block(ExprBlock<I>),
     /// `std::text::Font`
     TypePath(MetaList<I>, TypePath<I>),
     /// 1,"hello",...
@@ -104,6 +110,9 @@ where
                 PathStart::Lit(metas, lit) => Self::Lit(metas, lit),
                 PathStart::Tuple(expr_tuple) => Self::Tuple(expr_tuple),
                 PathStart::Repeat(expr_repeat) => Self::Repeat(expr_repeat),
+                PathStart::Struct(expr_struct) => Self::Struct(expr_struct),
+                PathStart::If(expr_if) => Self::If(expr_if),
+                PathStart::Block(expr_block) => Self::Block(expr_block),
             }
         } else {
             Self::Path(value)

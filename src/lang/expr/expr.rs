@@ -2,7 +2,9 @@ use parserc::{ControlFlow, Parse, Parser, ParserExt, Punctuated, derive_parse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
-    expr::{BinOp, ExprBinary, ExprIf, ExprLoop, ExprPath, ExprUnary, ExprWhile, ExprXml},
+    expr::{
+        BinOp, ExprBinary, ExprIf, ExprLoop, ExprPath, ExprUnary, ExprWhile, ExprXml, XmlStart,
+    },
     input::LangInput,
     lit::Lit,
     meta::MetaList,
@@ -224,9 +226,6 @@ where
             .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
             .or(ExprWhile::into_parser().map(|v| Self::While(v)))
             .or(ExprXml::into_parser().map(|v| Self::Xml(v)))
-            .or(ExprIf::into_parser().map(|v| Self::If(v)))
-            .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
-            .or(ExprStruct::into_parser().map(|v| Self::Struct(v)))
             .ok()
             .parse(input)?;
 
@@ -239,12 +238,21 @@ where
         let mut rest = vec![];
 
         loop {
-            let op;
-            (op, input) = BinOp::into_parser().ok().parse(input)?;
+            let (op, op_input) = BinOp::into_parser().ok().parse(input.clone())?;
 
             let Some(op) = op else {
                 break;
             };
+
+            if let BinOp::Lt(_) = op {
+                let (xml_start, _) = XmlStart::into_parser().ok().parse(input.clone())?;
+
+                if xml_start.is_some() {
+                    break;
+                }
+            }
+
+            input = op_input;
 
             let oprand;
             (oprand, input) = Operand::into_parser()

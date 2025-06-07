@@ -71,7 +71,6 @@ where
     /// value list.
     pub values: Vec<XmlAttr<I>>,
     /// end token: `>` or `/>`
-    #[fatal]
     pub delimiter_end: XmlStartDelimiterEnd<I>,
 }
 
