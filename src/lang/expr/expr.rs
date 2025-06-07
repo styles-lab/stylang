@@ -226,6 +226,7 @@ where
             .or(ExprXml::into_parser().map(|v| Self::Xml(v)))
             .or(ExprIf::into_parser().map(|v| Self::If(v)))
             .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
+            .or(ExprStruct::into_parser().map(|v| Self::Struct(v)))
             .ok()
             .parse(input)?;
 
