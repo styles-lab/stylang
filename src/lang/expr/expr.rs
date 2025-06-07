@@ -2,11 +2,15 @@ use parserc::{ControlFlow, Parse, Parser, ParserExt, Punctuated, derive_parse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
-    expr::{BinOp, ExprBinary, ExprPath, ExprUnary},
+    expr::{BinOp, ExprBinary, ExprIf, ExprLoop, ExprPath, ExprUnary, ExprWhile},
     input::LangInput,
     meta::MetaList,
+    patt::Patt,
     stmt::Block,
-    token::{Brace, Ident, Paren, RangeLimits, SepColon, SepComma},
+    token::{
+        Brace, Bracket, Digits, Ident, KeywordLet, Paren, RangeLimits, SepColon, SepComma, SepEq,
+        SepSemiColon,
+    },
     ty::TypePath,
 };
 
@@ -96,6 +100,7 @@ where
     /// seperate token: `:`
     pub sep: SepColon<I>,
     /// type declaration clause.
+    #[fatal]
     pub value: Box<Expr<I>>,
 }
 /// fields init expr.
@@ -126,6 +131,37 @@ where
     pub fields: Fields<I>,
 }
 
+/// Repeat parser: `[0u8;N]`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprRepeat<I>(pub Bracket<I, (Box<Expr<I>>, SepSemiColon<I>, Digits<I>)>)
+where
+    I: LangInput;
+
+/// Repeat parser: `[0u8;N]`
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct ExprLet<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// keyword `let`
+    pub keyword: KeywordLet<I>,
+    /// let pattern.
+    #[fatal]
+    pub patt: Patt<I>,
+    /// token `=`
+    #[fatal]
+    pub eq_token: SepEq<I>,
+    /// init expr.
+    #[fatal]
+    pub expr: Box<Expr<I>>,
+}
+
 /// operand for binop/ unop.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -135,9 +171,12 @@ where
     I: LangInput,
 {
     Struct(ExprStruct<I>),
+    Tuple(ExprTuple<I>),
     Block(ExprBlock<I>),
     Path(ExprPath<I>),
     Unary(ExprUnary<I>),
+    Repeat(ExprRepeat<I>),
+    If(ExprIf<I>),
 }
 
 impl<I> From<Operand<I>> for Expr<I>
@@ -150,6 +189,9 @@ where
             Operand::Path(expr_path) => Self::Path(expr_path),
             Operand::Unary(expr_unary) => Self::Unary(expr_unary),
             Operand::Struct(expr_struct) => Self::Struct(expr_struct),
+            Operand::Tuple(v) => Self::Tuple(v),
+            Operand::Repeat(v) => Self::Repeat(v),
+            Operand::If(v) => Self::If(v),
         }
     }
 }
@@ -162,11 +204,17 @@ where
     I: LangInput,
 {
     Struct(ExprStruct<I>),
+    Tuple(ExprTuple<I>),
     Range(ExprRange<I>),
     Binary(ExprBinary<I>),
     Unary(ExprUnary<I>),
     Block(ExprBlock<I>),
     Path(ExprPath<I>),
+    Repeat(ExprRepeat<I>),
+    If(ExprIf<I>),
+    Let(ExprLet<I>),
+    Loop(ExprLoop<I>),
+    While(ExprWhile<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -176,10 +224,16 @@ where
     type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-        let (range, input) = ExprRange::into_parser().ok().parse(input)?;
+        let (expr, input) = ExprRange::into_parser()
+            .map(|v| Self::Range(v))
+            .or(ExprLet::into_parser().map(|v| Self::Let(v)))
+            .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
+            .or(ExprWhile::into_parser().map(|v| Self::While(v)))
+            .ok()
+            .parse(input)?;
 
-        if let Some(range) = range {
-            return Ok((Self::Range(range), input));
+        if let Some(expr) = expr {
+            return Ok((expr, input));
         }
 
         let (start, mut input) = Operand::parse(input)?;
@@ -419,6 +473,203 @@ mod tests {
                 }),
                 TokenStream {
                     offset: 4,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn expr_tuple() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("a * (b + c)")),
+            Ok((
+                Expr::Binary(ExprBinary {
+                    start: Box::new(Expr::Path(ExprPath {
+                        meta_list: vec![],
+                        first: PathStart::TypePath(TypePath {
+                            first: Ident(TokenStream {
+                                offset: 0,
+                                value: "a"
+                            }),
+                            rest: vec![]
+                        }),
+                        rest: vec![]
+                    })),
+                    rest: vec![(
+                        BinOp::Mul(SepStar(
+                            Some(S(TokenStream {
+                                offset: 1,
+                                value: " "
+                            })),
+                            TokenStream {
+                                offset: 2,
+                                value: "*"
+                            },
+                            Some(S(TokenStream {
+                                offset: 3,
+                                value: " "
+                            }))
+                        )),
+                        Expr::Tuple(ExprTuple(
+                            vec![],
+                            Delimiter {
+                                delimiter_start: SepLeftParen(
+                                    None,
+                                    TokenStream {
+                                        offset: 4,
+                                        value: "("
+                                    },
+                                    None
+                                ),
+                                body: Punctuated {
+                                    pairs: vec![],
+                                    tail: Some(Box::new(Expr::Binary(ExprBinary {
+                                        start: Box::new(Expr::Path(ExprPath {
+                                            meta_list: vec![],
+                                            first: PathStart::TypePath(TypePath {
+                                                first: Ident(TokenStream {
+                                                    offset: 5,
+                                                    value: "b"
+                                                }),
+                                                rest: vec![]
+                                            }),
+                                            rest: vec![]
+                                        })),
+                                        rest: vec![(
+                                            BinOp::Add(SepPlus(
+                                                Some(S(TokenStream {
+                                                    offset: 6,
+                                                    value: " "
+                                                })),
+                                                TokenStream {
+                                                    offset: 7,
+                                                    value: "+"
+                                                },
+                                                Some(S(TokenStream {
+                                                    offset: 8,
+                                                    value: " "
+                                                }))
+                                            )),
+                                            Expr::Path(ExprPath {
+                                                meta_list: vec![],
+                                                first: PathStart::TypePath(TypePath {
+                                                    first: Ident(TokenStream {
+                                                        offset: 9,
+                                                        value: "c"
+                                                    }),
+                                                    rest: vec![]
+                                                }),
+                                                rest: vec![]
+                                            })
+                                        )]
+                                    })))
+                                },
+                                delimiter_end: SepRightParen(
+                                    None,
+                                    TokenStream {
+                                        offset: 10,
+                                        value: ")"
+                                    },
+                                    None
+                                )
+                            }
+                        ))
+                    )]
+                }),
+                TokenStream {
+                    offset: 11,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn expr_repeat() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("[Some(1);10]")),
+            Ok((
+                Expr::Repeat(ExprRepeat(Delimiter {
+                    delimiter_start: SepLeftBracket(
+                        None,
+                        TokenStream {
+                            offset: 0,
+                            value: "["
+                        },
+                        None
+                    ),
+                    body: (
+                        Box::new(Expr::Struct(ExprStruct {
+                            meta_list: vec![],
+                            ty: TypePath {
+                                first: Ident(TokenStream {
+                                    offset: 1,
+                                    value: "Some"
+                                }),
+                                rest: vec![]
+                            },
+                            fields: Fields::Uname(Delimiter {
+                                delimiter_start: SepLeftParen(
+                                    None,
+                                    TokenStream {
+                                        offset: 5,
+                                        value: "("
+                                    },
+                                    None
+                                ),
+                                body: Punctuated {
+                                    pairs: vec![],
+                                    tail: Some(Box::new(Expr::Path(ExprPath {
+                                        meta_list: vec![],
+                                        first: PathStart::Lit(Lit::Num(LitNum {
+                                            sign: None,
+                                            trunc: Some(Digits(TokenStream {
+                                                offset: 6,
+                                                value: "1"
+                                            })),
+                                            dot: None,
+                                            fract: None,
+                                            exp: None,
+                                            unit: None
+                                        })),
+                                        rest: vec![]
+                                    })))
+                                },
+                                delimiter_end: SepRightParen(
+                                    None,
+                                    TokenStream {
+                                        offset: 7,
+                                        value: ")"
+                                    },
+                                    None
+                                )
+                            })
+                        })),
+                        SepSemiColon(
+                            None,
+                            TokenStream {
+                                offset: 8,
+                                value: ";"
+                            },
+                            None
+                        ),
+                        Digits(TokenStream {
+                            offset: 9,
+                            value: "10"
+                        })
+                    ),
+                    delimiter_end: SepRightBracket(
+                        None,
+                        TokenStream {
+                            offset: 11,
+                            value: "]"
+                        },
+                        None
+                    )
+                })),
+                TokenStream {
+                    offset: 12,
                     value: ""
                 }
             ))

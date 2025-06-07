@@ -32,7 +32,7 @@ pub struct PathCall<I>(pub Paren<I, Punctuated<Expr<I>, SepComma<I>>>)
 where
     I: LangInput;
 
-/// `Path` call segement parser.
+/// index parser for `Path` expr.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
