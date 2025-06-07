@@ -2,7 +2,7 @@ use parserc::{ControlFlow, Parse, Parser, ParserExt, Punctuated, derive_parse};
 
 use crate::lang::{
     errors::{LangError, TokenKind},
-    expr::{BinOp, ExprBinary, ExprIf, ExprLoop, ExprPath, ExprUnary, ExprWhile},
+    expr::{BinOp, ExprBinary, ExprIf, ExprLoop, ExprPath, ExprUnary, ExprWhile, ExprXml},
     input::LangInput,
     meta::MetaList,
     patt::Patt,
@@ -153,7 +153,7 @@ where
     pub keyword: KeywordLet<I>,
     /// let pattern.
     #[fatal]
-    pub patt: Patt<I>,
+    pub patt: (MetaList<I>, Patt<I>),
     /// token `=`
     #[fatal]
     pub eq_token: SepEq<I>,
@@ -172,11 +172,9 @@ where
 {
     Struct(ExprStruct<I>),
     Tuple(ExprTuple<I>),
-    Block(ExprBlock<I>),
     Path(ExprPath<I>),
     Unary(ExprUnary<I>),
     Repeat(ExprRepeat<I>),
-    If(ExprIf<I>),
 }
 
 impl<I> From<Operand<I>> for Expr<I>
@@ -185,13 +183,11 @@ where
 {
     fn from(value: Operand<I>) -> Self {
         match value {
-            Operand::Block(expr_block) => Self::Block(expr_block),
             Operand::Path(expr_path) => Self::Path(expr_path),
             Operand::Unary(expr_unary) => Self::Unary(expr_unary),
             Operand::Struct(expr_struct) => Self::Struct(expr_struct),
             Operand::Tuple(v) => Self::Tuple(v),
             Operand::Repeat(v) => Self::Repeat(v),
-            Operand::If(v) => Self::If(v),
         }
     }
 }
@@ -215,6 +211,7 @@ where
     Let(ExprLet<I>),
     Loop(ExprLoop<I>),
     While(ExprWhile<I>),
+    Xml(ExprXml<I>),
 }
 
 impl<I> Parse<I> for Expr<I>
@@ -226,9 +223,12 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (expr, input) = ExprRange::into_parser()
             .map(|v| Self::Range(v))
+            .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
             .or(ExprLet::into_parser().map(|v| Self::Let(v)))
+            .or(ExprIf::into_parser().map(|v| Self::If(v)))
             .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
             .or(ExprWhile::into_parser().map(|v| Self::While(v)))
+            .or(ExprXml::into_parser().map(|v| Self::Xml(v)))
             .ok()
             .parse(input)?;
 
@@ -280,7 +280,10 @@ mod tests {
         expr::{Expr, PathStart},
         input::TokenStream,
         lit::{Lit, LitNum, LitStr},
+        meta::{Attr, Meta},
+        patt::PattType,
         token::*,
+        ty::Type,
     };
 
     use super::*;
@@ -671,6 +674,119 @@ mod tests {
                 TokenStream {
                     offset: 12,
                     value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn expr_let() {
+        assert_eq!(
+            Expr::parse(TokenStream::from(
+                "let @state @option value: string = none;"
+            )),
+            Ok((
+                Expr::Let(ExprLet {
+                    meta_list: vec![],
+                    keyword: KeywordLet(
+                        TokenStream {
+                            offset: 0,
+                            value: "let"
+                        },
+                        S(TokenStream {
+                            offset: 3,
+                            value: " "
+                        })
+                    ),
+                    patt: (
+                        vec![
+                            Meta::Attr(Attr {
+                                token: (
+                                    None,
+                                    TokenAt(TokenStream {
+                                        offset: 4,
+                                        value: "@"
+                                    })
+                                ),
+                                ident: Ident(TokenStream {
+                                    offset: 5,
+                                    value: "state"
+                                }),
+                                params: None
+                            }),
+                            Meta::Attr(Attr {
+                                token: (
+                                    Some(S(TokenStream {
+                                        offset: 10,
+                                        value: " "
+                                    })),
+                                    TokenAt(TokenStream {
+                                        offset: 11,
+                                        value: "@"
+                                    })
+                                ),
+                                ident: Ident(TokenStream {
+                                    offset: 12,
+                                    value: "option"
+                                }),
+                                params: None
+                            }),
+                            Meta::S(S(TokenStream {
+                                offset: 18,
+                                value: " "
+                            }))
+                        ],
+                        Patt::Type(PattType {
+                            ident: Ident(TokenStream {
+                                offset: 19,
+                                value: "value"
+                            }),
+                            sep: SepColon(
+                                None,
+                                TokenStream {
+                                    offset: 24,
+                                    value: ":"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 25,
+                                    value: " "
+                                }))
+                            ),
+                            ty: Type::String(TokenString(TokenStream {
+                                offset: 26,
+                                value: "string"
+                            }))
+                        })
+                    ),
+                    eq_token: SepEq(
+                        Some(S(TokenStream {
+                            offset: 32,
+                            value: " "
+                        })),
+                        TokenStream {
+                            offset: 33,
+                            value: "="
+                        },
+                        Some(S(TokenStream {
+                            offset: 34,
+                            value: " "
+                        }))
+                    ),
+                    expr: Box::new(Expr::Path(ExprPath {
+                        meta_list: vec![],
+                        first: PathStart::TypePath(TypePath {
+                            first: Ident(TokenStream {
+                                offset: 35,
+                                value: "none"
+                            }),
+                            rest: vec![]
+                        }),
+                        rest: vec![]
+                    }))
+                }),
+                TokenStream {
+                    offset: 39,
+                    value: ";"
                 }
             ))
         );

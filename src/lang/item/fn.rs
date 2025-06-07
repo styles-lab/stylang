@@ -12,7 +12,18 @@ use crate::lang::{
 };
 
 /// Formal parameter for [`ItemFn`]
-pub type Param<I> = PattType<I>;
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
+pub struct Param<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// field type ascription pattern.
+    pub patt: PattType<I>,
+}
 
 /// Body block for [`ItemFn`]
 #[derive(Debug, PartialEq, Clone)]
@@ -63,6 +74,7 @@ mod tests {
         input::TokenStream,
         item::{Body, ItemFn, Param},
         meta::{Attr, Comment, Meta, OuterLineDoc},
+        patt::PattType,
         stmt::{Block, Stmts},
         token::*,
         ty::{Type, TypePath},
@@ -165,28 +177,31 @@ mod tests {
                             pairs: vec![
                                 (
                                     Param {
-                                        ident: Ident(TokenStream {
-                                            offset: 142,
-                                            value: "label"
-                                        }),
-                                        sep: SepColon(
-                                            None,
-                                            TokenStream {
-                                                offset: 147,
-                                                value: ":"
-                                            },
-                                            Some(S(TokenStream {
-                                                offset: 148,
-                                                value: " "
-                                            }))
-                                        ),
-                                        ty: Type::Path(TypePath {
-                                            first: Ident(TokenStream {
-                                                offset: 149,
-                                                value: "Label"
+                                        meta_list: Default::default(),
+                                        patt: PattType {
+                                            ident: Ident(TokenStream {
+                                                offset: 142,
+                                                value: "label"
                                             }),
-                                            rest: vec![]
-                                        })
+                                            sep: SepColon(
+                                                None,
+                                                TokenStream {
+                                                    offset: 147,
+                                                    value: ":"
+                                                },
+                                                Some(S(TokenStream {
+                                                    offset: 148,
+                                                    value: " "
+                                                }))
+                                            ),
+                                            ty: Type::Path(TypePath {
+                                                first: Ident(TokenStream {
+                                                    offset: 149,
+                                                    value: "Label"
+                                                }),
+                                                rest: vec![]
+                                            }),
+                                        }
                                     },
                                     SepComma(
                                         None,
@@ -202,28 +217,31 @@ mod tests {
                                 ),
                                 (
                                     Param {
-                                        ident: Ident(TokenStream {
-                                            offset: 156,
-                                            value: "layout"
-                                        }),
-                                        sep: SepColon(
-                                            None,
-                                            TokenStream {
-                                                offset: 162,
-                                                value: ":"
-                                            },
-                                            Some(S(TokenStream {
-                                                offset: 163,
-                                                value: " "
-                                            }))
-                                        ),
-                                        ty: Type::Path(TypePath {
-                                            first: Ident(TokenStream {
-                                                offset: 164,
-                                                value: "TextLayout"
+                                        meta_list: Default::default(),
+                                        patt: PattType {
+                                            ident: Ident(TokenStream {
+                                                offset: 156,
+                                                value: "layout"
                                             }),
-                                            rest: vec![]
-                                        })
+                                            sep: SepColon(
+                                                None,
+                                                TokenStream {
+                                                    offset: 162,
+                                                    value: ":"
+                                                },
+                                                Some(S(TokenStream {
+                                                    offset: 163,
+                                                    value: " "
+                                                }))
+                                            ),
+                                            ty: Type::Path(TypePath {
+                                                first: Ident(TokenStream {
+                                                    offset: 164,
+                                                    value: "TextLayout"
+                                                }),
+                                                rest: vec![]
+                                            })
+                                        }
                                     },
                                     SepComma(
                                         None,
@@ -239,28 +257,31 @@ mod tests {
                                 )
                             ],
                             tail: Some(Box::new(Param {
-                                ident: Ident(TokenStream {
-                                    offset: 176,
-                                    value: "fill"
-                                }),
-                                sep: SepColon(
-                                    None,
-                                    TokenStream {
-                                        offset: 180,
-                                        value: ":"
-                                    },
-                                    Some(S(TokenStream {
-                                        offset: 181,
-                                        value: " "
-                                    }))
-                                ),
-                                ty: Type::Path(TypePath {
-                                    first: Ident(TokenStream {
-                                        offset: 182,
-                                        value: "Fill"
+                                meta_list: Default::default(),
+                                patt: PattType {
+                                    ident: Ident(TokenStream {
+                                        offset: 176,
+                                        value: "fill"
                                     }),
-                                    rest: vec![]
-                                })
+                                    sep: SepColon(
+                                        None,
+                                        TokenStream {
+                                            offset: 180,
+                                            value: ":"
+                                        },
+                                        Some(S(TokenStream {
+                                            offset: 181,
+                                            value: " "
+                                        }))
+                                    ),
+                                    ty: Type::Path(TypePath {
+                                        first: Ident(TokenStream {
+                                            offset: 182,
+                                            value: "Fill"
+                                        }),
+                                        rest: vec![]
+                                    })
+                                }
                             }))
                         },
                         delimiter_end: SepRightParen(

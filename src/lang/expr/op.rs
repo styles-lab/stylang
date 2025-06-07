@@ -40,6 +40,7 @@ where
     BitOrAssign(SepSlashEq<I>),
     ShlAssign(SepShlEq<I>),
     ShrAssign(SepShrEq<I>),
+    Assign(SepEq<I>),
     Add(SepPlus<I>),
     Sub(SepMinus<I>),
     Mul(SepStar<I>),

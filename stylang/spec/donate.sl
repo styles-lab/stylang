@@ -1,6 +1,6 @@
 /// The main entry of one stylang app.
 fn main() -> view {
-    
+
     let @state @option value: string = none;
 
     <navigation-stack>
@@ -12,18 +12,8 @@ fn main() -> view {
                 } else {
                     <label class="header" text="Connect to Etherwallet to start donating"/>
                 }
-                
-                <row>
-                    <text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
-                    <
-                        button
-                        icon="assets://ethereum.svg" 
-                        text="Donate" 
-                        on-click= {
-                            donate(/*implicit type conversion*/ value) 
-                        }
-                    />
-                </row>
+
+                <row></row>
             </column>
         </center>
     </navigation-stack>

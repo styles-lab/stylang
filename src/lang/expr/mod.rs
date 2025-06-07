@@ -11,3 +11,6 @@ pub use op::*;
 
 mod flow;
 pub use flow::*;
+
+mod xml;
+pub use xml::*;

@@ -4,7 +4,7 @@ use crate::lang::{
     errors::{LangError, TokenKind},
     input::LangInput,
     lit::Lit,
-    patt::{PattRange, PattRest},
+    patt::{PattRange, PattRest, PattType},
     token::{Brace, Bracket, Paren, SepComma, SepOr, TokenUnderscore},
     ty::TypePath,
 };
@@ -83,7 +83,7 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub enum PattUnary<I>
+pub(super) enum PattUnary<I>
 where
     I: LangInput,
 {
@@ -141,6 +141,8 @@ where
     Range(PattRange<I>),
     /// _
     Wild(PattWild<I>),
+    /// a: u32,
+    Type(PattType<I>),
     /// [a,b,..,c],...
     Slice(PattSlice<I>),
     /// (a|b),..
@@ -162,6 +164,15 @@ where
     type Error = LangError;
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        let (patt, input) = PattType::into_parser()
+            .map(|v| Self::Type(v))
+            .ok()
+            .parse(input)?;
+
+        if let Some(patt) = patt {
+            return Ok((patt, input));
+        }
+
         let (first, mut input) = PattUnary::into_parser()
             .map(|v| Self::from(v))
             .parse(input)?;
@@ -204,7 +215,7 @@ where
 mod tests {
     use parserc::{Delimiter, Parse};
 
-    use crate::lang::{input::TokenStream, token::*};
+    use crate::lang::{input::TokenStream, token::*, ty::Type};
 
     use super::*;
 
@@ -450,6 +461,40 @@ mod tests {
                 }),
                 TokenStream {
                     offset: 18,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn patt_type() {
+        assert_eq!(
+            Patt::parse(TokenStream::from("value: string")),
+            Ok((
+                Patt::Type(PattType {
+                    ident: Ident(TokenStream {
+                        offset: 0,
+                        value: "value"
+                    }),
+                    sep: SepColon(
+                        None,
+                        TokenStream {
+                            offset: 5,
+                            value: ":"
+                        },
+                        Some(S(TokenStream {
+                            offset: 6,
+                            value: " "
+                        }))
+                    ),
+                    ty: Type::String(TokenString(TokenStream {
+                        offset: 7,
+                        value: "string"
+                    }))
+                }),
+                TokenStream {
+                    offset: 13,
                     value: ""
                 }
             ))

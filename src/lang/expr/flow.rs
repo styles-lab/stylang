@@ -66,3 +66,113 @@ where
     #[fatal]
     pub body: ExprBlock<I>,
 }
+
+#[cfg(test)]
+mod tests {
+    use parserc::{Delimiter, Parse};
+
+    use crate::lang::{
+        expr::{BinOp, Expr, ExprBinary, ExprBlock, ExprPath, ExprWhile, PathStart},
+        input::TokenStream,
+        lit::{Lit, LitNum},
+        meta::Meta,
+        stmt::{Block, Stmts},
+        token::*,
+        ty::TypePath,
+    };
+
+    #[test]
+    fn expr_while() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("while a < 10 {}")),
+            Ok((
+                Expr::While(ExprWhile {
+                    meta_list: vec![],
+                    keyword: KeywordWhile(
+                        TokenStream {
+                            offset: 0,
+                            value: "while"
+                        },
+                        S(TokenStream {
+                            offset: 5,
+                            value: " "
+                        })
+                    ),
+                    cond: Box::new(Expr::Binary(ExprBinary {
+                        start: Box::new(Expr::Path(ExprPath {
+                            meta_list: vec![],
+                            first: PathStart::TypePath(TypePath {
+                                first: Ident(TokenStream {
+                                    offset: 6,
+                                    value: "a"
+                                }),
+                                rest: vec![]
+                            }),
+                            rest: vec![]
+                        })),
+                        rest: vec![(
+                            BinOp::Lt(SepLt(
+                                Some(S(TokenStream {
+                                    offset: 7,
+                                    value: " "
+                                })),
+                                TokenStream {
+                                    offset: 8,
+                                    value: "<"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 9,
+                                    value: " "
+                                }))
+                            )),
+                            Expr::Path(ExprPath {
+                                meta_list: vec![],
+                                first: PathStart::Lit(Lit::Num(LitNum {
+                                    sign: None,
+                                    trunc: Some(Digits(TokenStream {
+                                        offset: 10,
+                                        value: "10"
+                                    })),
+                                    dot: None,
+                                    fract: None,
+                                    exp: None,
+                                    unit: None
+                                })),
+                                rest: vec![]
+                            })
+                        )]
+                    })),
+                    body: ExprBlock {
+                        meta_list: vec![Meta::S(S(TokenStream {
+                            offset: 12,
+                            value: " "
+                        }))],
+                        block: Block(Delimiter {
+                            delimiter_start: SepLeftBrace(
+                                None,
+                                TokenStream {
+                                    offset: 13,
+                                    value: "{"
+                                },
+                                None
+                            ),
+                            body: Stmts(vec![]),
+                            delimiter_end: SepRightBrace(
+                                None,
+                                TokenStream {
+                                    offset: 14,
+                                    value: "}"
+                                },
+                                None
+                            )
+                        })
+                    }
+                }),
+                TokenStream {
+                    offset: 15,
+                    value: ""
+                }
+            ))
+        );
+    }
+}
