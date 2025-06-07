@@ -2,7 +2,7 @@ use parserc::{Punctuated, derive_parse};
 
 use crate::lang::{
     errors::LangError,
-    expr::Expr,
+    expr::{Expr, ExprRepeat, ExprStruct, ExprTuple},
     input::LangInput,
     lit::Lit,
     meta::MetaList,
@@ -18,10 +18,16 @@ pub enum PathStart<I>
 where
     I: LangInput,
 {
+    /// `A {..}`
+    Struct(ExprStruct<I>),
     /// `std::text::Font`
-    TypePath(TypePath<I>),
+    TypePath(MetaList<I>, TypePath<I>),
     /// 1,"hello",...
-    Lit(Lit<I>),
+    Lit(MetaList<I>, Lit<I>),
+    /// `(...)`
+    Tuple(ExprTuple<I>),
+    /// `[10f32;10]`
+    Repeat(ExprRepeat<I>),
 }
 
 /// `Path` call segement parser.
@@ -83,12 +89,29 @@ pub struct ExprPath<I>
 where
     I: LangInput,
 {
-    /// The leading meta-data list.
-    pub meta_list: MetaList<I>,
     /// The first element.
     pub first: PathStart<I>,
     /// The rest path segment list.
     pub rest: Vec<PathSegment<I>>,
+}
+
+impl<I> From<ExprPath<I>> for Expr<I>
+where
+    I: LangInput,
+{
+    fn from(value: ExprPath<I>) -> Self {
+        if value.rest.is_empty() {
+            match value.first {
+                PathStart::TypePath(metas, type_path) => Self::TypePath(metas, type_path),
+                PathStart::Lit(metas, lit) => Self::Lit(metas, lit),
+                PathStart::Struct(expr_struct) => Self::Struct(expr_struct),
+                PathStart::Tuple(expr_tuple) => Self::Tuple(expr_tuple),
+                PathStart::Repeat(expr_repeat) => Self::Repeat(expr_repeat),
+            }
+        } else {
+            Self::Path(value)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -110,14 +133,16 @@ mod tests {
             Expr::parse(TokenStream::from("a[..10]")),
             Ok((
                 Expr::Path(ExprPath {
-                    meta_list: vec![],
-                    first: PathStart::TypePath(TypePath {
-                        first: Ident(TokenStream {
-                            offset: 0,
-                            value: "a"
-                        }),
-                        rest: vec![]
-                    }),
+                    first: PathStart::TypePath(
+                        Default::default(),
+                        TypePath {
+                            first: Ident(TokenStream {
+                                offset: 0,
+                                value: "a"
+                            }),
+                            rest: vec![]
+                        }
+                    ),
                     rest: vec![PathSegment::Index(PathIndex(Delimiter {
                         delimiter_start: SepLeftBracket(
                             None,
@@ -139,9 +164,9 @@ mod tests {
                                     },
                                     None
                                 )),
-                                end: Some(Box::new(Expr::Path(ExprPath {
-                                    meta_list: vec![],
-                                    first: PathStart::Lit(Lit::Num(LitNum {
+                                end: Some(Box::new(Expr::Lit(
+                                    Default::default(),
+                                    Lit::Num(LitNum {
                                         sign: None,
                                         trunc: Some(Digits(TokenStream {
                                             offset: 4,
@@ -151,9 +176,8 @@ mod tests {
                                         fract: None,
                                         exp: None,
                                         unit: None
-                                    })),
-                                    rest: vec![]
-                                })))
+                                    })
+                                ),))
                             })))
                         },
                         delimiter_end: SepRightBracket(
@@ -186,9 +210,9 @@ mod tests {
                         },
                         None
                     )),
-                    end: Some(Box::new(Expr::Path(ExprPath {
-                        meta_list: vec![],
-                        first: PathStart::Lit(Lit::Num(LitNum {
+                    end: Some(Box::new(Expr::Lit(
+                        Default::default(),
+                        Lit::Num(LitNum {
                             sign: None,
                             trunc: Some(Digits(TokenStream {
                                 offset: 3,
@@ -198,9 +222,8 @@ mod tests {
                             fract: None,
                             exp: None,
                             unit: None
-                        })),
-                        rest: vec![]
-                    })))
+                        })
+                    ),))
                 }),
                 TokenStream {
                     offset: 5,
@@ -213,9 +236,9 @@ mod tests {
             Expr::parse(TokenStream::from("10..=")),
             Ok((
                 Expr::Range(ExprRange {
-                    start: Some(Box::new(Expr::Path(ExprPath {
-                        meta_list: vec![],
-                        first: PathStart::Lit(Lit::Num(LitNum {
+                    start: Some(Box::new(Expr::Lit(
+                        Default::default(),
+                        Lit::Num(LitNum {
                             sign: None,
                             trunc: Some(Digits(TokenStream {
                                 offset: 0,
@@ -225,9 +248,8 @@ mod tests {
                             fract: None,
                             exp: None,
                             unit: None
-                        })),
-                        rest: vec![]
-                    }))),
+                        })
+                    ),)),
                     limits: RangeLimits::Closed(SepDotDotEq(
                         None,
                         TokenStream {

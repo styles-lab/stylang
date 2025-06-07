@@ -69,7 +69,7 @@ mod tests {
     use parserc::{Delimiter, Parse};
 
     use crate::lang::{
-        expr::{Expr, ExprPath, PathStart},
+        expr::Expr,
         input::TokenStream,
         stmt::{Block, Stmt, Stmts},
         token::{Ident, SepLeftBrace, SepRightBrace},
@@ -91,17 +91,16 @@ mod tests {
                         None
                     ),
                     body: Stmts(vec![Stmt::Expr(
-                        Expr::Path(ExprPath {
-                            meta_list: vec![],
-                            first: PathStart::TypePath(TypePath {
+                        Expr::TypePath(
+                            Default::default(),
+                            TypePath {
                                 first: Ident(TokenStream {
                                     offset: 1,
                                     value: "value"
                                 }),
                                 rest: vec![]
-                            }),
-                            rest: vec![]
-                        }),
+                            }
+                        ),
                         None
                     )]),
                     delimiter_end: SepRightBrace(

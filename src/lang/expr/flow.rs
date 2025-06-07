@@ -72,7 +72,7 @@ mod tests {
     use parserc::{Delimiter, Parse};
 
     use crate::lang::{
-        expr::{BinOp, Expr, ExprBinary, ExprBlock, ExprPath, ExprWhile, PathStart},
+        expr::{BinOp, Expr, ExprBinary, ExprBlock, ExprWhile},
         input::TokenStream,
         lit::{Lit, LitNum},
         meta::Meta,
@@ -99,17 +99,16 @@ mod tests {
                         })
                     ),
                     cond: Box::new(Expr::Binary(ExprBinary {
-                        start: Box::new(Expr::Path(ExprPath {
-                            meta_list: vec![],
-                            first: PathStart::TypePath(TypePath {
+                        start: Box::new(Expr::TypePath(
+                            Default::default(),
+                            TypePath {
                                 first: Ident(TokenStream {
                                     offset: 6,
                                     value: "a"
                                 }),
                                 rest: vec![]
-                            }),
-                            rest: vec![]
-                        })),
+                            }
+                        ),),
                         rest: vec![(
                             BinOp::Lt(SepLt(
                                 Some(S(TokenStream {
@@ -125,9 +124,9 @@ mod tests {
                                     value: " "
                                 }))
                             )),
-                            Expr::Path(ExprPath {
-                                meta_list: vec![],
-                                first: PathStart::Lit(Lit::Num(LitNum {
+                            Expr::Lit(
+                                Default::default(),
+                                Lit::Num(LitNum {
                                     sign: None,
                                     trunc: Some(Digits(TokenStream {
                                         offset: 10,
@@ -137,9 +136,8 @@ mod tests {
                                     fract: None,
                                     exp: None,
                                     unit: None
-                                })),
-                                rest: vec![]
-                            })
+                                })
+                            ),
                         )]
                     })),
                     body: ExprBlock {

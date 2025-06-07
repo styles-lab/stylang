@@ -4,6 +4,7 @@ use crate::lang::{
     errors::{LangError, TokenKind},
     expr::{BinOp, ExprBinary, ExprIf, ExprLoop, ExprPath, ExprUnary, ExprWhile, ExprXml},
     input::LangInput,
+    lit::Lit,
     meta::MetaList,
     patt::Patt,
     stmt::Block,
@@ -170,11 +171,8 @@ pub(super) enum Operand<I>
 where
     I: LangInput,
 {
-    Struct(ExprStruct<I>),
-    Tuple(ExprTuple<I>),
     Path(ExprPath<I>),
     Unary(ExprUnary<I>),
-    Repeat(ExprRepeat<I>),
 }
 
 impl<I> From<Operand<I>> for Expr<I>
@@ -183,11 +181,8 @@ where
 {
     fn from(value: Operand<I>) -> Self {
         match value {
-            Operand::Path(expr_path) => Self::Path(expr_path),
+            Operand::Path(expr_path) => expr_path.into(),
             Operand::Unary(expr_unary) => Self::Unary(expr_unary),
-            Operand::Struct(expr_struct) => Self::Struct(expr_struct),
-            Operand::Tuple(v) => Self::Tuple(v),
-            Operand::Repeat(v) => Self::Repeat(v),
         }
     }
 }
@@ -199,6 +194,8 @@ pub enum Expr<I>
 where
     I: LangInput,
 {
+    Lit(MetaList<I>, Lit<I>),
+    TypePath(MetaList<I>, TypePath<I>),
     Struct(ExprStruct<I>),
     Tuple(ExprTuple<I>),
     Range(ExprRange<I>),
@@ -223,12 +220,12 @@ where
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (expr, input) = ExprRange::into_parser()
             .map(|v| Self::Range(v))
-            .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
             .or(ExprLet::into_parser().map(|v| Self::Let(v)))
-            .or(ExprIf::into_parser().map(|v| Self::If(v)))
             .or(ExprLoop::into_parser().map(|v| Self::Loop(v)))
             .or(ExprWhile::into_parser().map(|v| Self::While(v)))
             .or(ExprXml::into_parser().map(|v| Self::Xml(v)))
+            .or(ExprIf::into_parser().map(|v| Self::If(v)))
+            .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
             .ok()
             .parse(input)?;
 
@@ -242,7 +239,6 @@ where
 
         loop {
             let op;
-
             (op, input) = BinOp::into_parser().ok().parse(input)?;
 
             let Some(op) = op else {
@@ -277,7 +273,7 @@ mod tests {
     use parserc::{Delimiter, Parse};
 
     use crate::lang::{
-        expr::{Expr, PathStart},
+        expr::Expr,
         input::TokenStream,
         lit::{Lit, LitNum, LitStr},
         meta::{Attr, Meta},
@@ -335,9 +331,9 @@ mod tests {
                                             value: " "
                                         }))
                                     ),
-                                    Expr::Path(ExprPath {
-                                        meta_list: vec![],
-                                        first: PathStart::Lit(Lit::Num(LitNum {
+                                    Expr::Lit(
+                                        Default::default(),
+                                        Lit::Num(LitNum {
                                             sign: None,
                                             trunc: Some(Digits(TokenStream {
                                                 offset: 9,
@@ -347,9 +343,8 @@ mod tests {
                                             fract: None,
                                             exp: None,
                                             unit: None
-                                        })),
-                                        rest: vec![]
-                                    })
+                                        })
+                                    ),
                                 ),
                                 SepComma(
                                     None,
@@ -379,14 +374,13 @@ mod tests {
                                         value: " "
                                     }))
                                 ),
-                                Expr::Path(ExprPath {
-                                    meta_list: vec![],
-                                    first: PathStart::Lit(Lit::String(LitStr(TokenStream {
+                                Expr::Lit(
+                                    Default::default(),
+                                    Lit::String(LitStr(TokenStream {
                                         offset: 16,
                                         value: "hello"
-                                    }))),
-                                    rest: vec![]
-                                })
+                                    }))
+                                ),
                             )))
                         },
                         delimiter_end: SepRightBrace(
@@ -432,17 +426,16 @@ mod tests {
                         ),
                         body: Punctuated {
                             pairs: vec![],
-                            tail: Some(Box::new(Expr::Path(ExprPath {
-                                meta_list: vec![],
-                                first: PathStart::TypePath(TypePath {
+                            tail: Some(Box::new(Expr::TypePath(
+                                Default::default(),
+                                TypePath {
                                     first: Ident(TokenStream {
                                         offset: 5,
                                         value: "a"
                                     }),
                                     rest: vec![]
-                                }),
-                                rest: vec![]
-                            })))
+                                }
+                            ),))
                         },
                         delimiter_end: SepRightParen(
                             None,
@@ -463,17 +456,16 @@ mod tests {
         assert_eq!(
             Expr::parse(TokenStream::from("None")),
             Ok((
-                Expr::Path(ExprPath {
-                    meta_list: vec![],
-                    first: PathStart::TypePath(TypePath {
+                Expr::TypePath(
+                    Default::default(),
+                    TypePath {
                         first: Ident(TokenStream {
                             offset: 0,
                             value: "None"
                         }),
                         rest: vec![]
-                    }),
-                    rest: vec![]
-                }),
+                    }
+                ),
                 TokenStream {
                     offset: 4,
                     value: ""
@@ -488,17 +480,16 @@ mod tests {
             Expr::parse(TokenStream::from("a * (b + c)")),
             Ok((
                 Expr::Binary(ExprBinary {
-                    start: Box::new(Expr::Path(ExprPath {
-                        meta_list: vec![],
-                        first: PathStart::TypePath(TypePath {
+                    start: Box::new(Expr::TypePath(
+                        Default::default(),
+                        TypePath {
                             first: Ident(TokenStream {
                                 offset: 0,
                                 value: "a"
                             }),
                             rest: vec![]
-                        }),
-                        rest: vec![]
-                    })),
+                        }
+                    ),),
                     rest: vec![(
                         BinOp::Mul(SepStar(
                             Some(S(TokenStream {
@@ -528,17 +519,16 @@ mod tests {
                                 body: Punctuated {
                                     pairs: vec![],
                                     tail: Some(Box::new(Expr::Binary(ExprBinary {
-                                        start: Box::new(Expr::Path(ExprPath {
-                                            meta_list: vec![],
-                                            first: PathStart::TypePath(TypePath {
+                                        start: Box::new(Expr::TypePath(
+                                            Default::default(),
+                                            TypePath {
                                                 first: Ident(TokenStream {
                                                     offset: 5,
                                                     value: "b"
                                                 }),
                                                 rest: vec![]
-                                            }),
-                                            rest: vec![]
-                                        })),
+                                            }
+                                        ),),
                                         rest: vec![(
                                             BinOp::Add(SepPlus(
                                                 Some(S(TokenStream {
@@ -554,17 +544,16 @@ mod tests {
                                                     value: " "
                                                 }))
                                             )),
-                                            Expr::Path(ExprPath {
-                                                meta_list: vec![],
-                                                first: PathStart::TypePath(TypePath {
+                                            Expr::TypePath(
+                                                Default::default(),
+                                                TypePath {
                                                     first: Ident(TokenStream {
                                                         offset: 9,
                                                         value: "c"
                                                     }),
                                                     rest: vec![]
-                                                }),
-                                                rest: vec![]
-                                            })
+                                                }
+                                            ),
                                         )]
                                     })))
                                 },
@@ -623,9 +612,9 @@ mod tests {
                                 ),
                                 body: Punctuated {
                                     pairs: vec![],
-                                    tail: Some(Box::new(Expr::Path(ExprPath {
-                                        meta_list: vec![],
-                                        first: PathStart::Lit(Lit::Num(LitNum {
+                                    tail: Some(Box::new(Expr::Lit(
+                                        Default::default(),
+                                        Lit::Num(LitNum {
                                             sign: None,
                                             trunc: Some(Digits(TokenStream {
                                                 offset: 6,
@@ -635,9 +624,8 @@ mod tests {
                                             fract: None,
                                             exp: None,
                                             unit: None
-                                        })),
-                                        rest: vec![]
-                                    })))
+                                        })
+                                    ),))
                                 },
                                 delimiter_end: SepRightParen(
                                     None,
@@ -772,17 +760,16 @@ mod tests {
                             value: " "
                         }))
                     ),
-                    expr: Box::new(Expr::Path(ExprPath {
-                        meta_list: vec![],
-                        first: PathStart::TypePath(TypePath {
+                    expr: Box::new(Expr::TypePath(
+                        Default::default(),
+                        TypePath {
                             first: Ident(TokenStream {
                                 offset: 35,
                                 value: "none"
                             }),
                             rest: vec![]
-                        }),
-                        rest: vec![]
-                    }))
+                        }
+                    ),)
                 }),
                 TokenStream {
                     offset: 39,

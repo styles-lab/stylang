@@ -13,7 +13,17 @@ fn main() -> view {
                     <label class="header" text="Connect to Etherwallet to start donating"/>
                 }
 
-                <row></row>
+                <row>
+                    <text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
+                    <
+                        button
+                        icon="assets://ethereum.svg"
+                        text="Donate"
+                        on-click= {
+                            donate(/*implicit type conversion*/ value)
+                        }
+                    />
+                </row>
             </column>
         </center>
     </navigation-stack>

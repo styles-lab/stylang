@@ -67,7 +67,6 @@ where
     /// token `<`
     pub delimiter_start: SepLt<I>,
     /// required tag name.
-    #[fatal]
     pub ident: XmlIdent<I>,
     /// value list.
     pub values: Vec<XmlAttr<I>>,
@@ -193,9 +192,7 @@ mod tests {
     use parserc::{Delimiter, Parse};
 
     use crate::lang::{
-        expr::{
-            Expr, ExprPath, ExprXml, PathStart, XmlAttr, XmlStart, XmlStartDelimiterEnd, XmlValue,
-        },
+        expr::{Expr, ExprXml, XmlAttr, XmlStart, XmlStartDelimiterEnd, XmlValue},
         input::TokenStream,
         lit::{Lit, LitStr},
         meta::Meta,
@@ -255,17 +252,16 @@ mod tests {
                                         None
                                     ),
                                     body: Stmts(vec![Stmt::Expr(
-                                        Expr::Path(ExprPath {
-                                            meta_list: vec![],
-                                            first: PathStart::TypePath(TypePath {
+                                        Expr::TypePath(
+                                            Default::default(),
+                                            TypePath {
                                                 first: Ident(TokenStream {
                                                     offset: 18,
                                                     value: "value"
                                                 }),
                                                 rest: vec![]
-                                            }),
-                                            rest: vec![]
-                                        }),
+                                            }
+                                        ),
                                         None
                                     )]),
                                     delimiter_end: SepRightBrace(
@@ -380,17 +376,16 @@ mod tests {
                             None
                         ),
                         body: Stmts(vec![Stmt::Expr(
-                            Expr::Path(ExprPath {
-                                meta_list: vec![],
-                                first: PathStart::TypePath(TypePath {
+                            Expr::TypePath(
+                                Default::default(),
+                                TypePath {
                                     first: Ident(TokenStream {
                                         offset: 6,
                                         value: "value"
                                     }),
                                     rest: vec![]
-                                }),
-                                rest: vec![]
-                            }),
+                                }
+                            ),
                             None
                         )]),
                         delimiter_end: SepRightBrace(

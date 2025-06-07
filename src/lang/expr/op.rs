@@ -124,7 +124,7 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::{Expr, ExprPath, PathStart},
+        expr::Expr,
         input::TokenStream,
         lit::{Lit, LitNum},
         ty::TypePath,
@@ -148,17 +148,16 @@ mod tests {
                             },
                             None
                         )),
-                        operand: Box::new(Expr::Path(ExprPath {
-                            meta_list: vec![],
-                            first: PathStart::TypePath(TypePath {
+                        operand: Box::new(Expr::TypePath(
+                            Default::default(),
+                            TypePath {
                                 first: Ident(TokenStream {
                                     offset: 1,
                                     value: "true"
                                 }),
                                 rest: vec![]
-                            }),
-                            rest: vec![]
-                        }))
+                            }
+                        ),)
                     })),
                     rest: vec![
                         (
@@ -176,9 +175,9 @@ mod tests {
                                     value: " "
                                 }))
                             )),
-                            Expr::Path(ExprPath {
-                                meta_list: vec![],
-                                first: PathStart::Lit(Lit::Num(LitNum {
+                            Expr::Lit(
+                                Default::default(),
+                                Lit::Num(LitNum {
                                     sign: None,
                                     trunc: Some(Digits(TokenStream {
                                         offset: 9,
@@ -188,9 +187,8 @@ mod tests {
                                     fract: None,
                                     exp: None,
                                     unit: None
-                                })),
-                                rest: vec![]
-                            })
+                                })
+                            ),
                         ),
                         (
                             BinOp::Ne(SepNe(
@@ -207,9 +205,9 @@ mod tests {
                                     value: " "
                                 }))
                             )),
-                            Expr::Path(ExprPath {
-                                meta_list: vec![],
-                                first: PathStart::Lit(Lit::Num(LitNum {
+                            Expr::Lit(
+                                Default::default(),
+                                Lit::Num(LitNum {
                                     sign: None,
                                     trunc: Some(Digits(TokenStream {
                                         offset: 14,
@@ -219,9 +217,8 @@ mod tests {
                                     fract: None,
                                     exp: None,
                                     unit: None
-                                })),
-                                rest: vec![]
-                            })
+                                })
+                            ),
                         )
                     ]
                 }),
