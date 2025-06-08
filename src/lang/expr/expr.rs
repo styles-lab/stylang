@@ -196,6 +196,7 @@ pub enum Expr<I>
 where
     I: LangInput,
 {
+    Ident(MetaList<I>, Ident<I>),
     Lit(MetaList<I>, Lit<I>),
     TypePath(MetaList<I>, TypePath<I>),
     Struct(ExprStruct<I>),
@@ -435,15 +436,12 @@ mod tests {
                         ),
                         body: Punctuated {
                             pairs: vec![],
-                            tail: Some(Box::new(Expr::TypePath(
+                            tail: Some(Box::new(Expr::Ident(
                                 Default::default(),
-                                TypePath {
-                                    first: Ident(TokenStream {
-                                        offset: 5,
-                                        value: "a"
-                                    }),
-                                    rest: vec![]
-                                }
+                                Ident(TokenStream {
+                                    offset: 5,
+                                    value: "a"
+                                }),
                             ),))
                         },
                         delimiter_end: SepRightParen(
@@ -465,15 +463,12 @@ mod tests {
         assert_eq!(
             Expr::parse(TokenStream::from("None")),
             Ok((
-                Expr::TypePath(
+                Expr::Ident(
                     Default::default(),
-                    TypePath {
-                        first: Ident(TokenStream {
-                            offset: 0,
-                            value: "None"
-                        }),
-                        rest: vec![]
-                    }
+                    Ident(TokenStream {
+                        offset: 0,
+                        value: "None"
+                    }),
                 ),
                 TokenStream {
                     offset: 4,
@@ -489,15 +484,12 @@ mod tests {
             Expr::parse(TokenStream::from("a * (b + c)")),
             Ok((
                 Expr::Binary(ExprBinary {
-                    start: Box::new(Expr::TypePath(
+                    start: Box::new(Expr::Ident(
                         Default::default(),
-                        TypePath {
-                            first: Ident(TokenStream {
-                                offset: 0,
-                                value: "a"
-                            }),
-                            rest: vec![]
-                        }
+                        Ident(TokenStream {
+                            offset: 0,
+                            value: "a"
+                        }),
                     ),),
                     rest: vec![(
                         BinOp::Mul(SepStar(
@@ -528,15 +520,12 @@ mod tests {
                                 body: Punctuated {
                                     pairs: vec![],
                                     tail: Some(Box::new(Expr::Binary(ExprBinary {
-                                        start: Box::new(Expr::TypePath(
+                                        start: Box::new(Expr::Ident(
                                             Default::default(),
-                                            TypePath {
-                                                first: Ident(TokenStream {
-                                                    offset: 5,
-                                                    value: "b"
-                                                }),
-                                                rest: vec![]
-                                            }
+                                            Ident(TokenStream {
+                                                offset: 5,
+                                                value: "b"
+                                            })
                                         ),),
                                         rest: vec![(
                                             BinOp::Add(SepPlus(
@@ -553,15 +542,12 @@ mod tests {
                                                     value: " "
                                                 }))
                                             )),
-                                            Expr::TypePath(
+                                            Expr::Ident(
                                                 Default::default(),
-                                                TypePath {
-                                                    first: Ident(TokenStream {
-                                                        offset: 9,
-                                                        value: "c"
-                                                    }),
-                                                    rest: vec![]
-                                                }
+                                                Ident(TokenStream {
+                                                    offset: 9,
+                                                    value: "c"
+                                                })
                                             ),
                                         )]
                                     })))
@@ -769,15 +755,12 @@ mod tests {
                             value: " "
                         }))
                     ),
-                    expr: Box::new(Expr::TypePath(
+                    expr: Box::new(Expr::Lit(
                         Default::default(),
-                        TypePath {
-                            first: Ident(TokenStream {
-                                offset: 35,
-                                value: "none"
-                            }),
-                            rest: vec![]
-                        }
+                        Lit::None(TokenNone(TokenStream {
+                            offset: 35,
+                            value: "none"
+                        })),
                     ),)
                 }),
                 TokenStream {

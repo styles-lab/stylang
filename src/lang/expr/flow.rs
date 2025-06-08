@@ -78,7 +78,6 @@ mod tests {
         meta::Meta,
         stmt::{Block, Stmts},
         token::*,
-        ty::TypePath,
     };
 
     #[test]
@@ -99,15 +98,12 @@ mod tests {
                         })
                     ),
                     cond: Box::new(Expr::Binary(ExprBinary {
-                        start: Box::new(Expr::TypePath(
+                        start: Box::new(Expr::Ident(
                             Default::default(),
-                            TypePath {
-                                first: Ident(TokenStream {
-                                    offset: 6,
-                                    value: "a"
-                                }),
-                                rest: vec![]
-                            }
+                            Ident(TokenStream {
+                                offset: 6,
+                                value: "a"
+                            }),
                         ),),
                         rest: vec![(
                             BinOp::Lt(SepLt(

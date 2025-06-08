@@ -73,7 +73,6 @@ mod tests {
         input::TokenStream,
         stmt::{Block, Stmt, Stmts},
         token::{Ident, SepLeftBrace, SepRightBrace},
-        ty::TypePath,
     };
 
     #[test]
@@ -91,15 +90,12 @@ mod tests {
                         None
                     ),
                     body: Stmts(vec![Stmt::Expr(
-                        Expr::TypePath(
+                        Expr::Ident(
                             Default::default(),
-                            TypePath {
-                                first: Ident(TokenStream {
-                                    offset: 1,
-                                    value: "value"
-                                }),
-                                rest: vec![]
-                            }
+                            Ident(TokenStream {
+                                offset: 1,
+                                value: "value"
+                            })
                         ),
                         None
                     )]),

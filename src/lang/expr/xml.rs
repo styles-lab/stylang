@@ -197,7 +197,6 @@ mod tests {
         meta::Meta,
         stmt::{Block, Stmt, Stmts},
         token::{Ident, S, SepEq, SepLeftBrace, SepLt, SepRightBrace, SepSlashGt, XmlIdent},
-        ty::TypePath,
     };
 
     #[test]
@@ -251,15 +250,12 @@ mod tests {
                                         None
                                     ),
                                     body: Stmts(vec![Stmt::Expr(
-                                        Expr::TypePath(
+                                        Expr::Ident(
                                             Default::default(),
-                                            TypePath {
-                                                first: Ident(TokenStream {
-                                                    offset: 18,
-                                                    value: "value"
-                                                }),
-                                                rest: vec![]
-                                            }
+                                            Ident(TokenStream {
+                                                offset: 18,
+                                                value: "value"
+                                            }),
                                         ),
                                         None
                                     )]),
@@ -375,15 +371,12 @@ mod tests {
                             None
                         ),
                         body: Stmts(vec![Stmt::Expr(
-                            Expr::TypePath(
+                            Expr::Ident(
                                 Default::default(),
-                                TypePath {
-                                    first: Ident(TokenStream {
-                                        offset: 6,
-                                        value: "value"
-                                    }),
-                                    rest: vec![]
-                                }
+                                Ident(TokenStream {
+                                    offset: 6,
+                                    value: "value"
+                                }),
                             ),
                             None
                         )]),
@@ -400,6 +393,43 @@ mod tests {
                 TokenStream {
                     offset: 12,
                     value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn distinguish_between_lt_and_xml() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("a <hello/>")),
+            Ok((
+                Expr::Ident(
+                    Default::default(),
+                    Ident(TokenStream {
+                        offset: 0,
+                        value: "a"
+                    })
+                ),
+                TokenStream {
+                    offset: 1,
+                    value: " <hello/>"
+                }
+            ))
+        );
+
+        assert_eq!(
+            Expr::parse(TokenStream::from("a < b > a")),
+            Ok((
+                Expr::Ident(
+                    vec![],
+                    Ident(TokenStream {
+                        offset: 0,
+                        value: "a"
+                    })
+                ),
+                TokenStream {
+                    offset: 1,
+                    value: " < b > a"
                 }
             ))
         );

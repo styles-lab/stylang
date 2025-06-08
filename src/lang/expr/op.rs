@@ -126,8 +126,7 @@ mod tests {
     use crate::lang::{
         expr::Expr,
         input::TokenStream,
-        lit::{Lit, LitNum},
-        ty::TypePath,
+        lit::{Lit, LitBool, LitNum},
     };
 
     use super::*;
@@ -148,15 +147,12 @@ mod tests {
                             },
                             None
                         )),
-                        operand: Box::new(Expr::TypePath(
+                        operand: Box::new(Expr::Lit(
                             Default::default(),
-                            TypePath {
-                                first: Ident(TokenStream {
-                                    offset: 1,
-                                    value: "true"
-                                }),
-                                rest: vec![]
-                            }
+                            Lit::Bool(LitBool::True(TokenTrue(TokenStream {
+                                offset: 1,
+                                value: "true"
+                            }))),
                         ),)
                     })),
                     rest: vec![

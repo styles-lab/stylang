@@ -1,4 +1,4 @@
-use parserc::{Punctuated, derive_parse};
+use parserc::{Parse, Parser, ParserExt, Punctuated, derive_parse};
 
 use crate::lang::{
     errors::LangError,
@@ -13,7 +13,6 @@ use crate::lang::{
 /// Path `start element` parser.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
 pub enum PathStart<I>
 where
     I: LangInput,
@@ -24,14 +23,44 @@ where
     If(ExprIf<I>),
     /// `{...}`
     Block(ExprBlock<I>),
-    /// `std::text::Font`
-    TypePath(MetaList<I>, TypePath<I>),
-    /// 1,"hello",...
-    Lit(MetaList<I>, Lit<I>),
     /// `(...)`
     Tuple(ExprTuple<I>),
     /// `[10f32;10]`
     Repeat(ExprRepeat<I>),
+    /// 1,"hello",...
+    Lit(MetaList<I>, Lit<I>),
+    /// `std::text::Font`
+    TypePath(MetaList<I>, TypePath<I>),
+    /// `a`
+    Ident(MetaList<I>, Ident<I>),
+}
+
+impl<I> Parse<I> for PathStart<I>
+where
+    I: LangInput,
+{
+    type Error = LangError;
+
+    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        ExprStruct::into_parser()
+            .map(|v| Self::Struct(v))
+            .or(ExprIf::into_parser().map(|v| Self::If(v)))
+            .or(ExprBlock::into_parser().map(|v| Self::Block(v)))
+            .or(ExprTuple::into_parser().map(|v| Self::Tuple(v)))
+            .or(ExprRepeat::into_parser().map(|v| Self::Repeat(v)))
+            .or(<(MetaList<_>, Lit<_>)>::into_parser()
+                .map(|(meta_list, v)| Self::Lit(meta_list, v)))
+            .or(
+                <(MetaList<_>, TypePath<_>)>::into_parser().map(|(meta_list, v)| {
+                    if v.rest.is_empty() {
+                        Self::Ident(meta_list, v.first)
+                    } else {
+                        Self::TypePath(meta_list, v)
+                    }
+                }),
+            )
+            .parse(input)
+    }
 }
 
 /// `Path` call segement parser.
@@ -106,6 +135,7 @@ where
     fn from(value: ExprPath<I>) -> Self {
         if value.rest.is_empty() {
             match value.first {
+                PathStart::Ident(metas, type_path) => Self::Ident(metas, type_path),
                 PathStart::TypePath(metas, type_path) => Self::TypePath(metas, type_path),
                 PathStart::Lit(metas, lit) => Self::Lit(metas, lit),
                 PathStart::Tuple(expr_tuple) => Self::Tuple(expr_tuple),
@@ -130,7 +160,6 @@ mod tests {
         input::TokenStream,
         lit::{Lit, LitNum},
         token::*,
-        ty::TypePath,
     };
 
     #[test]
@@ -139,15 +168,12 @@ mod tests {
             Expr::parse(TokenStream::from("a[..10]")),
             Ok((
                 Expr::Path(ExprPath {
-                    first: PathStart::TypePath(
+                    first: PathStart::Ident(
                         Default::default(),
-                        TypePath {
-                            first: Ident(TokenStream {
-                                offset: 0,
-                                value: "a"
-                            }),
-                            rest: vec![]
-                        }
+                        Ident(TokenStream {
+                            offset: 0,
+                            value: "a"
+                        }),
                     ),
                     rest: vec![PathSegment::Index(PathIndex(Delimiter {
                         delimiter_start: SepLeftBracket(
