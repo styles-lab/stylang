@@ -3,8 +3,6 @@ fn main() -> view {
 
     let @state @option value: string = none;
 
-    (a,b)
-
     <navigation-stack>
         <center>
             <column>
