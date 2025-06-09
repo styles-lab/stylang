@@ -80,7 +80,7 @@ where
     fn from(value: AssignOperand<I>) -> Self {
         match value {
             AssignOperand::Unary(expr) => Self::Unary(expr),
-            AssignOperand::Path(expr) => Self::Path(expr),
+            AssignOperand::Path(expr) => expr.into(),
             AssignOperand::Factor(expr) => Self::Factor(expr),
             AssignOperand::Term(expr) => Self::Term(expr),
             AssignOperand::Bits(expr) => Self::Bits(expr),
@@ -680,103 +680,161 @@ where
 
 #[cfg(test)]
 mod tests {
+    use parserc::Parse;
+
+    use crate::lang::{
+        expr::Expr,
+        input::TokenStream,
+        lit::{Lit, LitNum},
+    };
+
+    use super::*;
 
     #[test]
-    fn test_a() {
-        println!("{}", 1 ^ 2 > 2 && 3 > 2);
+    fn priority() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("a ^= b > c ^ 1 + d*3")),
+            Ok((
+                Expr::Assgin(ExprAssgin {
+                    meta_list: vec![],
+                    left_operand: Box::new(Expr::Ident(
+                        vec![],
+                        Ident(TokenStream {
+                            offset: 0,
+                            value: "a"
+                        })
+                    )),
+                    op: AssignOp::BitXorAssign(SepCaretEq(
+                        Some(S(TokenStream {
+                            offset: 1,
+                            value: " "
+                        })),
+                        TokenStream {
+                            offset: 2,
+                            value: "^="
+                        },
+                        Some(S(TokenStream {
+                            offset: 4,
+                            value: " "
+                        }))
+                    )),
+                    right_operand: Box::new(Expr::Comp(ExprComp {
+                        meta_list: vec![],
+                        left_operand: Box::new(Expr::Ident(
+                            vec![],
+                            Ident(TokenStream {
+                                offset: 5,
+                                value: "b"
+                            })
+                        )),
+                        op: CompOp::Gt(SepGt(
+                            Some(S(TokenStream {
+                                offset: 6,
+                                value: " "
+                            })),
+                            TokenStream {
+                                offset: 7,
+                                value: ">"
+                            },
+                            Some(S(TokenStream {
+                                offset: 8,
+                                value: " "
+                            }))
+                        )),
+                        right_operand: Box::new(Expr::Bits(ExprBits {
+                            meta_list: vec![],
+                            left_operand: Box::new(Expr::Ident(
+                                vec![],
+                                Ident(TokenStream {
+                                    offset: 9,
+                                    value: "c"
+                                })
+                            )),
+                            op: BitsOp::BitXor(SepCaret(
+                                Some(S(TokenStream {
+                                    offset: 10,
+                                    value: " "
+                                })),
+                                TokenStream {
+                                    offset: 11,
+                                    value: "^"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 12,
+                                    value: " "
+                                }))
+                            )),
+                            right_operand: Box::new(Expr::Term(ExprTerm {
+                                meta_list: vec![],
+                                left_operand: Box::new(Expr::Lit(
+                                    vec![],
+                                    Lit::Num(LitNum {
+                                        sign: None,
+                                        trunc: Some(Digits(TokenStream {
+                                            offset: 13,
+                                            value: "1"
+                                        })),
+                                        dot: None,
+                                        fract: None,
+                                        exp: None,
+                                        unit: None
+                                    })
+                                )),
+                                op: TermOp::Add(SepPlus(
+                                    Some(S(TokenStream {
+                                        offset: 14,
+                                        value: " "
+                                    })),
+                                    TokenStream {
+                                        offset: 15,
+                                        value: "+"
+                                    },
+                                    Some(S(TokenStream {
+                                        offset: 16,
+                                        value: " "
+                                    }))
+                                )),
+                                right_operand: Box::new(Expr::Factor(ExprFactor {
+                                    meta_list: vec![],
+                                    left_operand: Box::new(Expr::Ident(
+                                        vec![],
+                                        Ident(TokenStream {
+                                            offset: 17,
+                                            value: "d"
+                                        })
+                                    )),
+                                    op: FactorOp::Mul(SepStar(
+                                        None,
+                                        TokenStream {
+                                            offset: 18,
+                                            value: "*"
+                                        },
+                                        None
+                                    )),
+                                    right_operand: Box::new(Expr::Lit(
+                                        vec![],
+                                        Lit::Num(LitNum {
+                                            sign: None,
+                                            trunc: Some(Digits(TokenStream {
+                                                offset: 19,
+                                                value: "3"
+                                            })),
+                                            dot: None,
+                                            fract: None,
+                                            exp: None,
+                                            unit: None
+                                        })
+                                    ))
+                                }))
+                            }))
+                        }))
+                    }))
+                }),
+                TokenStream {
+                    offset: 20,
+                    value: ""
+                }
+            ))
+        );
     }
-    // #[test]
-    // fn op_unary_binary() {
-    //     assert_eq!(
-    //         Expr::parse(TokenStream::from("!true && 1 != 4")),
-    //         Ok((
-    //             Expr::Binary(ExprBinary {
-    //                 start: Box::new(Expr::Unary(ExprUnary {
-    //                     meta_list: vec![],
-    //                     op: UnOp::Not(SepNot(
-    //                         None,
-    //                         TokenStream {
-    //                             offset: 0,
-    //                             value: "!"
-    //                         },
-    //                         None
-    //                     )),
-    //                     operand: Box::new(Expr::Lit(
-    //                         Default::default(),
-    //                         Lit::Bool(LitBool::True(TokenTrue(TokenStream {
-    //                             offset: 1,
-    //                             value: "true"
-    //                         }))),
-    //                     ),)
-    //                 })),
-    //                 rest: vec![
-    //                     (
-    //                         BinOp::And(SepAndAnd(
-    //                             Some(S(TokenStream {
-    //                                 offset: 5,
-    //                                 value: " "
-    //                             })),
-    //                             TokenStream {
-    //                                 offset: 6,
-    //                                 value: "&&"
-    //                             },
-    //                             Some(S(TokenStream {
-    //                                 offset: 8,
-    //                                 value: " "
-    //                             }))
-    //                         )),
-    //                         Expr::Lit(
-    //                             Default::default(),
-    //                             Lit::Num(LitNum {
-    //                                 sign: None,
-    //                                 trunc: Some(Digits(TokenStream {
-    //                                     offset: 9,
-    //                                     value: "1"
-    //                                 })),
-    //                                 dot: None,
-    //                                 fract: None,
-    //                                 exp: None,
-    //                                 unit: None
-    //                             })
-    //                         ),
-    //                     ),
-    //                     (
-    //                         BinOp::Ne(SepNe(
-    //                             Some(S(TokenStream {
-    //                                 offset: 10,
-    //                                 value: " "
-    //                             })),
-    //                             TokenStream {
-    //                                 offset: 11,
-    //                                 value: "!="
-    //                             },
-    //                             Some(S(TokenStream {
-    //                                 offset: 13,
-    //                                 value: " "
-    //                             }))
-    //                         )),
-    //                         Expr::Lit(
-    //                             Default::default(),
-    //                             Lit::Num(LitNum {
-    //                                 sign: None,
-    //                                 trunc: Some(Digits(TokenStream {
-    //                                     offset: 14,
-    //                                     value: "4"
-    //                                 })),
-    //                                 dot: None,
-    //                                 fract: None,
-    //                                 exp: None,
-    //                                 unit: None
-    //                             })
-    //                         ),
-    //                     )
-    //                 ]
-    //             }),
-    //             TokenStream {
-    //                 offset: 15,
-    //                 value: ""
-    //             }
-    //         ))
-    //     );
-    // }
 }

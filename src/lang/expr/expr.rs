@@ -140,13 +140,9 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
-pub enum Fields<I>
+pub struct Fields<I>(Brace<I, Punctuated<(Ident<I>, SepColon<I>, Expr<I>), SepComma<I>>>)
 where
-    I: LangInput,
-{
-    Name(Brace<I, Punctuated<(Ident<I>, SepColon<I>, Expr<I>), SepComma<I>>>),
-    Uname(Paren<I, Punctuated<Expr<I>, SepComma<I>>>),
-}
+    I: LangInput;
 
 /// A tuple expression: (a, b, c, d).
 #[derive(Debug, PartialEq, Clone)]
@@ -325,7 +321,7 @@ mod tests {
     use parserc::{Delimiter, Parse};
 
     use crate::lang::{
-        expr::Expr,
+        expr::{Expr, PathCall, PathSegment, PathStart},
         input::TokenStream,
         lit::{Lit, LitNum, LitStr},
         meta::{Attr, Meta},
@@ -349,7 +345,7 @@ mod tests {
                             value: "Exp"
                         })
                     )),
-                    fields: Fields::Name(Delimiter {
+                    fields: Fields(Delimiter {
                         delimiter_start: SepLeftBrace(
                             Some(S(TokenStream {
                                 offset: 3,
@@ -453,166 +449,6 @@ mod tests {
     }
 
     #[test]
-    fn expr_tuple_struct() {
-        assert_eq!(
-            Expr::parse(TokenStream::from("Some(a)")),
-            Ok((
-                Expr::Struct(ExprStruct {
-                    ty: Box::new(Expr::Ident(
-                        vec![],
-                        Ident(TokenStream {
-                            offset: 0,
-                            value: "Some"
-                        })
-                    )),
-                    fields: Fields::Uname(Delimiter {
-                        delimiter_start: SepLeftParen(
-                            None,
-                            TokenStream {
-                                offset: 4,
-                                value: "("
-                            },
-                            None
-                        ),
-                        body: Punctuated {
-                            pairs: vec![],
-                            tail: Some(Box::new(Expr::Ident(
-                                Default::default(),
-                                Ident(TokenStream {
-                                    offset: 5,
-                                    value: "a"
-                                }),
-                            ),))
-                        },
-                        delimiter_end: SepRightParen(
-                            None,
-                            TokenStream {
-                                offset: 6,
-                                value: ")"
-                            },
-                            None
-                        )
-                    })
-                }),
-                TokenStream {
-                    offset: 7,
-                    value: ""
-                }
-            ))
-        );
-        assert_eq!(
-            Expr::parse(TokenStream::from("None")),
-            Ok((
-                Expr::Ident(
-                    Default::default(),
-                    Ident(TokenStream {
-                        offset: 0,
-                        value: "None"
-                    }),
-                ),
-                TokenStream {
-                    offset: 4,
-                    value: ""
-                }
-            ))
-        );
-    }
-
-    // #[test]
-    // fn expr_tuple() {
-    //     assert_eq!(
-    //         Expr::parse(TokenStream::from("a * (b + c)")),
-    //         Ok((
-    //             Expr::Binary(ExprBinary {
-    //                 start: Box::new(Expr::Ident(
-    //                     Default::default(),
-    //                     Ident(TokenStream {
-    //                         offset: 0,
-    //                         value: "a"
-    //                     }),
-    //                 ),),
-    //                 rest: vec![(
-    //                     BinOp::Mul(SepStar(
-    //                         Some(S(TokenStream {
-    //                             offset: 1,
-    //                             value: " "
-    //                         })),
-    //                         TokenStream {
-    //                             offset: 2,
-    //                             value: "*"
-    //                         },
-    //                         Some(S(TokenStream {
-    //                             offset: 3,
-    //                             value: " "
-    //                         }))
-    //                     )),
-    //                     Expr::Tuple(ExprTuple(
-    //                         vec![],
-    //                         Delimiter {
-    //                             delimiter_start: SepLeftParen(
-    //                                 None,
-    //                                 TokenStream {
-    //                                     offset: 4,
-    //                                     value: "("
-    //                                 },
-    //                                 None
-    //                             ),
-    //                             body: Punctuated {
-    //                                 pairs: vec![],
-    //                                 tail: Some(Box::new(Expr::Binary(ExprBinary {
-    //                                     start: Box::new(Expr::Ident(
-    //                                         Default::default(),
-    //                                         Ident(TokenStream {
-    //                                             offset: 5,
-    //                                             value: "b"
-    //                                         })
-    //                                     ),),
-    //                                     rest: vec![(
-    //                                         BinOp::Add(SepPlus(
-    //                                             Some(S(TokenStream {
-    //                                                 offset: 6,
-    //                                                 value: " "
-    //                                             })),
-    //                                             TokenStream {
-    //                                                 offset: 7,
-    //                                                 value: "+"
-    //                                             },
-    //                                             Some(S(TokenStream {
-    //                                                 offset: 8,
-    //                                                 value: " "
-    //                                             }))
-    //                                         )),
-    //                                         Expr::Ident(
-    //                                             Default::default(),
-    //                                             Ident(TokenStream {
-    //                                                 offset: 9,
-    //                                                 value: "c"
-    //                                             })
-    //                                         ),
-    //                                     )]
-    //                                 })))
-    //                             },
-    //                             delimiter_end: SepRightParen(
-    //                                 None,
-    //                                 TokenStream {
-    //                                     offset: 10,
-    //                                     value: ")"
-    //                                 },
-    //                                 None
-    //                             )
-    //                         }
-    //                     ))
-    //                 )]
-    //             }),
-    //             TokenStream {
-    //                 offset: 11,
-    //                 value: ""
-    //             }
-    //         ))
-    //     );
-    // }
-
-    #[test]
     fn expr_repeat() {
         assert_eq!(
             Expr::parse(TokenStream::from("[Some(1);10]")),
@@ -627,15 +463,15 @@ mod tests {
                         None
                     ),
                     body: (
-                        Box::new(Expr::Struct(ExprStruct {
-                            ty: Box::new(Expr::Ident(
+                        Box::new(Expr::Path(ExprPath {
+                            first: PathStart::Ident(
                                 vec![],
                                 Ident(TokenStream {
                                     offset: 1,
                                     value: "Some"
                                 })
-                            )),
-                            fields: Fields::Uname(Delimiter {
+                            ),
+                            rest: vec![PathSegment::Call(PathCall(Delimiter {
                                 delimiter_start: SepLeftParen(
                                     None,
                                     TokenStream {
@@ -647,7 +483,7 @@ mod tests {
                                 body: Punctuated {
                                     pairs: vec![],
                                     tail: Some(Box::new(Expr::Lit(
-                                        Default::default(),
+                                        vec![],
                                         Lit::Num(LitNum {
                                             sign: None,
                                             trunc: Some(Digits(TokenStream {
@@ -659,7 +495,7 @@ mod tests {
                                             exp: None,
                                             unit: None
                                         })
-                                    ),))
+                                    )))
                                 },
                                 delimiter_end: SepRightParen(
                                     None,
@@ -669,7 +505,7 @@ mod tests {
                                     },
                                     None
                                 )
-                            })
+                            }))]
                         })),
                         SepSemiColon(
                             None,

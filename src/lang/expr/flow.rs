@@ -67,106 +67,114 @@ where
     pub body: ExprBlock<I>,
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use parserc::{Delimiter, Parse};
+#[cfg(test)]
+mod tests {
+    use parserc::{Delimiter, Parse, Punctuated};
 
-//     use crate::lang::{
-//         expr::{Expr, ExprBlock, ExprWhile},
-//         input::TokenStream,
-//         lit::{Lit, LitNum},
-//         meta::Meta,
-//         stmt::{Block, Stmts},
-//         token::*,
-//     };
+    use crate::lang::{
+        expr::{Expr, ExprBlock, ExprIf, ExprPath, PathCall, PathSegment, PathStart},
+        input::TokenStream,
+        stmt::{Block, Stmts},
+        token::*,
+        ty::TypePath,
+    };
 
-//     #[test]
-//     fn expr_while() {
-//         assert_eq!(
-//             Expr::parse(TokenStream::from("while a < 10 {}")),
-//             Ok((
-//                 Expr::While(ExprWhile {
-//                     meta_list: vec![],
-//                     keyword: KeywordWhile(
-//                         TokenStream {
-//                             offset: 0,
-//                             value: "while"
-//                         },
-//                         S(TokenStream {
-//                             offset: 5,
-//                             value: " "
-//                         })
-//                     ),
-//                     cond: Box::new(Expr::Binary(ExprBinary {
-//                         start: Box::new(Expr::Ident(
-//                             Default::default(),
-//                             Ident(TokenStream {
-//                                 offset: 6,
-//                                 value: "a"
-//                             }),
-//                         ),),
-//                         rest: vec![(
-//                             BinOp::Lt(SepLt(
-//                                 Some(S(TokenStream {
-//                                     offset: 7,
-//                                     value: " "
-//                                 })),
-//                                 TokenStream {
-//                                     offset: 8,
-//                                     value: "<"
-//                                 },
-//                                 Some(S(TokenStream {
-//                                     offset: 9,
-//                                     value: " "
-//                                 }))
-//                             )),
-//                             Expr::Lit(
-//                                 Default::default(),
-//                                 Lit::Num(LitNum {
-//                                     sign: None,
-//                                     trunc: Some(Digits(TokenStream {
-//                                         offset: 10,
-//                                         value: "10"
-//                                     })),
-//                                     dot: None,
-//                                     fract: None,
-//                                     exp: None,
-//                                     unit: None
-//                                 })
-//                             ),
-//                         )]
-//                     })),
-//                     body: ExprBlock {
-//                         meta_list: vec![Meta::S(S(TokenStream {
-//                             offset: 12,
-//                             value: " "
-//                         }))],
-//                         block: Block(Delimiter {
-//                             delimiter_start: SepLeftBrace(
-//                                 None,
-//                                 TokenStream {
-//                                     offset: 13,
-//                                     value: "{"
-//                                 },
-//                                 None
-//                             ),
-//                             body: Stmts(vec![]),
-//                             delimiter_end: SepRightBrace(
-//                                 None,
-//                                 TokenStream {
-//                                     offset: 14,
-//                                     value: "}"
-//                                 },
-//                                 None
-//                             )
-//                         })
-//                     }
-//                 }),
-//                 TokenStream {
-//                     offset: 15,
-//                     value: ""
-//                 }
-//             ))
-//         );
-//     }
-// }
+    #[test]
+    fn expr_if() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("if web3::is_connected() {}")),
+            Ok((
+                Expr::If(ExprIf {
+                    meta_list: vec![],
+                    keyword: KeywordIf(
+                        TokenStream {
+                            offset: 0,
+                            value: "if"
+                        },
+                        S(TokenStream {
+                            offset: 2,
+                            value: " "
+                        })
+                    ),
+                    cond: Box::new(Expr::Path(ExprPath {
+                        first: PathStart::TypePath(
+                            vec![],
+                            TypePath {
+                                first: Ident(TokenStream {
+                                    offset: 3,
+                                    value: "web3"
+                                }),
+                                rest: vec![(
+                                    SepColonColon(
+                                        None,
+                                        TokenStream {
+                                            offset: 7,
+                                            value: "::"
+                                        },
+                                        None
+                                    ),
+                                    Ident(TokenStream {
+                                        offset: 9,
+                                        value: "is_connected"
+                                    })
+                                )]
+                            }
+                        ),
+                        rest: vec![PathSegment::Call(PathCall(Delimiter {
+                            delimiter_start: SepLeftParen(
+                                None,
+                                TokenStream {
+                                    offset: 21,
+                                    value: "("
+                                },
+                                None
+                            ),
+                            body: Punctuated {
+                                pairs: vec![],
+                                tail: None
+                            },
+                            delimiter_end: SepRightParen(
+                                None,
+                                TokenStream {
+                                    offset: 22,
+                                    value: ")"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 23,
+                                    value: " "
+                                }))
+                            )
+                        }))]
+                    })),
+                    then_branch: ExprBlock {
+                        meta_list: vec![],
+                        block: Block(Delimiter {
+                            delimiter_start: SepLeftBrace(
+                                None,
+                                TokenStream {
+                                    offset: 24,
+                                    value: "{"
+                                },
+                                None
+                            ),
+                            body: Stmts(vec![]),
+                            delimiter_end: SepRightBrace(
+                                None,
+                                TokenStream {
+                                    offset: 25,
+                                    value: "}"
+                                },
+                                None
+                            )
+                        })
+                    },
+                    else_branch: None
+                }),
+                TokenStream {
+                    offset: 26,
+                    value: ""
+                }
+            ))
+        );
+    }
+}
