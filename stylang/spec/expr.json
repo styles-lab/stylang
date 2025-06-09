@@ -1,0 +1,182 @@
+[
+  {
+    "Fn": {
+      "meta_list": [],
+      "extern_keyword": null,
+      "vs": null,
+      "fn_keyword": [
+        {
+          "offset": 0,
+          "value": "fn"
+        },
+        {
+          "offset": 2,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 3,
+        "value": "main"
+      },
+      "params": {
+        "delimiter_start": [
+          null,
+          {
+            "offset": 7,
+            "value": "("
+          },
+          null
+        ],
+        "body": {
+          "pairs": [],
+          "tail": null
+        },
+        "delimiter_end": [
+          null,
+          {
+            "offset": 8,
+            "value": ")"
+          },
+          {
+            "offset": 9,
+            "value": " "
+          }
+        ]
+      },
+      "return_ty": {
+        "token": [
+          null,
+          {
+            "offset": 10,
+            "value": "->"
+          },
+          {
+            "offset": 12,
+            "value": " "
+          }
+        ],
+        "ty": {
+          "View": {
+            "offset": 13,
+            "value": "view"
+          }
+        }
+      },
+      "body": {
+        "Block": {
+          "delimiter_start": [
+            {
+              "offset": 17,
+              "value": " "
+            },
+            {
+              "offset": 18,
+              "value": "{"
+            },
+            {
+              "offset": 19,
+              "value": "\n    "
+            }
+          ],
+          "body": [
+            {
+              "Expr": [
+                {
+                  "Assgin": {
+                    "meta_list": [],
+                    "left_operand": {
+                      "Ident": [
+                        [],
+                        {
+                          "offset": 24,
+                          "value": "a"
+                        }
+                      ]
+                    },
+                    "op": {
+                      "Assign": [
+                        {
+                          "offset": 25,
+                          "value": " "
+                        },
+                        {
+                          "offset": 26,
+                          "value": "="
+                        },
+                        {
+                          "offset": 27,
+                          "value": " "
+                        }
+                      ]
+                    },
+                    "right_operand": {
+                      "Term": {
+                        "meta_list": [],
+                        "left_operand": {
+                          "Ident": [
+                            [],
+                            {
+                              "offset": 28,
+                              "value": "b"
+                            }
+                          ]
+                        },
+                        "op": {
+                          "Add": [
+                            {
+                              "offset": 29,
+                              "value": " "
+                            },
+                            {
+                              "offset": 30,
+                              "value": "+"
+                            },
+                            {
+                              "offset": 31,
+                              "value": " "
+                            }
+                          ]
+                        },
+                        "right_operand": {
+                          "Ident": [
+                            [],
+                            {
+                              "offset": 32,
+                              "value": "c"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 33,
+                    "value": ";"
+                  },
+                  {
+                    "offset": 34,
+                    "value": "\n"
+                  }
+                ]
+              ]
+            }
+          ],
+          "delimiter_end": [
+            null,
+            {
+              "offset": 35,
+              "value": "}"
+            },
+            {
+              "offset": 36,
+              "value": "\n"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

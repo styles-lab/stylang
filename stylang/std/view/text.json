@@ -1,0 +1,2260 @@
+[
+  {
+    "Enum": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 0,
+                  "value": "///"
+                },
+                {
+                  "offset": 3,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 4,
+                "value": "This property describes decorations that are added to the text of an element."
+              },
+              "delimiter_end": {
+                "offset": 81,
+                "value": "\n"
+              }
+            }
+          }
+        }
+      ],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 82,
+          "value": "enum"
+        },
+        {
+          "offset": 86,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 87,
+        "value": "TextDecoration"
+      },
+      "variants": {
+        "delimiter_start": [
+          {
+            "offset": 101,
+            "value": " "
+          },
+          {
+            "offset": 102,
+            "value": "{"
+          },
+          {
+            "offset": 103,
+            "value": "\n    "
+          }
+        ],
+        "body": {
+          "pairs": [
+            [
+              {
+                "meta_list": [],
+                "ident": {
+                  "offset": 108,
+                  "value": "Underline"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 117,
+                  "value": ","
+                },
+                {
+                  "offset": 118,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [],
+                "ident": {
+                  "offset": 123,
+                  "value": "Overline"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 131,
+                  "value": ","
+                },
+                {
+                  "offset": 132,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [],
+                "ident": {
+                  "offset": 137,
+                  "value": "LineThrough"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 148,
+                  "value": ","
+                },
+                {
+                  "offset": 149,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [],
+                "ident": {
+                  "offset": 154,
+                  "value": "Blink"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 159,
+                  "value": ","
+                },
+                {
+                  "offset": 160,
+                  "value": "\n"
+                }
+              ]
+            ]
+          ],
+          "tail": null
+        },
+        "delimiter_end": [
+          null,
+          {
+            "offset": 161,
+            "value": "}"
+          },
+          {
+            "offset": 162,
+            "value": "\n\n\n"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Enum": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 165,
+                  "value": "///"
+                },
+                {
+                  "offset": 168,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 169,
+                "value": "The ‘writing-mode’ property specifies whether the initial inline-progression-direction for a ‘text’ element shall be"
+              },
+              "delimiter_end": {
+                "offset": 293,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 294,
+                  "value": "///"
+                },
+                {
+                  "offset": 297,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 298,
+                "value": "left-to-right, right-to-left, or top-to-bottom. The ‘writing-mode’ property applies only to ‘text’ elements;"
+              },
+              "delimiter_end": {
+                "offset": 414,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 415,
+                  "value": "///"
+                },
+                {
+                  "offset": 418,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 419,
+                "value": "the property is ignored for ‘tspan’, ‘tref’, ‘altGlyph’ and ‘textPath’ sub-elements. (Note that the inline-progression-direction"
+              },
+              "delimiter_end": {
+                "offset": 563,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 564,
+                  "value": "///"
+                },
+                {
+                  "offset": 567,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 568,
+                "value": "can change within a ‘text’ element due to the Unicode bidirectional algorithm and properties ‘direction’ and ‘unicode-bidi’."
+              },
+              "delimiter_end": {
+                "offset": 704,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 705,
+                  "value": "///"
+                },
+                {
+                  "offset": 708,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 709,
+                "value": "For more on bidirectional text, see Relationship with bidirectionality.)"
+              },
+              "delimiter_end": {
+                "offset": 781,
+                "value": "\n"
+              }
+            }
+          }
+        }
+      ],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 782,
+          "value": "enum"
+        },
+        {
+          "offset": 786,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 787,
+        "value": "WritingMode"
+      },
+      "variants": {
+        "delimiter_start": [
+          {
+            "offset": 798,
+            "value": " "
+          },
+          {
+            "offset": 799,
+            "value": "{"
+          },
+          {
+            "offset": 800,
+            "value": "\n    "
+          }
+        ],
+        "body": {
+          "pairs": [
+            [
+              {
+                "meta_list": [
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          null,
+                          {
+                            "offset": 805,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 808,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 809,
+                          "value": "Sets the initial inline-progression-direction to left-to-right, as is common in most Latin-based documents."
+                        },
+                        "delimiter_end": {
+                          "offset": 916,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 917,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 921,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 924,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 925,
+                          "value": "For most characters, the current text position is advanced from left to right after each glyph is rendered."
+                        },
+                        "delimiter_end": {
+                          "offset": 1032,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 1033,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 1037,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1040,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1041,
+                          "value": "(When the character data includes characters which are subject to the Unicode bidirectional algorithm, the text"
+                        },
+                        "delimiter_end": {
+                          "offset": 1152,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 1153,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 1157,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1160,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1161,
+                          "value": "advance rules are more complex. See Relationship with bidirectionality)."
+                        },
+                        "delimiter_end": {
+                          "offset": 1233,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 1234,
+                      "value": "    "
+                    }
+                  }
+                ],
+                "ident": {
+                  "offset": 1238,
+                  "value": "LrTb"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 1242,
+                  "value": ","
+                },
+                {
+                  "offset": 1243,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          null,
+                          {
+                            "offset": 1248,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1251,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1252,
+                          "value": "Sets the initial inline-progression-direction to right-to-left, as is common in Arabic or Hebrew scripts."
+                        },
+                        "delimiter_end": {
+                          "offset": 1357,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 1358,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 1362,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1365,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1366,
+                          "value": "(See Relationship with bidirectionality.)"
+                        },
+                        "delimiter_end": {
+                          "offset": 1407,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 1408,
+                      "value": "    "
+                    }
+                  }
+                ],
+                "ident": {
+                  "offset": 1412,
+                  "value": "RlTb"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 1416,
+                  "value": ","
+                },
+                {
+                  "offset": 1417,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          null,
+                          {
+                            "offset": 1422,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1425,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1426,
+                          "value": "Sets the initial inline-progression-direction to top-to-bottom, as is common in some Asian scripts,"
+                        },
+                        "delimiter_end": {
+                          "offset": 1525,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 1526,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 1530,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1533,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1534,
+                          "value": "such as Chinese and Japanese. Though hardly as frequent as horizontal, this type of vertical layout also occurs"
+                        },
+                        "delimiter_end": {
+                          "offset": 1645,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 1646,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 1650,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1653,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1654,
+                          "value": "in Latin based documents, particularly in table column or row labels. In most cases, the vertical baselines"
+                        },
+                        "delimiter_end": {
+                          "offset": 1761,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          {
+                            "offset": 1762,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 1766,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1769,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1770,
+                          "value": "running through the middle of each glyph are aligned."
+                        },
+                        "delimiter_end": {
+                          "offset": 1823,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 1824,
+                      "value": "    "
+                    }
+                  }
+                ],
+                "ident": {
+                  "offset": 1828,
+                  "value": "TbRl"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 1832,
+                  "value": ","
+                },
+                {
+                  "offset": 1833,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          null,
+                          {
+                            "offset": 1838,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1841,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1842,
+                          "value": "See [`LrTb`](WritingMode::LrTb)"
+                        },
+                        "delimiter_end": {
+                          "offset": 1873,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 1874,
+                      "value": "    "
+                    }
+                  }
+                ],
+                "ident": {
+                  "offset": 1878,
+                  "value": "Lr"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 1880,
+                  "value": ","
+                },
+                {
+                  "offset": 1881,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          null,
+                          {
+                            "offset": 1886,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1889,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1890,
+                          "value": "See [`RlTb`](WritingMode::RlTb)"
+                        },
+                        "delimiter_end": {
+                          "offset": 1921,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 1922,
+                      "value": "    "
+                    }
+                  }
+                ],
+                "ident": {
+                  "offset": 1926,
+                  "value": "Rl"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 1928,
+                  "value": ","
+                },
+                {
+                  "offset": 1929,
+                  "value": "\n    "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [
+                  {
+                    "Comment": {
+                      "Outerline": {
+                        "delimiter_start": [
+                          null,
+                          {
+                            "offset": 1934,
+                            "value": "///"
+                          },
+                          {
+                            "offset": 1937,
+                            "value": " "
+                          }
+                        ],
+                        "inline": {
+                          "offset": 1938,
+                          "value": "See [`TbRl`](WritingMode::TbRl)"
+                        },
+                        "delimiter_end": {
+                          "offset": 1969,
+                          "value": "\n"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 1970,
+                      "value": "    "
+                    }
+                  }
+                ],
+                "ident": {
+                  "offset": 1974,
+                  "value": "Tb"
+                },
+                "fields": null
+              },
+              [
+                null,
+                {
+                  "offset": 1976,
+                  "value": ","
+                },
+                {
+                  "offset": 1977,
+                  "value": "\n"
+                }
+              ]
+            ]
+          ],
+          "tail": null
+        },
+        "delimiter_end": [
+          null,
+          {
+            "offset": 1978,
+            "value": "}"
+          },
+          {
+            "offset": 1979,
+            "value": "\n\n\n"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Class": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 1982,
+                  "value": "///"
+                },
+                {
+                  "offset": 1985,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 1986,
+                "value": "support for various international writing directions, such as left-to-right (e.g., Latin scripts) and"
+              },
+              "delimiter_end": {
+                "offset": 2087,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 2088,
+                  "value": "///"
+                },
+                {
+                  "offset": 2091,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 2092,
+                "value": "bidirectional (e.g., Hebrew or Arabic) and vertical (e.g., Asian scripts)."
+              },
+              "delimiter_end": {
+                "offset": 2166,
+                "value": "\n"
+              }
+            }
+          }
+        }
+      ],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 2167,
+          "value": "class"
+        },
+        {
+          "offset": 2172,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 2173,
+        "value": "TextLayout"
+      },
+      "fields": {
+        "Name": {
+          "delimiter_start": [
+            {
+              "offset": 2183,
+              "value": " "
+            },
+            {
+              "offset": 2184,
+              "value": "{"
+            },
+            {
+              "offset": 2185,
+              "value": "\n    "
+            }
+          ],
+          "body": {
+            "pairs": [
+              [
+                {
+                  "meta_list": [
+                    {
+                      "Comment": {
+                        "Outerline": {
+                          "delimiter_start": [
+                            null,
+                            {
+                              "offset": 2190,
+                              "value": "///"
+                            },
+                            {
+                              "offset": 2193,
+                              "value": " "
+                            }
+                          ],
+                          "inline": {
+                            "offset": 2194,
+                            "value": "See [`WritingMode`]"
+                          },
+                          "delimiter_end": {
+                            "offset": 2213,
+                            "value": "\n"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Attr": {
+                        "token": [
+                          {
+                            "offset": 2214,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 2218,
+                            "value": "@"
+                          }
+                        ],
+                        "ident": {
+                          "offset": 2219,
+                          "value": "inherit"
+                        },
+                        "params": null
+                      }
+                    },
+                    {
+                      "S": {
+                        "offset": 2226,
+                        "value": "\n    "
+                      }
+                    }
+                  ],
+                  "patt": {
+                    "ident": {
+                      "offset": 2231,
+                      "value": "write_mode"
+                    },
+                    "sep": [
+                      null,
+                      {
+                        "offset": 2241,
+                        "value": ":"
+                      },
+                      {
+                        "offset": 2242,
+                        "value": " "
+                      }
+                    ],
+                    "ty": {
+                      "Path": {
+                        "first": {
+                          "offset": 2243,
+                          "value": "WritingMode"
+                        },
+                        "rest": []
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 2254,
+                    "value": ","
+                  },
+                  {
+                    "offset": 2255,
+                    "value": "\n    "
+                  }
+                ]
+              ],
+              [
+                {
+                  "meta_list": [
+                    {
+                      "Comment": {
+                        "Outerline": {
+                          "delimiter_start": [
+                            null,
+                            {
+                              "offset": 2260,
+                              "value": "///"
+                            },
+                            {
+                              "offset": 2263,
+                              "value": " "
+                            }
+                          ],
+                          "inline": {
+                            "offset": 2264,
+                            "value": "See [`TextDirection`]"
+                          },
+                          "delimiter_end": {
+                            "offset": 2285,
+                            "value": "\n"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Attr": {
+                        "token": [
+                          {
+                            "offset": 2286,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 2290,
+                            "value": "@"
+                          }
+                        ],
+                        "ident": {
+                          "offset": 2291,
+                          "value": "inherit"
+                        },
+                        "params": null
+                      }
+                    },
+                    {
+                      "S": {
+                        "offset": 2298,
+                        "value": "\n    "
+                      }
+                    }
+                  ],
+                  "patt": {
+                    "ident": {
+                      "offset": 2303,
+                      "value": "direction"
+                    },
+                    "sep": [
+                      null,
+                      {
+                        "offset": 2312,
+                        "value": ":"
+                      },
+                      {
+                        "offset": 2313,
+                        "value": " "
+                      }
+                    ],
+                    "ty": {
+                      "Path": {
+                        "first": {
+                          "offset": 2314,
+                          "value": "TextDirection"
+                        },
+                        "rest": []
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 2327,
+                    "value": ","
+                  },
+                  {
+                    "offset": 2328,
+                    "value": "\n"
+                  }
+                ]
+              ]
+            ],
+            "tail": null
+          },
+          "delimiter_end": [
+            null,
+            {
+              "offset": 2329,
+              "value": "}"
+            },
+            {
+              "offset": 2330,
+              "value": "\n\n"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Class": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 2332,
+                  "value": "///"
+                },
+                {
+                  "offset": 2335,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 2336,
+                "value": "Fill properties."
+              },
+              "delimiter_end": {
+                "offset": 2352,
+                "value": "\n"
+              }
+            }
+          }
+        }
+      ],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 2353,
+          "value": "class"
+        },
+        {
+          "offset": 2358,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 2359,
+        "value": "Fill"
+      },
+      "fields": {
+        "Name": {
+          "delimiter_start": [
+            {
+              "offset": 2363,
+              "value": " "
+            },
+            {
+              "offset": 2364,
+              "value": "{"
+            },
+            {
+              "offset": 2365,
+              "value": "\n    "
+            }
+          ],
+          "body": {
+            "pairs": [
+              [
+                {
+                  "meta_list": [],
+                  "patt": {
+                    "ident": {
+                      "offset": 2370,
+                      "value": "foreground_color"
+                    },
+                    "sep": [
+                      null,
+                      {
+                        "offset": 2386,
+                        "value": ":"
+                      },
+                      {
+                        "offset": 2387,
+                        "value": " "
+                      }
+                    ],
+                    "ty": {
+                      "Color": {
+                        "offset": 2388,
+                        "value": "color"
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 2393,
+                    "value": ","
+                  },
+                  {
+                    "offset": 2394,
+                    "value": "\n    "
+                  }
+                ]
+              ],
+              [
+                {
+                  "meta_list": [],
+                  "patt": {
+                    "ident": {
+                      "offset": 2399,
+                      "value": "background_color"
+                    },
+                    "sep": [
+                      null,
+                      {
+                        "offset": 2415,
+                        "value": ":"
+                      },
+                      {
+                        "offset": 2416,
+                        "value": " "
+                      }
+                    ],
+                    "ty": {
+                      "Color": {
+                        "offset": 2417,
+                        "value": "color"
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 2422,
+                    "value": ","
+                  },
+                  {
+                    "offset": 2423,
+                    "value": "\n"
+                  }
+                ]
+              ]
+            ],
+            "tail": null
+          },
+          "delimiter_end": [
+            null,
+            {
+              "offset": 2424,
+              "value": "}"
+            },
+            {
+              "offset": 2425,
+              "value": "\n\n"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Data": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 2427,
+                  "value": "///"
+                },
+                {
+                  "offset": 2430,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 2431,
+                "value": "All fields of a `state` are default required."
+              },
+              "delimiter_end": {
+                "offset": 2476,
+                "value": "\n"
+              }
+            }
+          }
+        }
+      ],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 2477,
+          "value": "data"
+        },
+        {
+          "offset": 2481,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 2482,
+        "value": "Label"
+      },
+      "fields": {
+        "Name": {
+          "delimiter_start": [
+            {
+              "offset": 2487,
+              "value": " "
+            },
+            {
+              "offset": 2488,
+              "value": "{"
+            },
+            {
+              "offset": 2489,
+              "value": "\n    "
+            }
+          ],
+          "body": {
+            "pairs": [
+              [
+                {
+                  "meta_list": [
+                    {
+                      "Comment": {
+                        "Outerline": {
+                          "delimiter_start": [
+                            null,
+                            {
+                              "offset": 2494,
+                              "value": "///"
+                            },
+                            {
+                              "offset": 2497,
+                              "value": " "
+                            }
+                          ],
+                          "inline": {
+                            "offset": 2498,
+                            "value": "The fields is a value object passed by value."
+                          },
+                          "delimiter_end": {
+                            "offset": 2543,
+                            "value": "\n"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Attr": {
+                        "token": [
+                          {
+                            "offset": 2544,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 2548,
+                            "value": "@"
+                          }
+                        ],
+                        "ident": {
+                          "offset": 2549,
+                          "value": "state"
+                        },
+                        "params": null
+                      }
+                    },
+                    {
+                      "S": {
+                        "offset": 2554,
+                        "value": " "
+                      }
+                    }
+                  ],
+                  "patt": {
+                    "ident": {
+                      "offset": 2555,
+                      "value": "text"
+                    },
+                    "sep": [
+                      null,
+                      {
+                        "offset": 2559,
+                        "value": ":"
+                      },
+                      {
+                        "offset": 2560,
+                        "value": " "
+                      }
+                    ],
+                    "ty": {
+                      "String": {
+                        "offset": 2561,
+                        "value": "string"
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 2567,
+                    "value": ","
+                  },
+                  {
+                    "offset": 2568,
+                    "value": "\n    "
+                  }
+                ]
+              ],
+              [
+                {
+                  "meta_list": [
+                    {
+                      "Comment": {
+                        "Outerline": {
+                          "delimiter_start": [
+                            null,
+                            {
+                              "offset": 2573,
+                              "value": "///"
+                            },
+                            {
+                              "offset": 2576,
+                              "value": " "
+                            }
+                          ],
+                          "inline": {
+                            "offset": 2577,
+                            "value": "optional content builder function."
+                          },
+                          "delimiter_end": {
+                            "offset": 2611,
+                            "value": "\n"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Attr": {
+                        "token": [
+                          {
+                            "offset": 2612,
+                            "value": "    "
+                          },
+                          {
+                            "offset": 2616,
+                            "value": "@"
+                          }
+                        ],
+                        "ident": {
+                          "offset": 2617,
+                          "value": "option"
+                        },
+                        "params": null
+                      }
+                    },
+                    {
+                      "S": {
+                        "offset": 2623,
+                        "value": " "
+                      }
+                    }
+                  ],
+                  "patt": {
+                    "ident": {
+                      "offset": 2624,
+                      "value": "content"
+                    },
+                    "sep": [
+                      null,
+                      {
+                        "offset": 2631,
+                        "value": ":"
+                      },
+                      {
+                        "offset": 2632,
+                        "value": " "
+                      }
+                    ],
+                    "ty": {
+                      "Fn": {
+                        "fn_token": {
+                          "offset": 2633,
+                          "value": "fn"
+                        },
+                        "params": {
+                          "delimiter_start": [
+                            null,
+                            {
+                              "offset": 2635,
+                              "value": "("
+                            },
+                            null
+                          ],
+                          "body": {
+                            "pairs": [],
+                            "tail": null
+                          },
+                          "delimiter_end": [
+                            null,
+                            {
+                              "offset": 2636,
+                              "value": ")"
+                            },
+                            {
+                              "offset": 2637,
+                              "value": " "
+                            }
+                          ]
+                        },
+                        "return_ty": [
+                          [
+                            null,
+                            {
+                              "offset": 2638,
+                              "value": "->"
+                            },
+                            {
+                              "offset": 2640,
+                              "value": " "
+                            }
+                          ],
+                          {
+                            "View": {
+                              "offset": 2641,
+                              "value": "view"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 2645,
+                    "value": ","
+                  },
+                  {
+                    "offset": 2646,
+                    "value": "\n"
+                  }
+                ]
+              ]
+            ],
+            "tail": null
+          },
+          "delimiter_end": [
+            null,
+            {
+              "offset": 2647,
+              "value": "}"
+            },
+            {
+              "offset": 2648,
+              "value": "\n\n"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Fn": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 2650,
+                  "value": "///"
+                },
+                {
+                  "offset": 2653,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 2654,
+                "value": "A platform provided view function to display a text characters"
+              },
+              "delimiter_end": {
+                "offset": 2716,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Attr": {
+            "token": [
+              null,
+              {
+                "offset": 2717,
+                "value": "@"
+              }
+            ],
+            "ident": {
+              "offset": 2718,
+              "value": "platform"
+            },
+            "params": null
+          }
+        },
+        {
+          "S": {
+            "offset": 2726,
+            "value": "\n"
+          }
+        }
+      ],
+      "extern_keyword": [
+        {
+          "offset": 2727,
+          "value": "extern"
+        },
+        {
+          "offset": 2733,
+          "value": " "
+        }
+      ],
+      "vs": null,
+      "fn_keyword": [
+        {
+          "offset": 2734,
+          "value": "fn"
+        },
+        {
+          "offset": 2736,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 2737,
+        "value": "label"
+      },
+      "params": {
+        "delimiter_start": [
+          null,
+          {
+            "offset": 2742,
+            "value": "("
+          },
+          null
+        ],
+        "body": {
+          "pairs": [
+            [
+              {
+                "meta_list": [],
+                "patt": {
+                  "ident": {
+                    "offset": 2743,
+                    "value": "label"
+                  },
+                  "sep": [
+                    null,
+                    {
+                      "offset": 2748,
+                      "value": ":"
+                    },
+                    {
+                      "offset": 2749,
+                      "value": " "
+                    }
+                  ],
+                  "ty": {
+                    "Path": {
+                      "first": {
+                        "offset": 2750,
+                        "value": "Label"
+                      },
+                      "rest": []
+                    }
+                  }
+                }
+              },
+              [
+                null,
+                {
+                  "offset": 2755,
+                  "value": ","
+                },
+                {
+                  "offset": 2756,
+                  "value": " "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [],
+                "patt": {
+                  "ident": {
+                    "offset": 2757,
+                    "value": "layout"
+                  },
+                  "sep": [
+                    null,
+                    {
+                      "offset": 2763,
+                      "value": ":"
+                    },
+                    {
+                      "offset": 2764,
+                      "value": " "
+                    }
+                  ],
+                  "ty": {
+                    "Path": {
+                      "first": {
+                        "offset": 2765,
+                        "value": "TextLayout"
+                      },
+                      "rest": []
+                    }
+                  }
+                }
+              },
+              [
+                null,
+                {
+                  "offset": 2775,
+                  "value": ","
+                },
+                {
+                  "offset": 2776,
+                  "value": " "
+                }
+              ]
+            ]
+          ],
+          "tail": {
+            "meta_list": [],
+            "patt": {
+              "ident": {
+                "offset": 2777,
+                "value": "fill"
+              },
+              "sep": [
+                null,
+                {
+                  "offset": 2781,
+                  "value": ":"
+                },
+                {
+                  "offset": 2782,
+                  "value": " "
+                }
+              ],
+              "ty": {
+                "Path": {
+                  "first": {
+                    "offset": 2783,
+                    "value": "Fill"
+                  },
+                  "rest": []
+                }
+              }
+            }
+          }
+        },
+        "delimiter_end": [
+          null,
+          {
+            "offset": 2787,
+            "value": ")"
+          },
+          {
+            "offset": 2788,
+            "value": " "
+          }
+        ]
+      },
+      "return_ty": {
+        "token": [
+          null,
+          {
+            "offset": 2789,
+            "value": "->"
+          },
+          {
+            "offset": 2791,
+            "value": " "
+          }
+        ],
+        "ty": {
+          "View": {
+            "offset": 2792,
+            "value": "view"
+          }
+        }
+      },
+      "body": {
+        "SemiColon": [
+          null,
+          {
+            "offset": 2796,
+            "value": ";"
+          },
+          {
+            "offset": 2797,
+            "value": "\n\n"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Fn": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 2799,
+                  "value": "///"
+                },
+                {
+                  "offset": 2802,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 2803,
+                "value": "A platform provided view function to display a text characters."
+              },
+              "delimiter_end": {
+                "offset": 2866,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 2867,
+                  "value": "///"
+                },
+                {
+                  "offset": 2870,
+                  "value": " \n"
+                }
+              ],
+              "inline": {
+                "offset": 2872,
+                "value": "/// The `text` parameter is a `StateObject` passed by reference."
+              },
+              "delimiter_end": {
+                "offset": 2936,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Attr": {
+            "token": [
+              null,
+              {
+                "offset": 2937,
+                "value": "@"
+              }
+            ],
+            "ident": {
+              "offset": 2938,
+              "value": "platform"
+            },
+            "params": null
+          }
+        },
+        {
+          "S": {
+            "offset": 2946,
+            "value": "\n"
+          }
+        }
+      ],
+      "extern_keyword": [
+        {
+          "offset": 2947,
+          "value": "extern"
+        },
+        {
+          "offset": 2953,
+          "value": " "
+        }
+      ],
+      "vs": null,
+      "fn_keyword": [
+        {
+          "offset": 2954,
+          "value": "fn"
+        },
+        {
+          "offset": 2956,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 2957,
+        "value": "text_field"
+      },
+      "params": {
+        "delimiter_start": [
+          null,
+          {
+            "offset": 2967,
+            "value": "("
+          },
+          null
+        ],
+        "body": {
+          "pairs": [
+            [
+              {
+                "meta_list": [
+                  {
+                    "Attr": {
+                      "token": [
+                        null,
+                        {
+                          "offset": 2968,
+                          "value": "@"
+                        }
+                      ],
+                      "ident": {
+                        "offset": 2969,
+                        "value": "state"
+                      },
+                      "params": null
+                    }
+                  },
+                  {
+                    "S": {
+                      "offset": 2974,
+                      "value": " "
+                    }
+                  }
+                ],
+                "patt": {
+                  "ident": {
+                    "offset": 2975,
+                    "value": "text"
+                  },
+                  "sep": [
+                    null,
+                    {
+                      "offset": 2979,
+                      "value": ":"
+                    },
+                    {
+                      "offset": 2980,
+                      "value": " "
+                    }
+                  ],
+                  "ty": {
+                    "String": {
+                      "offset": 2981,
+                      "value": "string"
+                    }
+                  }
+                }
+              },
+              [
+                null,
+                {
+                  "offset": 2987,
+                  "value": ","
+                },
+                {
+                  "offset": 2988,
+                  "value": " "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [],
+                "patt": {
+                  "ident": {
+                    "offset": 2989,
+                    "value": "layout"
+                  },
+                  "sep": [
+                    null,
+                    {
+                      "offset": 2995,
+                      "value": ":"
+                    },
+                    {
+                      "offset": 2996,
+                      "value": " "
+                    }
+                  ],
+                  "ty": {
+                    "Path": {
+                      "first": {
+                        "offset": 2997,
+                        "value": "TextLayout"
+                      },
+                      "rest": []
+                    }
+                  }
+                }
+              },
+              [
+                null,
+                {
+                  "offset": 3007,
+                  "value": ","
+                },
+                {
+                  "offset": 3008,
+                  "value": " "
+                }
+              ]
+            ],
+            [
+              {
+                "meta_list": [],
+                "patt": {
+                  "ident": {
+                    "offset": 3009,
+                    "value": "fill"
+                  },
+                  "sep": [
+                    null,
+                    {
+                      "offset": 3013,
+                      "value": ":"
+                    },
+                    {
+                      "offset": 3014,
+                      "value": " "
+                    }
+                  ],
+                  "ty": {
+                    "Path": {
+                      "first": {
+                        "offset": 3015,
+                        "value": "Fill"
+                      },
+                      "rest": []
+                    }
+                  }
+                }
+              },
+              [
+                null,
+                {
+                  "offset": 3019,
+                  "value": ","
+                },
+                {
+                  "offset": 3020,
+                  "value": " "
+                }
+              ]
+            ]
+          ],
+          "tail": {
+            "meta_list": [
+              {
+                "Attr": {
+                  "token": [
+                    null,
+                    {
+                      "offset": 3021,
+                      "value": "@"
+                    }
+                  ],
+                  "ident": {
+                    "offset": 3022,
+                    "value": "option"
+                  },
+                  "params": null
+                }
+              },
+              {
+                "S": {
+                  "offset": 3028,
+                  "value": " "
+                }
+              }
+            ],
+            "patt": {
+              "ident": {
+                "offset": 3029,
+                "value": "content"
+              },
+              "sep": [
+                null,
+                {
+                  "offset": 3036,
+                  "value": ":"
+                },
+                {
+                  "offset": 3037,
+                  "value": " "
+                }
+              ],
+              "ty": {
+                "Fn": {
+                  "fn_token": {
+                    "offset": 3038,
+                    "value": "fn"
+                  },
+                  "params": {
+                    "delimiter_start": [
+                      null,
+                      {
+                        "offset": 3040,
+                        "value": "("
+                      },
+                      null
+                    ],
+                    "body": {
+                      "pairs": [],
+                      "tail": null
+                    },
+                    "delimiter_end": [
+                      null,
+                      {
+                        "offset": 3041,
+                        "value": ")"
+                      },
+                      {
+                        "offset": 3042,
+                        "value": " "
+                      }
+                    ]
+                  },
+                  "return_ty": [
+                    [
+                      null,
+                      {
+                        "offset": 3043,
+                        "value": "->"
+                      },
+                      {
+                        "offset": 3045,
+                        "value": " "
+                      }
+                    ],
+                    {
+                      "View": {
+                        "offset": 3046,
+                        "value": "view"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "delimiter_end": [
+          null,
+          {
+            "offset": 3050,
+            "value": ")"
+          },
+          {
+            "offset": 3051,
+            "value": " "
+          }
+        ]
+      },
+      "return_ty": {
+        "token": [
+          null,
+          {
+            "offset": 3052,
+            "value": "->"
+          },
+          {
+            "offset": 3054,
+            "value": " "
+          }
+        ],
+        "ty": {
+          "View": {
+            "offset": 3055,
+            "value": "view"
+          }
+        }
+      },
+      "body": {
+        "SemiColon": [
+          null,
+          {
+            "offset": 3059,
+            "value": ";"
+          },
+          {
+            "offset": 3060,
+            "value": "\n\n"
+          }
+        ]
+      }
+    }
+  }
+]

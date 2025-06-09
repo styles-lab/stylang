@@ -1,0 +1,193 @@
+[
+  {
+    "Mod": {
+      "meta_list": [],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 0,
+          "value": "mod"
+        },
+        {
+          "offset": 3,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 4,
+        "value": "text"
+      },
+      "semi_colon": [
+        null,
+        {
+          "offset": 8,
+          "value": ";"
+        },
+        {
+          "offset": 9,
+          "value": "\n"
+        }
+      ]
+    }
+  },
+  {
+    "Use": {
+      "meta_list": [],
+      "vs": {
+        "Outer": {
+          "token": {
+            "offset": 10,
+            "value": "pub"
+          },
+          "tail_s": {
+            "offset": 13,
+            "value": " "
+          }
+        }
+      },
+      "keyword": [
+        {
+          "offset": 14,
+          "value": "use"
+        },
+        {
+          "offset": 17,
+          "value": " "
+        }
+      ],
+      "path": {
+        "first": {
+          "offset": 18,
+          "value": "text"
+        },
+        "rest": [
+          [
+            [
+              null,
+              {
+                "offset": 22,
+                "value": "::"
+              },
+              null
+            ],
+            {
+              "Glob": [
+                null,
+                {
+                  "offset": 24,
+                  "value": "*"
+                },
+                null
+              ]
+            }
+          ]
+        ]
+      },
+      "semi_colon": [
+        null,
+        {
+          "offset": 25,
+          "value": ";"
+        },
+        {
+          "offset": 26,
+          "value": "\n\n"
+        }
+      ]
+    }
+  },
+  {
+    "Mod": {
+      "meta_list": [],
+      "vs": null,
+      "keyword": [
+        {
+          "offset": 28,
+          "value": "mod"
+        },
+        {
+          "offset": 31,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 32,
+        "value": "theme"
+      },
+      "semi_colon": [
+        null,
+        {
+          "offset": 37,
+          "value": ";"
+        },
+        {
+          "offset": 38,
+          "value": "\n"
+        }
+      ]
+    }
+  },
+  {
+    "Use": {
+      "meta_list": [],
+      "vs": {
+        "Outer": {
+          "token": {
+            "offset": 39,
+            "value": "pub"
+          },
+          "tail_s": {
+            "offset": 42,
+            "value": " "
+          }
+        }
+      },
+      "keyword": [
+        {
+          "offset": 43,
+          "value": "use"
+        },
+        {
+          "offset": 46,
+          "value": " "
+        }
+      ],
+      "path": {
+        "first": {
+          "offset": 47,
+          "value": "theme"
+        },
+        "rest": [
+          [
+            [
+              null,
+              {
+                "offset": 52,
+                "value": "::"
+              },
+              null
+            ],
+            {
+              "Glob": [
+                null,
+                {
+                  "offset": 54,
+                  "value": "*"
+                },
+                null
+              ]
+            }
+          ]
+        ]
+      },
+      "semi_colon": [
+        null,
+        {
+          "offset": 55,
+          "value": ";"
+        },
+        null
+      ]
+    }
+  }
+]

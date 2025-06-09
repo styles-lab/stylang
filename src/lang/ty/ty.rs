@@ -7,6 +7,22 @@ use crate::lang::{
     ty::{TypeFn, TypeNum, TypePath},
 };
 
+/// The parser of array type: [ty;N]
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(input = I, error = LangError)]
+pub struct TypeArray<I>(Bracket<I, (Box<Type<I>>, SepSemiColon<I>, Digits<I>)>)
+where
+    I: LangInput;
+
+/// The parser of slice type: [ty]
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(input = I, error = LangError)]
+pub struct TypeSlice<I>(Bracket<I, Box<Type<I>>>)
+where
+    I: LangInput;
+
 /// The parser for `stylang` types.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -27,6 +43,8 @@ where
     String(TokenString<I>),
     Num(TypeNum<I>),
     Path(TypePath<I>),
+    Array(TypeArray<I>),
+    Slice(TypeSlice<I>),
 }
 
 #[cfg(test)]

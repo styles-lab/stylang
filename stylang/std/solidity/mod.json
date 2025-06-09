@@ -1,0 +1,87 @@
+[
+  {
+    "Mod": {
+      "meta_list": [
+        {
+          "Attr": {
+            "token": [
+              null,
+              {
+                "offset": 0,
+                "value": "@"
+              }
+            ],
+            "ident": {
+              "offset": 1,
+              "value": "sol"
+            },
+            "params": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 4,
+                  "value": "("
+                },
+                null
+              ],
+              "body": {
+                "pairs": [],
+                "tail": {
+                  "String": {
+                    "offset": 6,
+                    "value": "./erc20.json"
+                  }
+                }
+              },
+              "delimiter_end": [
+                null,
+                {
+                  "offset": 19,
+                  "value": ")"
+                },
+                {
+                  "offset": 20,
+                  "value": "\n"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "vs": {
+        "Outer": {
+          "token": {
+            "offset": 21,
+            "value": "pub"
+          },
+          "tail_s": {
+            "offset": 24,
+            "value": " "
+          }
+        }
+      },
+      "keyword": [
+        {
+          "offset": 25,
+          "value": "mod"
+        },
+        {
+          "offset": 28,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 29,
+        "value": "erc20"
+      },
+      "semi_colon": [
+        null,
+        {
+          "offset": 34,
+          "value": ";"
+        },
+        null
+      ]
+    }
+  }
+]

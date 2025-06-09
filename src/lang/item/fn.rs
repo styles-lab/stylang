@@ -43,6 +43,19 @@ where
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive_parse(error = LangError,input = I)]
+pub struct ReturnType<I>
+where
+    I: LangInput,
+{
+    pub token: SepArrowRight<I>,
+    #[fatal]
+    pub ty: Box<Type<I>>,
+}
+
+/// Item parser for `free function` item.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive_parse(error = LangError,input = I)]
 pub struct ItemFn<I>
 where
     I: LangInput,
@@ -56,12 +69,15 @@ where
     /// keyword `fn[s]+`
     pub fn_keyword: KeywordFn<I>,
     /// function name.
+    #[fatal]
     pub ident: Ident<I>,
     /// The formal parameter list.
+    #[fatal]
     pub params: Paren<I, Punctuated<Param<I>, SepComma<I>>>,
     /// optional return type clause.
-    pub return_ty: Option<(SepArrowRight<I>, Box<Type<I>>)>,
+    pub return_ty: Option<ReturnType<I>>,
     /// function body clause.
+    #[fatal]
     pub body: Body<I>,
 }
 
@@ -72,7 +88,7 @@ mod tests {
 
     use crate::lang::{
         input::TokenStream,
-        item::{Body, ItemFn, Param},
+        item::{Body, ItemFn, Param, ReturnType},
         meta::{Attr, Comment, Meta, OuterLineDoc},
         patt::PattType,
         stmt::{Block, Stmts},
@@ -296,8 +312,8 @@ mod tests {
                             }))
                         )
                     },
-                    return_ty: Some((
-                        SepArrowRight(
+                    return_ty: Some(ReturnType {
+                        token: SepArrowRight(
                             None,
                             TokenStream {
                                 offset: 188,
@@ -308,11 +324,11 @@ mod tests {
                                 value: " "
                             }))
                         ),
-                        Box::new(Type::View(TokenView(TokenStream {
+                        ty: Box::new(Type::View(TokenView(TokenStream {
                             offset: 191,
                             value: "view"
                         })))
-                    )),
+                    }),
                     body: Body::SemiColon(SepSemiColon(
                         None,
                         TokenStream {

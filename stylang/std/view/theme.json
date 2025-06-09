@@ -1,0 +1,162 @@
+[
+  {
+    "Fn": {
+      "meta_list": [
+        {
+          "Comment": {
+            "Outerline": {
+              "delimiter_start": [
+                null,
+                {
+                  "offset": 0,
+                  "value": "///"
+                },
+                {
+                  "offset": 3,
+                  "value": " "
+                }
+              ],
+              "inline": {
+                "offset": 4,
+                "value": "this function merge theme class into provided `_class` and returns it."
+              },
+              "delimiter_end": {
+                "offset": 74,
+                "value": "\n"
+              }
+            }
+          }
+        },
+        {
+          "Attr": {
+            "token": [
+              null,
+              {
+                "offset": 75,
+                "value": "@"
+              }
+            ],
+            "ident": {
+              "offset": 76,
+              "value": "platform"
+            },
+            "params": null
+          }
+        },
+        {
+          "S": {
+            "offset": 84,
+            "value": "\n"
+          }
+        }
+      ],
+      "extern_keyword": [
+        {
+          "offset": 85,
+          "value": "extern"
+        },
+        {
+          "offset": 91,
+          "value": " "
+        }
+      ],
+      "vs": null,
+      "fn_keyword": [
+        {
+          "offset": 92,
+          "value": "fn"
+        },
+        {
+          "offset": 94,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 95,
+        "value": "class_merge"
+      },
+      "params": {
+        "delimiter_start": [
+          null,
+          {
+            "offset": 106,
+            "value": "("
+          },
+          null
+        ],
+        "body": {
+          "pairs": [],
+          "tail": {
+            "meta_list": [],
+            "patt": {
+              "ident": {
+                "offset": 107,
+                "value": "_class"
+              },
+              "sep": [
+                null,
+                {
+                  "offset": 113,
+                  "value": ":"
+                },
+                {
+                  "offset": 114,
+                  "value": " "
+                }
+              ],
+              "ty": {
+                "Class": {
+                  "offset": 115,
+                  "value": "class"
+                }
+              }
+            }
+          }
+        },
+        "delimiter_end": [
+          null,
+          {
+            "offset": 120,
+            "value": ")"
+          },
+          {
+            "offset": 121,
+            "value": " "
+          }
+        ]
+      },
+      "return_ty": {
+        "token": [
+          null,
+          {
+            "offset": 122,
+            "value": "->"
+          },
+          {
+            "offset": 124,
+            "value": " "
+          }
+        ],
+        "ty": {
+          "Class": {
+            "offset": 125,
+            "value": "class"
+          }
+        }
+      },
+      "body": {
+        "SemiColon": [
+          null,
+          {
+            "offset": 130,
+            "value": ";"
+          },
+          {
+            "offset": 131,
+            "value": "\n"
+          }
+        ]
+      }
+    }
+  }
+]

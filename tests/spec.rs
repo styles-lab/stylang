@@ -43,7 +43,7 @@ fn test_script(mut path: PathBuf) {
     let data = flexbuffers::to_vec(&file).unwrap();
     // let data = serde_lexpr::to_vec(&script).unwrap();
 
-    std::fs::write(path, &data).unwrap();
+    std::fs::write(&path, &data).unwrap();
 
     let _: File<TokenStream<'_>> = flexbuffers::from_slice(&data).unwrap();
 
@@ -51,6 +51,10 @@ fn test_script(mut path: PathBuf) {
     // let _: Vec<Item<TokenStream<'static>>> = serde_lexpr::from_slice(s);
 
     println!(" ... ok({},{})", file.len(), data.len());
+
+    path.set_extension("json");
+
+    std::fs::write(&path, serde_json::to_string_pretty(&file).unwrap()).unwrap();
 }
 
 #[test]

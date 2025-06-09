@@ -2,18 +2,18 @@
   {
     "Mod": {
       "meta_list": [],
-      "vis": [
-        {
-          "Public": {
+      "vs": {
+        "Outer": {
+          "token": {
             "offset": 0,
             "value": "pub"
+          },
+          "tail_s": {
+            "offset": 3,
+            "value": " "
           }
-        },
-        {
-          "offset": 3,
-          "value": " "
         }
-      ],
+      },
       "keyword": [
         {
           "offset": 4,
@@ -24,34 +24,38 @@
           "value": " "
         }
       ],
-      "ident": [
+      "ident": {
+        "offset": 8,
+        "value": "view"
+      },
+      "semi_colon": [
+        null,
         {
-          "offset": 8,
-          "value": "view"
+          "offset": 12,
+          "value": ";"
         },
-        null
-      ],
-      "semi_colon": {
-        "offset": 12,
-        "value": ";"
-      }
+        {
+          "offset": 13,
+          "value": "\n\n"
+        }
+      ]
     }
   },
   {
     "Mod": {
       "meta_list": [],
-      "vis": [
-        {
-          "Public": {
+      "vs": {
+        "Outer": {
+          "token": {
             "offset": 15,
             "value": "pub"
+          },
+          "tail_s": {
+            "offset": 18,
+            "value": " "
           }
-        },
-        {
-          "offset": 18,
-          "value": " "
         }
-      ],
+      },
       "keyword": [
         {
           "offset": 19,
@@ -62,17 +66,18 @@
           "value": " "
         }
       ],
-      "ident": [
+      "ident": {
+        "offset": 23,
+        "value": "platform"
+      },
+      "semi_colon": [
+        null,
         {
-          "offset": 23,
-          "value": "platform"
+          "offset": 31,
+          "value": ";"
         },
         null
-      ],
-      "semi_colon": {
-        "offset": 31,
-        "value": ";"
-      }
+      ]
     }
   }
 ]
