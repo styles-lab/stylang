@@ -53,7 +53,7 @@ where
     Mm(Option<TokenUnderscore<I>>, TokenMm<I>),
     Pt(Option<TokenUnderscore<I>>, TokenPt<I>),
     Pc(Option<TokenUnderscore<I>>, TokenPc<I>),
-    Percent(Option<TokenUnderscore<I>>, TokenPercent<I>),
+    Percent(TokenUnderscore<I>, TokenPercent<I>),
     Deg(Option<TokenUnderscore<I>>, TokenDeg<I>),
     Grad(Option<TokenUnderscore<I>>, TokenGrad<I>),
     Rad(Option<TokenUnderscore<I>>, TokenRad<I>),

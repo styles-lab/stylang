@@ -6,7 +6,7 @@ use crate::lang::{
     input::LangInput,
     lit::Lit,
     meta::MetaList,
-    token::{Bracket, Digits, Ident, Paren, SepComma, SepDot},
+    token::*,
     ty::TypePath,
 };
 
