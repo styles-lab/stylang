@@ -253,35 +253,98 @@
                               "Term": {
                                 "meta_list": [],
                                 "left_operand": {
-                                  "Lit": [
-                                    [],
-                                    {
-                                      "Num": {
-                                        "sign": null,
-                                        "trunc": {
-                                          "offset": 52,
-                                          "value": "1"
+                                  "Term": {
+                                    "meta_list": [],
+                                    "left_operand": {
+                                      "Lit": [
+                                        [],
+                                        {
+                                          "Num": {
+                                            "sign": null,
+                                            "trunc": {
+                                              "offset": 52,
+                                              "value": "1"
+                                            },
+                                            "dot": null,
+                                            "fract": null,
+                                            "exp": null,
+                                            "unit": null
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "op": {
+                                      "Add": [
+                                        {
+                                          "offset": 53,
+                                          "value": " "
                                         },
-                                        "dot": null,
-                                        "fract": null,
-                                        "exp": null,
-                                        "unit": null
+                                        {
+                                          "offset": 54,
+                                          "value": "+"
+                                        },
+                                        {
+                                          "offset": 55,
+                                          "value": " "
+                                        }
+                                      ]
+                                    },
+                                    "right_operand": {
+                                      "Factor": {
+                                        "meta_list": [],
+                                        "left_operand": {
+                                          "Ident": [
+                                            [],
+                                            {
+                                              "offset": 56,
+                                              "value": "d"
+                                            }
+                                          ]
+                                        },
+                                        "op": {
+                                          "Mul": [
+                                            null,
+                                            {
+                                              "offset": 57,
+                                              "value": "*"
+                                            },
+                                            null
+                                          ]
+                                        },
+                                        "right_operand": {
+                                          "Lit": [
+                                            [],
+                                            {
+                                              "Num": {
+                                                "sign": null,
+                                                "trunc": {
+                                                  "offset": 58,
+                                                  "value": "3"
+                                                },
+                                                "dot": null,
+                                                "fract": null,
+                                                "exp": null,
+                                                "unit": null
+                                              }
+                                            }
+                                          ]
+                                        }
                                       }
                                     }
-                                  ]
+                                  }
                                 },
                                 "op": {
                                   "Add": [
                                     {
-                                      "offset": 53,
+                                      "offset": 59,
                                       "value": " "
                                     },
                                     {
-                                      "offset": 54,
+                                      "offset": 60,
                                       "value": "+"
                                     },
                                     {
-                                      "offset": 55,
+                                      "offset": 61,
                                       "value": " "
                                     }
                                   ]
@@ -290,39 +353,63 @@
                                   "Factor": {
                                     "meta_list": [],
                                     "left_operand": {
-                                      "Ident": [
-                                        [],
-                                        {
-                                          "offset": 56,
-                                          "value": "d"
+                                      "Factor": {
+                                        "meta_list": [],
+                                        "left_operand": {
+                                          "Ident": [
+                                            [],
+                                            {
+                                              "offset": 62,
+                                              "value": "c"
+                                            }
+                                          ]
+                                        },
+                                        "op": {
+                                          "Div": [
+                                            null,
+                                            {
+                                              "offset": 63,
+                                              "value": "/"
+                                            },
+                                            null
+                                          ]
+                                        },
+                                        "right_operand": {
+                                          "Lit": [
+                                            [],
+                                            {
+                                              "Num": {
+                                                "sign": null,
+                                                "trunc": {
+                                                  "offset": 64,
+                                                  "value": "4"
+                                                },
+                                                "dot": null,
+                                                "fract": null,
+                                                "exp": null,
+                                                "unit": null
+                                              }
+                                            }
+                                          ]
                                         }
-                                      ]
+                                      }
                                     },
                                     "op": {
                                       "Mul": [
                                         null,
                                         {
-                                          "offset": 57,
+                                          "offset": 65,
                                           "value": "*"
                                         },
                                         null
                                       ]
                                     },
                                     "right_operand": {
-                                      "Lit": [
+                                      "Ident": [
                                         [],
                                         {
-                                          "Num": {
-                                            "sign": null,
-                                            "trunc": {
-                                              "offset": 58,
-                                              "value": "3"
-                                            },
-                                            "dot": null,
-                                            "fract": null,
-                                            "exp": null,
-                                            "unit": null
-                                          }
+                                          "offset": 66,
+                                          "value": "b"
                                         }
                                       ]
                                     }
@@ -339,11 +426,11 @@
                 [
                   null,
                   {
-                    "offset": 59,
+                    "offset": 67,
                     "value": ";"
                   },
                   {
-                    "offset": 60,
+                    "offset": 68,
                     "value": "\n"
                   }
                 ]
@@ -353,11 +440,11 @@
           "delimiter_end": [
             null,
             {
-              "offset": 61,
+              "offset": 69,
               "value": "}"
             },
             {
-              "offset": 62,
+              "offset": 70,
               "value": "\n"
             }
           ]
