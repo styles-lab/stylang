@@ -72,12 +72,137 @@ mod tests {
     use parserc::{Delimiter, Parse, Punctuated};
 
     use crate::lang::{
-        expr::{Expr, ExprBlock, ExprIf, ExprPath, PathCall, PathSegment, PathStart},
+        expr::{
+            BitsOp, CompOp, Expr, ExprBits, ExprBlock, ExprComp, ExprIf, ExprPath, ExprWhile,
+            PathCall, PathSegment, PathStart,
+        },
         input::TokenStream,
+        lit::{Lit, LitNum},
+        meta::Meta,
         stmt::{Block, Stmts},
         token::*,
         ty::TypePath,
     };
+
+    #[test]
+    fn expr_while() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("while a ^ 4 != 0 {}")),
+            Ok((
+                Expr::While(ExprWhile {
+                    meta_list: vec![],
+                    keyword: KeywordWhile(
+                        TokenStream {
+                            offset: 0,
+                            value: "while"
+                        },
+                        S(TokenStream {
+                            offset: 5,
+                            value: " "
+                        })
+                    ),
+                    cond: Box::new(Expr::Comp(ExprComp {
+                        meta_list: vec![],
+                        left_operand: Box::new(Expr::Bits(ExprBits {
+                            meta_list: vec![],
+                            left_operand: Box::new(Expr::Ident(
+                                vec![],
+                                Ident(TokenStream {
+                                    offset: 6,
+                                    value: "a"
+                                })
+                            )),
+                            op: BitsOp::BitXor(SepCaret(
+                                Some(S(TokenStream {
+                                    offset: 7,
+                                    value: " "
+                                })),
+                                TokenStream {
+                                    offset: 8,
+                                    value: "^"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 9,
+                                    value: " "
+                                }))
+                            )),
+                            right_operand: Box::new(Expr::Lit(
+                                vec![],
+                                Lit::Num(LitNum {
+                                    sign: None,
+                                    trunc: Some(Digits(TokenStream {
+                                        offset: 10,
+                                        value: "4"
+                                    })),
+                                    dot: None,
+                                    fract: None,
+                                    exp: None,
+                                    unit: None
+                                })
+                            ))
+                        })),
+                        op: CompOp::Ne(SepNe(
+                            Some(S(TokenStream {
+                                offset: 11,
+                                value: " "
+                            })),
+                            TokenStream {
+                                offset: 12,
+                                value: "!="
+                            },
+                            Some(S(TokenStream {
+                                offset: 14,
+                                value: " "
+                            }))
+                        )),
+                        right_operand: Box::new(Expr::Lit(
+                            vec![],
+                            Lit::Num(LitNum {
+                                sign: None,
+                                trunc: Some(Digits(TokenStream {
+                                    offset: 15,
+                                    value: "0"
+                                })),
+                                dot: None,
+                                fract: None,
+                                exp: None,
+                                unit: None
+                            })
+                        ))
+                    })),
+                    body: ExprBlock {
+                        meta_list: vec![Meta::S(S(TokenStream {
+                            offset: 16,
+                            value: " "
+                        }))],
+                        block: Block(Delimiter {
+                            delimiter_start: SepLeftBrace(
+                                None,
+                                TokenStream {
+                                    offset: 17,
+                                    value: "{"
+                                },
+                                None
+                            ),
+                            body: Stmts(vec![]),
+                            delimiter_end: SepRightBrace(
+                                None,
+                                TokenStream {
+                                    offset: 18,
+                                    value: "}"
+                                },
+                                None
+                            )
+                        })
+                    }
+                }),
+                TokenStream {
+                    offset: 19,
+                    value: ""
+                }
+            ))
+        );
+    }
 
     #[test]
     fn expr_if() {
