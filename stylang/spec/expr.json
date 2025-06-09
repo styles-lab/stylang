@@ -158,6 +158,192 @@
                   },
                   {
                     "offset": 34,
+                    "value": "\n    "
+                  }
+                ]
+              ]
+            },
+            {
+              "Expr": [
+                {
+                  "Assgin": {
+                    "meta_list": [],
+                    "left_operand": {
+                      "Ident": [
+                        [],
+                        {
+                          "offset": 39,
+                          "value": "a"
+                        }
+                      ]
+                    },
+                    "op": {
+                      "BitXorAssign": [
+                        {
+                          "offset": 40,
+                          "value": " "
+                        },
+                        {
+                          "offset": 41,
+                          "value": "^="
+                        },
+                        {
+                          "offset": 43,
+                          "value": " "
+                        }
+                      ]
+                    },
+                    "right_operand": {
+                      "Comp": {
+                        "meta_list": [],
+                        "left_operand": {
+                          "Ident": [
+                            [],
+                            {
+                              "offset": 44,
+                              "value": "b"
+                            }
+                          ]
+                        },
+                        "op": {
+                          "Gt": [
+                            {
+                              "offset": 45,
+                              "value": " "
+                            },
+                            {
+                              "offset": 46,
+                              "value": ">"
+                            },
+                            {
+                              "offset": 47,
+                              "value": " "
+                            }
+                          ]
+                        },
+                        "right_operand": {
+                          "Bits": {
+                            "meta_list": [],
+                            "left_operand": {
+                              "Ident": [
+                                [],
+                                {
+                                  "offset": 48,
+                                  "value": "c"
+                                }
+                              ]
+                            },
+                            "op": {
+                              "BitXor": [
+                                {
+                                  "offset": 49,
+                                  "value": " "
+                                },
+                                {
+                                  "offset": 50,
+                                  "value": "^"
+                                },
+                                {
+                                  "offset": 51,
+                                  "value": " "
+                                }
+                              ]
+                            },
+                            "right_operand": {
+                              "Term": {
+                                "meta_list": [],
+                                "left_operand": {
+                                  "Lit": [
+                                    [],
+                                    {
+                                      "Num": {
+                                        "sign": null,
+                                        "trunc": {
+                                          "offset": 52,
+                                          "value": "1"
+                                        },
+                                        "dot": null,
+                                        "fract": null,
+                                        "exp": null,
+                                        "unit": null
+                                      }
+                                    }
+                                  ]
+                                },
+                                "op": {
+                                  "Add": [
+                                    {
+                                      "offset": 53,
+                                      "value": " "
+                                    },
+                                    {
+                                      "offset": 54,
+                                      "value": "+"
+                                    },
+                                    {
+                                      "offset": 55,
+                                      "value": " "
+                                    }
+                                  ]
+                                },
+                                "right_operand": {
+                                  "Factor": {
+                                    "meta_list": [],
+                                    "left_operand": {
+                                      "Ident": [
+                                        [],
+                                        {
+                                          "offset": 56,
+                                          "value": "d"
+                                        }
+                                      ]
+                                    },
+                                    "op": {
+                                      "Mul": [
+                                        null,
+                                        {
+                                          "offset": 57,
+                                          "value": "*"
+                                        },
+                                        null
+                                      ]
+                                    },
+                                    "right_operand": {
+                                      "Lit": [
+                                        [],
+                                        {
+                                          "Num": {
+                                            "sign": null,
+                                            "trunc": {
+                                              "offset": 58,
+                                              "value": "3"
+                                            },
+                                            "dot": null,
+                                            "fract": null,
+                                            "exp": null,
+                                            "unit": null
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                [
+                  null,
+                  {
+                    "offset": 59,
+                    "value": ";"
+                  },
+                  {
+                    "offset": 60,
                     "value": "\n"
                   }
                 ]
@@ -167,11 +353,11 @@
           "delimiter_end": [
             null,
             {
-              "offset": 35,
+              "offset": 61,
               "value": "}"
             },
             {
-              "offset": 36,
+              "offset": 62,
               "value": "\n"
             }
           ]

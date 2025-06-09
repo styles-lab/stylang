@@ -73,8 +73,8 @@ mod tests {
 
     use crate::lang::{
         expr::{
-            BitsOp, CompOp, Expr, ExprBits, ExprBlock, ExprComp, ExprIf, ExprPath, ExprWhile,
-            PathCall, PathSegment, PathStart,
+            BitsOp, CompOp, Expr, ExprBits, ExprBlock, ExprComp, ExprIf, ExprPath, PathCall,
+            PathSegment, PathStart,
         },
         input::TokenStream,
         lit::{Lit, LitNum},
@@ -83,6 +83,8 @@ mod tests {
         token::*,
         ty::TypePath,
     };
+
+    use super::*;
 
     #[test]
     fn expr_while() {

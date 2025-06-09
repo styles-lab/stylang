@@ -51,7 +51,7 @@ where
     pub meta_list: MetaList<I>,
     /// left operand.
     pub left_operand: Box<Expr<I>>,
-    /// unnary op.
+    /// op token.
     pub op: AssignOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
@@ -98,17 +98,50 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
-        let (left_operand, input) = AssignOperand::into_parser()
+        let (mut left_operand, mut input) = AssignOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .parse(input)?;
-        let (op, input) = AssignOp::parse(input)?;
-        let (right_operand, input) = AssignOperand::into_parser()
-            .map(|v| Expr::from(v))
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
+
+        let mut operands = vec![];
+
+        loop {
+            let op;
+            (op, input) = AssignOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            let operand;
+
+            (operand, input) = AssignOperand::into_parser()
+                .map(|v| Expr::from(v))
+                .boxed()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            operands.push((op, operand));
+        }
+
+        if operands.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        let (op, right_operand) = operands.pop().unwrap();
+
+        for (op, right_operand) in operands {
+            left_operand = Box::new(Expr::Assgin(ExprAssgin {
+                meta_list: vec![],
+                left_operand,
+                op,
+                right_operand,
+            }));
+        }
 
         Ok((
             Self {
@@ -147,7 +180,7 @@ where
     pub meta_list: MetaList<I>,
     /// left operand.
     pub left_operand: Box<Expr<I>>,
-    /// unnary op.
+    /// op token.
     pub op: BoolOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
@@ -192,17 +225,50 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
-        let (left_operand, input) = BitsOperand::into_parser()
+        let (mut left_operand, mut input) = BoolOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .parse(input)?;
-        let (op, input) = BoolOp::parse(input)?;
-        let (right_operand, input) = BitsOperand::into_parser()
-            .map(|v| Expr::from(v))
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
+
+        let mut operands = vec![];
+
+        loop {
+            let op;
+            (op, input) = BoolOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            let operand;
+
+            (operand, input) = BoolOperand::into_parser()
+                .map(|v| Expr::from(v))
+                .boxed()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            operands.push((op, operand));
+        }
+
+        if operands.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        let (op, right_operand) = operands.pop().unwrap();
+
+        for (op, right_operand) in operands {
+            left_operand = Box::new(Expr::Bool(ExprBool {
+                meta_list: vec![],
+                left_operand,
+                op,
+                right_operand,
+            }));
+        }
 
         Ok((
             Self {
@@ -249,7 +315,7 @@ where
     pub meta_list: MetaList<I>,
     /// left operand.
     pub left_operand: Box<Expr<I>>,
-    /// unnary op.
+    /// op token.
     pub op: CompOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
@@ -292,30 +358,59 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
-        let (left_operand, input) = CompOperand::into_parser()
+        let (mut left_operand, mut input) = CompOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .parse(input)?;
-        let (op, op_input) = CompOp::parse(input.clone())?;
 
-        if let CompOp::Lt(_) = &op {
-            let (start, _) = XmlStart::into_parser().ok().parse(input.clone())?;
-            if start.is_some() {
-                return Err(ControlFlow::Recovable(LangError::expect(
-                    TokenKind::RightOperand,
-                    input.span(),
-                )));
+        let mut operands = vec![];
+
+        loop {
+            let (op, op_input) = CompOp::into_parser().ok().parse(input.clone())?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            if let CompOp::Lt(_) = &op {
+                let (xml_start, _) = XmlStart::into_parser().ok().parse(input.clone())?;
+
+                if xml_start.is_some() {
+                    break;
+                }
             }
+
+            input = op_input;
+
+            let operand;
+
+            (operand, input) = CompOperand::into_parser()
+                .map(|v| Expr::from(v))
+                .boxed()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            operands.push((op, operand));
         }
 
-        let input = op_input;
+        if operands.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
 
-        let (right_operand, input) = CompOperand::into_parser()
-            .map(|v| Expr::from(v))
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
+        let (op, right_operand) = operands.pop().unwrap();
+
+        for (op, right_operand) in operands {
+            left_operand = Box::new(Expr::Comp(ExprComp {
+                meta_list: vec![],
+                left_operand,
+                op,
+                right_operand,
+            }));
+        }
 
         Ok((
             Self {
@@ -360,7 +455,7 @@ where
     pub meta_list: MetaList<I>,
     /// left operand.
     pub left_operand: Box<Expr<I>>,
-    /// unnary op.
+    /// op token.
     pub op: BitsOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
@@ -401,17 +496,50 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
-        let (left_operand, input) = BitsOperand::into_parser()
+        let (mut left_operand, mut input) = BitsOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .parse(input)?;
-        let (op, input) = BitsOp::parse(input)?;
-        let (right_operand, input) = BitsOperand::into_parser()
-            .map(|v| Expr::from(v))
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
+
+        let mut operands = vec![];
+
+        loop {
+            let op;
+            (op, input) = BitsOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            let operand;
+
+            (operand, input) = BitsOperand::into_parser()
+                .map(|v| Expr::from(v))
+                .boxed()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            operands.push((op, operand));
+        }
+
+        if operands.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        let (op, right_operand) = operands.pop().unwrap();
+
+        for (op, right_operand) in operands {
+            left_operand = Box::new(Expr::Bits(ExprBits {
+                meta_list: vec![],
+                left_operand,
+                op,
+                right_operand,
+            }));
+        }
 
         Ok((
             Self {
@@ -450,7 +578,7 @@ where
     pub meta_list: MetaList<I>,
     /// left operand.
     pub left_operand: Box<Expr<I>>,
-    /// unnary op.
+    /// op token.
     pub op: TermOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
@@ -489,17 +617,50 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
-        let (left_operand, input) = TermOperand::into_parser()
+        let (mut left_operand, mut input) = TermOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .parse(input)?;
-        let (op, input) = TermOp::parse(input)?;
-        let (right_operand, input) = TermOperand::into_parser()
-            .map(|v| Expr::from(v))
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
+
+        let mut operands = vec![];
+
+        loop {
+            let op;
+            (op, input) = TermOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            let operand;
+
+            (operand, input) = TermOperand::into_parser()
+                .map(|v| Expr::from(v))
+                .boxed()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            operands.push((op, operand));
+        }
+
+        if operands.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        let (op, right_operand) = operands.pop().unwrap();
+
+        for (op, right_operand) in operands {
+            left_operand = Box::new(Expr::Term(ExprTerm {
+                meta_list: vec![],
+                left_operand,
+                op,
+                right_operand,
+            }));
+        }
 
         Ok((
             Self {
@@ -563,7 +724,7 @@ where
     pub meta_list: MetaList<I>,
     /// left operand.
     pub left_operand: Box<Expr<I>>,
-    /// unnary op.
+    /// op token.
     pub op: FactorOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
@@ -577,17 +738,50 @@ where
 
     fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
-        let (left_operand, input) = FactorOperand::into_parser()
+        let (mut left_operand, mut input) = FactorOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .parse(input)?;
-        let (op, input) = FactorOp::parse(input)?;
-        let (right_operand, input) = FactorOperand::into_parser()
-            .map(|v| Expr::from(v))
-            .boxed()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-            .fatal()
-            .parse(input)?;
+
+        let mut operands = vec![];
+
+        loop {
+            let op;
+            (op, input) = FactorOp::into_parser().ok().parse(input)?;
+
+            let Some(op) = op else {
+                break;
+            };
+
+            let operand;
+
+            (operand, input) = FactorOperand::into_parser()
+                .map(|v| Expr::from(v))
+                .boxed()
+                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .fatal()
+                .parse(input)?;
+
+            operands.push((op, operand));
+        }
+
+        if operands.is_empty() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::RightOperand,
+                input.span(),
+            )));
+        }
+
+        let (op, right_operand) = operands.pop().unwrap();
+
+        for (op, right_operand) in operands {
+            left_operand = Box::new(Expr::Factor(ExprFactor {
+                meta_list: vec![],
+                left_operand,
+                op,
+                right_operand,
+            }));
+        }
 
         Ok((
             Self {
@@ -683,12 +877,11 @@ mod tests {
     use parserc::Parse;
 
     use crate::lang::{
-        expr::Expr,
+        expr::*,
         input::TokenStream,
         lit::{Lit, LitNum},
+        token::*,
     };
-
-    use super::*;
 
     #[test]
     fn priority() {
@@ -832,6 +1025,167 @@ mod tests {
                 }),
                 TokenStream {
                     offset: 20,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn term_factor() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("a + b * 3 + c / 4 * 3")),
+            Ok((
+                Expr::Term(ExprTerm {
+                    meta_list: vec![],
+                    left_operand: Box::new(Expr::Term(ExprTerm {
+                        meta_list: vec![],
+                        left_operand: Box::new(Expr::Ident(
+                            vec![],
+                            Ident(TokenStream {
+                                offset: 0,
+                                value: "a"
+                            })
+                        )),
+                        op: TermOp::Add(SepPlus(
+                            Some(S(TokenStream {
+                                offset: 1,
+                                value: " "
+                            })),
+                            TokenStream {
+                                offset: 2,
+                                value: "+"
+                            },
+                            Some(S(TokenStream {
+                                offset: 3,
+                                value: " "
+                            }))
+                        )),
+                        right_operand: Box::new(Expr::Factor(ExprFactor {
+                            meta_list: vec![],
+                            left_operand: Box::new(Expr::Ident(
+                                vec![],
+                                Ident(TokenStream {
+                                    offset: 4,
+                                    value: "b"
+                                })
+                            )),
+                            op: FactorOp::Mul(SepStar(
+                                Some(S(TokenStream {
+                                    offset: 5,
+                                    value: " "
+                                })),
+                                TokenStream {
+                                    offset: 6,
+                                    value: "*"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 7,
+                                    value: " "
+                                }))
+                            )),
+                            right_operand: Box::new(Expr::Lit(
+                                vec![],
+                                Lit::Num(LitNum {
+                                    sign: None,
+                                    trunc: Some(Digits(TokenStream {
+                                        offset: 8,
+                                        value: "3"
+                                    })),
+                                    dot: None,
+                                    fract: None,
+                                    exp: None,
+                                    unit: None
+                                })
+                            ))
+                        }))
+                    })),
+                    op: TermOp::Add(SepPlus(
+                        Some(S(TokenStream {
+                            offset: 9,
+                            value: " "
+                        })),
+                        TokenStream {
+                            offset: 10,
+                            value: "+"
+                        },
+                        Some(S(TokenStream {
+                            offset: 11,
+                            value: " "
+                        }))
+                    )),
+                    right_operand: Box::new(Expr::Factor(ExprFactor {
+                        meta_list: vec![],
+                        left_operand: Box::new(Expr::Factor(ExprFactor {
+                            meta_list: vec![],
+                            left_operand: Box::new(Expr::Ident(
+                                vec![],
+                                Ident(TokenStream {
+                                    offset: 12,
+                                    value: "c"
+                                })
+                            )),
+                            op: FactorOp::Div(SepSlash(
+                                Some(S(TokenStream {
+                                    offset: 13,
+                                    value: " "
+                                })),
+                                TokenStream {
+                                    offset: 14,
+                                    value: "/"
+                                },
+                                Some(S(TokenStream {
+                                    offset: 15,
+                                    value: " "
+                                }))
+                            )),
+                            right_operand: Box::new(Expr::Lit(
+                                vec![],
+                                Lit::Num(LitNum {
+                                    sign: None,
+                                    trunc: Some(Digits(TokenStream {
+                                        offset: 16,
+                                        value: "4"
+                                    })),
+                                    dot: None,
+                                    fract: None,
+                                    exp: None,
+                                    unit: None
+                                })
+                            ))
+                        })),
+                        op: FactorOp::Mul(SepStar(
+                            Some(S(TokenStream {
+                                offset: 17,
+                                value: " "
+                            })),
+                            TokenStream {
+                                offset: 18,
+                                value: "*"
+                            },
+                            Some(S(TokenStream {
+                                offset: 19,
+                                value: " "
+                            }))
+                        )),
+                        right_operand: Box::new(Expr::Lit(
+                            vec![],
+                            Lit::Num(LitNum {
+                                sign: None,
+                                trunc: Some(Digits(TokenStream {
+                                    offset: 20,
+                                    value: "3"
+                                })),
+                                dot: None,
+                                fract: None,
+                                exp: None,
+                                unit: None
+                            })
+                        ))
+                    }))
+                }),
+                TokenStream {
+                    offset: 21,
                     value: ""
                 }
             ))
