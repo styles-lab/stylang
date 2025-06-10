@@ -39,6 +39,9 @@ pub enum LangError {
         /// optional parsing item.
         item: Option<ItemKind>,
     },
+
+    #[error("Unparsed source {0:?}")]
+    Unparsed(Span),
 }
 
 impl LangError {

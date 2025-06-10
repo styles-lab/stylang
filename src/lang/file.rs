@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use parserc::{ControlFlow, Parse};
+use parserc::{ControlFlow, Input, Parse, span::WithSpan};
 
 use crate::lang::{
     errors::LangError,
@@ -70,7 +70,11 @@ impl<'a> TryFrom<&'a String> for File<TokenStream<'a>> {
     fn try_from(source: &'a String) -> Result<Self, Self::Error> {
         let input = TokenStream::from(source.as_str());
 
-        let (script, _) = File::parse(input)?;
+        let (script, input) = File::parse(input)?;
+
+        if !input.is_empty() {
+            return Err(ControlFlow::Fatal(LangError::Unparsed(input.span())));
+        }
 
         Ok(script)
     }
