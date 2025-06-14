@@ -82,7 +82,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (start, input) = RangeOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
@@ -163,7 +163,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (ty, input) = TypePath::parse(input)?;
         let (fields, input) = Fields::parse(input)?;
@@ -285,7 +285,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (expr, input) = _Expr::parse(input)?;
 
         let expr = match expr {

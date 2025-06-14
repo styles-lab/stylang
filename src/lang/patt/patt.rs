@@ -163,7 +163,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (patt, input) = PattType::into_parser()
             .map(|v| Self::Type(v))
             .ok()

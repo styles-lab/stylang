@@ -1,26 +1,22 @@
 //! Token types for stylang.
 //!
 
-use parserc::{
-    ControlFlow, Delimiter, Kind, Parse, Parser, ParserExt, derive_parse, keyword, satisfy,
-    take_while,
-};
+use parserc::parser::{Parser, keyword, next_if, take_while};
+use parserc::syntax::{Delimiter, Syntax, tokens};
+use parserc::{errors::ControlFlow, inputs::lang::LangInput};
 
 use crate::lang::errors::{LangError, TokenKind};
-use crate::lang::input::LangInput;
 
 /// Sequence of `whitespace` chars
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct S<I>(pub I);
 
-impl<I> Parse<I> for S<I>
+impl<I> Syntax<I, LangError> for S<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (s, input) = take_while(|c: u8| c.is_ascii_whitespace()).parse(input)?;
 
         if s.is_empty() {
@@ -39,18 +35,26 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Ident<I>(pub I);
 
-impl<I> Parse<I> for Ident<I>
+impl<I> Syntax<I, LangError> for Ident<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        let (token, _) = Token::into_parser().ok().parse(input.clone())?;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        if token.is_some() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Ident,
+                input.span(),
+            )));
+        }
+
         let mut content = input.clone();
         let start = input.start();
 
-        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|input: I, _: Kind| LangError::expect(TokenKind::Ident, input.span()))
+        let span = input.span();
+        let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|_: LangError| LangError::expect(TokenKind::Ident, span))
             .parse(input)?;
 
         let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;
@@ -64,19 +68,26 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct XmlIdent<I>(pub I);
 
-impl<I> Parse<I> for XmlIdent<I>
+impl<I> Syntax<I, LangError> for XmlIdent<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        let (token, _) = Token::into_parser().ok().parse(input.clone())?;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+        if token.is_some() {
+            return Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::XmlIdent,
+                input.span(),
+            )));
+        }
+
         let mut content = input.clone();
         let start = input.start();
 
-        let (_, input) = satisfy(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|input: I, _: Kind| LangError::expect(TokenKind::XmlIdent, input.span()))
-            .parse(input)?;
+        let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
+            .map_err(|_: LangError| LangError::expect(TokenKind::XmlIdent, input.span()))
+            .parse(input.clone())?;
 
         let (_, input) =
             take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
@@ -90,13 +101,11 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Digits<I>(pub I);
 
-impl<I> Parse<I> for Digits<I>
+impl<I> Syntax<I, LangError> for Digits<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (digits, input) = take_while(|c: u8| c.is_ascii_digit()).parse(input)?;
 
         if digits.is_empty() {
@@ -115,13 +124,11 @@ where
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HexDigits<I>(pub I);
 
-impl<I> Parse<I> for HexDigits<I>
+impl<I> Syntax<I, LangError> for HexDigits<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (digits, input) = take_while(|c: u8| c.is_ascii_hexdigit()).parse(input)?;
 
         if digits.is_empty() {
@@ -135,424 +142,207 @@ where
     }
 }
 
-macro_rules! keyword {
-    ($expr: literal => $ident: ident) => {
-        /// Keyword: `
-        #[doc=stringify!($expr)]
-        /// `
-        #[derive(Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-        pub struct $ident<I>(pub I, pub S<I>);
-
-        impl<I> parserc::Parse<I> for $ident<I>
-        where
-            I: LangInput,
-        {
-            type Error = LangError;
-
-            fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-                let (kw, input) = parserc::keyword($expr)
-                    .map_err(|input: I, _: parserc::Kind| {
-                        LangError::expect(TokenKind::Token($expr), input.span())
-                    })
-                    .parse(input)?;
-
-                let (tail, input) = S::parse(input)?;
-
-                Ok((Self(kw, tail), input))
-            }
-        }
-    };
-}
-
-macro_rules! token {
-    ($expr: literal => $ident: ident) => {
-        /// Token: `
-        #[doc=stringify!($expr)]
-        /// `
-        #[derive(Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-        pub struct $ident<I>(pub I);
-
-        impl<I> parserc::Parse<I> for $ident<I>
-        where
-            I: LangInput,
-        {
-            type Error = LangError;
-
-            fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-                let (kw, input) = parserc::keyword($expr)
-                    .map_err(|input: I, _: parserc::Kind| {
-                        LangError::expect(TokenKind::Token($expr), input.span())
-                    })
-                    .parse(input)?;
-
-                Ok((Self(kw), input))
-            }
-        }
-    };
-}
-
-#[allow(unused)]
-macro_rules! token_lookahead {
-    ($lookahead: expr, $expr: literal => $ident: ident) => {
-        /// Token: `
-        #[doc=stringify!($expr)]
-        /// `
-        #[derive(Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-        pub struct $ident<I>(pub I);
-
-        impl<I> parserc::Parse<I> for $ident<I>
-        where
-            I: LangInput,
-        {
-            type Error = LangError;
-
-            fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-                let (None, input) = $lookahead.ok().parse(input.clone())? else {
-                    return Err(parserc::ControlFlow::Recovable(LangError::expect(
-                        TokenKind::Token($expr),
-                        input.span(),
-                    )));
-                };
-
-                let (kw, input) = parserc::keyword($expr)
-                    .map_err(|input: I, _: parserc::Kind| {
-                        LangError::expect(TokenKind::Token($expr), input.span())
-                    })
-                    .parse(input)?;
-
-                Ok((Self(kw), input))
-            }
-        }
-    };
-}
-
-macro_rules! sep {
-    ($expr: literal => $ident: ident) => {
-        /// sep: `
-        #[doc=stringify!($expr)]
-        /// `
-        #[derive(Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-        pub struct $ident<I>(pub Option<S<I>>, pub I, pub Option<S<I>>);
-
-        impl<I> parserc::Parse<I> for $ident<I>
-        where
-            I: LangInput,
-        {
-            type Error = LangError;
-
-            fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-                let (leading, input) = S::into_parser().ok().parse(input)?;
-
-                let (kw, input) = parserc::keyword($expr)
-                    .map_err(|input: I, _: parserc::Kind| {
-                        LangError::expect(TokenKind::Token($expr), input.span())
-                    })
-                    .parse(input)?;
-
-                let (tail, input) = S::into_parser().ok().parse(input)?;
-
-                Ok((Self(leading, kw, tail), input))
-            }
-        }
-    };
-}
-
-macro_rules! sep_lookahead {
-    ($lookahead: expr, $expr: literal => $ident: ident) => {
-        /// sep: `
-        #[doc=stringify!($expr)]
-        /// `
-        #[derive(Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-        pub struct $ident<I>(pub Option<S<I>>, pub I, pub Option<S<I>>);
-
-        impl<I> parserc::Parse<I> for $ident<I>
-        where
-            I: LangInput,
-        {
-            type Error = LangError;
-
-            fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
-                let (leading, input) = S::into_parser().ok().parse(input)?;
-
-                let (None, input) = $lookahead.ok().parse(input.clone())? else {
-                    return Err(parserc::ControlFlow::Recovable(LangError::expect(
-                        TokenKind::Token($expr),
-                        input.span(),
-                    )));
-                };
-
-                let (kw, input) = parserc::keyword($expr)
-                    .map_err(|input: I, _: parserc::Kind| {
-                        LangError::expect(TokenKind::Token($expr), input.span())
-                    })
-                    .parse(input)?;
-
-                let (tail, input) = S::into_parser().ok().parse(input)?;
-
-                Ok((Self(leading, kw, tail), input))
-            }
-        }
-    };
-}
-
-keyword!("fn" => KeywordFn);
-keyword!("view" => KeywordView);
-keyword!("enum" => KeywordEnum);
-keyword!("data" => KeywordData);
-keyword!("class" => KeywordClass);
-keyword!("pub" => KeywordPub);
-keyword!("mod" => KeywordMod);
-keyword!("use" => KeywordUse);
-keyword!("extern" => KeywordExtern);
-keyword!("let" => KeywordLet);
-keyword!("if" => KeywordIf);
-keyword!("else" => KeywordElse);
-keyword!("for" => KeywordFor);
-keyword!("in" => KeywordIn);
-keyword!("loop" => KeywordLoop);
-keyword!("while" => KeywordWhile);
-keyword!("match" => KeywordMatch);
-
-token!("fn" => TokenFn);
-token!("pub" => TokenPub);
-token!("crate" => TokenCrate);
-token!("super" => TokenSuper);
-token!("view" => TokenView);
-token!("enum" => TokenEnum);
-token!("data" => TokenData);
-token!("class" => TokenClass);
-token!("color" => TokenColor);
-token!("length" => TokenLength);
-token!("string" => TokenString);
-token!("angle" => TokenAngle);
-token!("rgb" => TokenRgb);
-token!("#" => TokenNumSign);
-token!("_" => TokenUnderscore);
-token!("bool" => TokenBool);
-token!("true" => TokenTrue);
-token!("false" => TokenFalse);
-token!("return" => TokenReturn);
-token!("break" => TokenBreak);
-token!("continue" => TokenContinue);
-token!("i8" => TokenI8);
-token!("i16" => TokenI16);
-token!("i32" => TokenI32);
-token!("i64" => TokenI64);
-token!("i128" => TokenI128);
-token!("u8" => TokenU8);
-token!("u16" => TokenU16);
-token!("u32" => TokenU32);
-token!("u64" => TokenU64);
-token!("u128" => TokenU128);
-token!("f32" => TokenF32);
-token!("f64" => TokenF64);
-token!("bigint" => TokenBigInt);
-token!("bignum" => TokenBigNum);
-token!("ex" => TokenEx);
-token!("px" => TokenPx);
-token!("in" => TokenIn);
-token!("cm" => TokenCm);
-token!("mm" => TokenMm);
-token!("pt" => TokenPt);
-token!("pc" => TokenPc);
-token!("deg" => TokenDeg);
-token!("grad" => TokenGrad);
-token!("rad" => TokenRad);
-token!("%" => TokenPercent);
-token!("0x" => TokenHexSign);
-token!("none" => TokenNone);
-token!("@" => TokenAt);
-
-token!("/*" => TokenSlashEq);
-token!("///" => TokenOuterline);
-token!("//" => TokenInline);
-token!("/*" => TokenBlockStart);
-token!("*/" => TokenBlockEnd);
-token!("/**" => TokenOuterBlockStart);
-token!("\n" => TokenNewLine);
-
 /// Token `E` or `e`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TokenExp<I>(pub I);
 
-impl<I> parserc::Parse<I> for TokenExp<I>
+impl<I> Syntax<I, LangError> for TokenExp<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        let span = input.span();
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
         keyword("E")
             .or(keyword("e"))
             .map(|v| Self(v))
-            .map_err(|input: I, _: parserc::Kind| {
-                LangError::expect(TokenKind::Token("E or e"), input.span())
-            })
+            .map_err(|_: LangError| LangError::expect(TokenKind::Token("E or e"), span))
             .parse(input)
     }
 }
 
-sep!("<=" => SepLe);
-sep!(">=" => SepGe);
-sep!("</" => SepLtSlash);
-sep!("/>" => SepSlashGt);
-sep!("!=" => SepNotEq);
-sep!("==" => SepEqEq);
-sep!("-=" => SepMinusEq);
-sep!("*=" => SepStarEq);
-sep!("+=" => SepPlusEq);
-sep!("," => SepComma);
-sep!("::" => SepColonColon);
-sep!(";" => SepSemiColon);
-sep!("(" => SepLeftParen);
-sep!(")" => SepRightParen);
-sep!("[" => SepLeftBracket);
-sep!("]" => SepRightBracket);
-sep!("{" => SepLeftBrace);
-sep!("}" => SepRightBrace);
-sep!("->" => SepArrowRight);
-sep!("..=" => SepDotDotEq);
-sep!("||" => SepOrOr);
-sep!("|=" => SepOrEq);
-sep!("%=" => SepPercentEq);
-sep!("^=" => SepCaretEq);
-sep!("&=" => SepAndEq);
-sep!("/=" => SepSlashEq);
-sep!("<<=" => SepShlEq);
-sep!(">>=" => SepShrEq);
-sep!("&&" => SepAndAnd);
-sep!("!=" => SepNe);
-
-sep_lookahead!(
-    SepShlEq::into_parser().map(|_|()),
-    "<<" => SepShl
-);
-
-sep_lookahead!(
-    SepShrEq::into_parser().map(|_|()),
-    ">>" => SepShr
-);
-
-sep_lookahead!(
-    SepAndAnd::into_parser().map(|_|()),
-    "&" => SepAnd
-);
-
-sep_lookahead!(
-    SepCaretEq::into_parser().map(|_|()),
-    "^" => SepCaret
-);
-
-sep_lookahead!(
-    SepPercentEq::into_parser().map(|_|()),
-    "%" => SepPercent
-);
-
-sep_lookahead!(
-    SepSlashEq::into_parser().map(|_|())
-        .or(SepSlashGt::into_parser().map(|_|())),
-    "/" => SepSlash
-);
-
-sep_lookahead!(
-    SepStarEq::into_parser().map(|_|()),
-    "*" => SepStar
-);
-
-sep_lookahead!(
-    SepPlusEq::into_parser().map(|_|()),
-    "+" => SepPlus
-);
-
-sep_lookahead!(
-    SepArrowRight::into_parser().map(|_|())
-        .or(SepMinusEq::into_parser().map(|_|())),
-    "-" => SepMinus
-);
-
-sep_lookahead!(
-    SepEqEq::into_parser(),
-    "=" => SepEq
-);
-
-sep_lookahead!(
-   SepNotEq::into_parser(),
-    "!" => SepNot
-);
-
-sep_lookahead!(
-    SepLe::into_parser().map(|_|())
-        .or(SepLtSlash::into_parser().map(|_|())),
-    "<" => SepLt
-);
-
-sep_lookahead!(
-    SepGe::into_parser(),
-    ">" => SepGt
-);
-
-sep_lookahead!(
-    SepOrEq::into_parser().map(|_|())
-        .or(SepOrOr::into_parser().map(|_|())),
-    "|" => SepOr
-);
-
-sep_lookahead!(SepDotDotEq::into_parser(),".." => SepDotDot);
-
-sep_lookahead!(
-    SepDotDotEq::into_parser().map(|_|())
-        .or(SepDotDot::into_parser().map(|_|())),
-    "." => SepDot
-);
-
-sep_lookahead!(SepColonColon::into_parser(),":" => SepColon);
-
-/// Delimiter group `{...}`
-pub type Brace<I, T> = Delimiter<SepLeftBrace<I>, SepRightBrace<I>, T>;
-
-/// Delimiter group `[...]`
-pub type Bracket<I, T> = Delimiter<SepLeftBracket<I>, SepRightBracket<I>, T>;
-
-/// Delimiter group `(...)`
-pub type Paren<I, T> = Delimiter<SepLeftParen<I>, SepRightParen<I>, T>;
-
 /// Limit types of a range, inclusive or exclusive.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[input(I)]
+#[error(LangError)]
 pub enum RangeLimits<I>
 where
     I: LangInput,
 {
     /// ..=
-    Closed(SepDotDotEq<I>),
+    Closed(TokenDotDotEq<I>),
     /// ..
-    HalfOpen(SepDotDot<I>),
+    HalfOpen(TokenDotDot<I>),
 }
+
+tokens!(match Token {
+    "fn" => KeywordFn,
+    "view" => KeywordView,
+    "enum" => KeywordEnum,
+    "data" => KeywordData,
+    "class" => KeywordClass,
+    "pub" => KeywordPub,
+    "mod" => KeywordMod,
+    "use" => KeywordUse,
+    "extern" => KeywordExtern,
+    "let" => KeywordLet,
+    "if" => KeywordIf,
+    "else" => KeywordElse,
+    "for" => KeywordFor,
+    "in" => KeywordIn,
+    "loop" => KeywordLoop,
+    "while" => KeywordWhile,
+    "match" => KeywordMatch,
+    "crate" => TokenCrate,
+    "super" => TokenSuper,
+    "color" => TokenColor,
+    "length" => TokenLength,
+    "string" => TokenString,
+    "angle" => TokenAngle,
+    "rgb" => TokenRgb,
+    "#" => TokenNumSign,
+    "_" => TokenUnderscore,
+    "bool" => TokenBool,
+    "true" => TokenTrue,
+    "false" => TokenFalse,
+    "return" => TokenReturn,
+    "break" => TokenBreak,
+    "continue" => TokenContinue,
+    "i8" => TokenI8,
+    "i16" => TokenI16,
+    "i32" => TokenI32,
+    "i64" => TokenI64,
+    "i128" => TokenI128,
+    "u8" => TokenU8,
+    "u16" => TokenU16,
+    "u32" => TokenU32,
+    "u64" => TokenU64,
+    "u128" => TokenU128,
+    "f32" => TokenF32,
+    "f64" => TokenF64,
+    "bigint" => TokenBigInt,
+    "bignum" => TokenBigNum,
+    "ex" => TokenEx,
+    "px" => TokenPx,
+    "cm" => TokenCm,
+    "mm" => TokenMm,
+    "pt" => TokenPt,
+    "pc" => TokenPc,
+    "deg" => TokenDeg,
+    "grad" => TokenGrad,
+    "rad" => TokenRad,
+    "%" => TokenPercent,
+    "0x" => TokenHexSign,
+    "none" => TokenNone,
+    "@" => TokenAt,
+    "///" => TokenOuterline,
+    "//" => TokenInline,
+    "/*" => TokenBlockStart,
+    "*/" => TokenBlockEnd,
+    "/**" => TokenOuterBlockStart,
+    "\n" => TokenNewLine,
+    "<=" => TokenLe,
+    ">=" => TokenGe,
+    "</" => TokenLtSlash,
+    "/>" => TokenSlashGt,
+    "==" => TokenEqEq,
+    "-=" => TokenMinusEq,
+    "*=" => TokenStarEq,
+    "+=" => TokenPlusEq,
+    "," => TokenComma,
+    "::" => TokenColonColon,
+    ";" => TokenSemiColon,
+    "(" => TokenLeftParen,
+    ")" => TokenRightParen,
+    "[" => TokenLeftBracket,
+    "]" => TokenRightBracket,
+    "{" => TokenLeftBrace,
+    "}" => TokenRightBrace,
+    "->" => TokenArrowRight,
+    "..=" => TokenDotDotEq,
+    "||" => TokenOrOr,
+    "|=" => TokenOrEq,
+    "%=" => TokenPercentEq,
+    "^=" => TokenCaretEq,
+    "&=" => TokenAndEq,
+    "/=" => TokenSlashEq,
+    "<<=" => TokenShlEq,
+    ">>=" => TokenShrEq,
+    "&&" => TokenAndAnd,
+    "!" => TokenNot,
+    "!=" => TokenNe,
+    "<<" => TokenShl,
+    ">>" => TokenShr,
+    "&" => TokenAnd,
+    "^" => TokenCaret,
+    "/" => TokenSlash,
+    "*" => TokenStar,
+    "+" => TokenPlus,
+    "-" => TokenMinus,
+    "=" => TokenEq,
+    "<" => TokenLt,
+    ">" => TokenGt,
+    "|" => TokenOr,
+    ".." => TokenDotDot,
+    "." => TokenDot,
+    ":" => TokenColon,
+});
+
+/// Seperator `[S]*,[S]*`
+pub type SepComma<I> = (Option<S<I>>, TokenComma<I>, Option<S<I>>);
+/// Seperator `[S]*->[S]*`
+pub type SepArrowRight<I> = (Option<S<I>>, TokenArrowRight<I>, Option<S<I>>);
+
+/// Delimiter group `{...}`
+pub type Brace<I, T> = Delimiter<
+    (Option<S<I>>, TokenLeftBrace<I>, Option<S<I>>),
+    (Option<S<I>>, TokenRightBrace<I>, Option<S<I>>),
+    T,
+>;
+
+/// Delimiter group `[...]`
+pub type Bracket<I, T> = Delimiter<
+    (Option<S<I>>, TokenLeftBracket<I>, Option<S<I>>),
+    (Option<S<I>>, TokenRightBracket<I>, Option<S<I>>),
+    T,
+>;
+
+/// Delimiter group `(...)`
+pub type Paren<I, T> = Delimiter<
+    (Option<S<I>>, TokenLeftParen<I>, Option<S<I>>),
+    (Option<S<I>>, TokenRightParen<I>, Option<S<I>>),
+    T,
+>;
 
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::input::TokenStream;
+    use parserc::inputs::{Span, lang::TokenStream};
 
     use super::*;
 
     #[test]
+    fn test_ident() {
+        assert_eq!(
+            Ident::parse(TokenStream::from("fn")),
+            Err(ControlFlow::Recovable(LangError::expect(
+                TokenKind::Ident,
+                Span { offset: 0, len: 2 }
+            )))
+        );
+    }
+
+    #[test]
     fn test_lookahead() {
         assert_eq!(
-            TokenAt::parse(TokenStream::from("@a")),
+            <TokenAt<_> as Syntax<_, LangError>>::parse(TokenStream::from("@a")),
             Ok((TokenAt(TokenStream::from("@")), TokenStream::from((1, "a"))))
         );
 
         assert_eq!(
-            SepColon::parse(TokenStream::from("::a")),
+            TokenColon::parse(TokenStream::from("::a")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token(":"),
                 Span { offset: 0, len: 3 }
@@ -560,7 +350,7 @@ mod tests {
         );
 
         assert_eq!(
-            SepMinus::parse(TokenStream::from("->")),
+            TokenMinus::parse(TokenStream::from("->")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("-"),
                 Span { offset: 0, len: 2 }
@@ -568,7 +358,7 @@ mod tests {
         );
 
         assert_eq!(
-            SepMinus::parse(TokenStream::from("-=")),
+            TokenMinus::parse(TokenStream::from("-=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("-"),
                 Span { offset: 0, len: 2 }
@@ -576,7 +366,7 @@ mod tests {
         );
 
         assert_eq!(
-            SepEq::parse(TokenStream::from("==")),
+            TokenEq::parse(TokenStream::from("==")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("="),
                 Span { offset: 0, len: 2 }
@@ -584,7 +374,7 @@ mod tests {
         );
 
         assert_eq!(
-            SepNot::parse(TokenStream::from("!=")),
+            TokenNot::parse(TokenStream::from("!=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("!"),
                 Span { offset: 0, len: 2 }
@@ -592,7 +382,7 @@ mod tests {
         );
 
         assert_eq!(
-            SepLt::parse(TokenStream::from("<=")),
+            TokenLt::parse(TokenStream::from("<=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token("<"),
                 Span { offset: 0, len: 2 }
@@ -600,7 +390,7 @@ mod tests {
         );
 
         assert_eq!(
-            SepGt::parse(TokenStream::from(">=")),
+            TokenGt::parse(TokenStream::from(">=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 TokenKind::Token(">"),
                 Span { offset: 0, len: 2 }

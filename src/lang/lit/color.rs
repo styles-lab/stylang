@@ -23,7 +23,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (num_sign_token, input) = TokenNumSign::parse(input)?;
 
         let (digits, input) = HexDigits::into_parser().fatal().parse(input)?;
@@ -94,7 +94,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (rgb_token, input) = TokenRgb::parse(input)?;
         let (delimiter_start, input) = SepLeftParen::into_parser().fatal().parse(input)?;
 

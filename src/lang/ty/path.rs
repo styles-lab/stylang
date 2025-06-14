@@ -1,30 +1,38 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    token::{Ident, SepColonColon},
-};
+use crate::lang::{errors::LangError, token::*};
 
 /// The parser for type path, be like `std::collection::HashMap`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(input = I, error = LangError)]
+#[error(LangError)]
+pub enum PathStart<I>
+where
+    I: LangInput,
+{
+    Super(TokenSuper<I>),
+    Crate(TokenCrate<I>),
+    Ident(Ident<I>),
+}
+
+/// The parser for type path, be like `std::collection::HashMap`.
+#[derive(Debug, PartialEq, Clone, Syntax)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[error(LangError)]
 pub struct TypePath<I>
 where
     I: LangInput,
 {
     /// first segment: `ident`.
-    pub first: Ident<I>,
+    pub first: PathStart<I>,
     /// rest segments: `[::ident]*`
-    pub rest: Vec<(SepColonColon<I>, Ident<I>)>,
+    pub rest: Vec<(Option<S<I>>, TokenColonColon<I>, Option<S<I>>, Ident<I>)>,
 }
 
 #[cfg(test)]
 mod tests {
-    use parserc::Parse;
 
-    use crate::lang::{input::TokenStream, token::S};
+    use parserc::inputs::lang::TokenStream;
 
     use super::*;
 
@@ -34,43 +42,39 @@ mod tests {
             TypePath::parse(TokenStream::from("super:: collection :: HashMap")),
             Ok((
                 TypePath {
-                    first: Ident(TokenStream {
+                    first: PathStart::Super(TokenSuper(TokenStream {
                         offset: 0,
                         value: "super"
-                    }),
+                    })),
                     rest: vec![
                         (
-                            SepColonColon(
-                                None,
-                                TokenStream {
-                                    offset: 5,
-                                    value: "::"
-                                },
-                                Some(S(TokenStream {
-                                    offset: 7,
-                                    value: " "
-                                }))
-                            ),
+                            None,
+                            TokenColonColon(TokenStream {
+                                offset: 5,
+                                value: "::"
+                            }),
+                            Some(S(TokenStream {
+                                offset: 7,
+                                value: " "
+                            })),
                             Ident(TokenStream {
                                 offset: 8,
                                 value: "collection"
                             })
                         ),
                         (
-                            SepColonColon(
-                                Some(S(TokenStream {
-                                    offset: 18,
-                                    value: " "
-                                })),
-                                TokenStream {
-                                    offset: 19,
-                                    value: "::"
-                                },
-                                Some(S(TokenStream {
-                                    offset: 21,
-                                    value: " "
-                                }))
-                            ),
+                            Some(S(TokenStream {
+                                offset: 18,
+                                value: " "
+                            })),
+                            TokenColonColon(TokenStream {
+                                offset: 19,
+                                value: "::"
+                            }),
+                            Some(S(TokenStream {
+                                offset: 21,
+                                value: " "
+                            })),
                             Ident(TokenStream {
                                 offset: 22,
                                 value: "HashMap"
@@ -89,13 +93,13 @@ mod tests {
     #[test]
     fn only_first() {
         assert_eq!(
-            TypePath::parse(TokenStream::from("super")),
+            TypePath::parse(TokenStream::from("crate")),
             Ok((
                 TypePath {
-                    first: Ident(TokenStream {
+                    first: PathStart::Crate(TokenCrate(TokenStream {
                         offset: 0,
-                        value: "super"
-                    }),
+                        value: "crate"
+                    })),
                     rest: vec![]
                 },
                 TokenStream {

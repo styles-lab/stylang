@@ -1,13 +1,14 @@
 //! Types associated with error reporting by this module.
 
-use parserc::span::Span;
+use parserc::inputs::{Span, WithSpan};
 
 /// Error variants return by compiler frontend.
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum LangError {
-    /// Fallback error that catching the parserc raw error kind.
+    /// Unhandle parsing error.
     #[error(transparent)]
-    Fallback(#[from] parserc::Kind),
+    Fallback(#[from] parserc::errors::ErrorKind),
+
     /// Report an unexpect token error with span information.
     #[error("unexpect {kind} {span:?}")]
     Unexpect {
@@ -42,6 +43,15 @@ pub enum LangError {
 
     #[error("Unparsed source {0:?}")]
     Unparsed(Span),
+}
+
+impl parserc::errors::ParseError for LangError {
+    fn expect_token<I: parserc::inputs::Input + WithSpan>(
+        diagnosis: &'static str,
+        input: I,
+    ) -> Self {
+        Self::expect(TokenKind::Token(diagnosis), input.span())
+    }
 }
 
 impl LangError {

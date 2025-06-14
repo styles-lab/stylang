@@ -1,41 +1,51 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
 use crate::lang::{
     errors::LangError,
-    input::LangInput,
     token::*,
     ty::{TypeFn, TypeNum, TypePath},
 };
 
 /// The parser of array type: [ty;N]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(input = I, error = LangError)]
-pub struct TypeArray<I>(Bracket<I, (Box<Type<I>>, SepSemiColon<I>, Digits<I>)>)
+#[error(LangError)]
+pub struct TypeArray<I>(
+    Bracket<
+        I,
+        (
+            Box<Type<I>>,
+            Option<S<I>>,
+            TokenSemiColon<I>,
+            Option<S<I>>,
+            Digits<I>,
+        ),
+    >,
+)
 where
     I: LangInput;
 
 /// The parser of slice type: [ty]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(input = I, error = LangError)]
+#[error(LangError)]
 pub struct TypeSlice<I>(Bracket<I, Box<Type<I>>>)
 where
     I: LangInput;
 
 /// The parser for `stylang` types.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(input = I, error = LangError)]
+#[error(LangError)]
 pub enum Type<I>
 where
     I: LangInput,
 {
     Fn(TypeFn<I>),
-    View(TokenView<I>),
-    Enum(TokenEnum<I>),
-    Data(TokenData<I>),
-    Class(TokenClass<I>),
+    View(KeywordView<I>),
+    Enum(KeywordEnum<I>),
+    Data(KeywordData<I>),
+    Class(KeywordClass<I>),
     Color(TokenColor<I>),
     Length(TokenLength<I>),
     Angle(TokenAngle<I>),
@@ -49,13 +59,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::Parse;
 
-    use crate::lang::{
-        input::TokenStream,
-        token::TokenI32,
-        ty::{Type, TypeNum},
-    };
+    use parserc::inputs::lang::TokenStream;
+
+    use super::*;
 
     #[test]
     fn parse_priority() {

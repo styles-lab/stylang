@@ -16,7 +16,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (_, mut input) = next(b'"').parse(input)?;
 
         let mut content = input.clone();

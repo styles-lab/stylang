@@ -31,7 +31,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(mut input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(mut input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let mut items = vec![];
 
         loop {

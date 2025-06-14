@@ -1,22 +1,21 @@
-use parserc::{Punctuated, derive_parse};
-
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    token::{Paren, SepArrowRight, SepComma, TokenFn},
-    ty::Type,
+use parserc::{
+    inputs::lang::LangInput,
+    syntax::{Punctuated, Syntax},
 };
 
+use crate::lang::{errors::LangError, token::*, ty::Type};
+
 /// The parser for num types: `i32`,`f32`,`i128`,..
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(input = I, error = LangError)]
+#[input(I)]
+#[error(LangError)]
 pub struct TypeFn<I>
 where
     I: LangInput,
 {
     /// `fn` token.
-    pub fn_token: TokenFn<I>,
+    pub fn_token: KeywordFn<I>,
     /// input parameter list.
     pub params: Paren<I, Punctuated<Type<I>, SepComma<I>>>,
     /// optional return type part: `-> i32`
@@ -25,9 +24,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Delimiter, Parse};
 
-    use crate::lang::{input::TokenStream, token::*, ty::TypeNum};
+    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
+
+    use crate::lang::ty::TypeNum;
 
     use super::*;
 
@@ -37,25 +37,25 @@ mod tests {
             TypeFn::parse(TokenStream::from("fn() -> i32")),
             Ok((
                 TypeFn {
-                    fn_token: TokenFn(TokenStream {
+                    fn_token: KeywordFn(TokenStream {
                         offset: 0,
                         value: "fn"
                     }),
                     params: Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 2,
                                 value: "("
-                            },
+                            },),
                             None
                         ),
-                        delimiter_end: SepRightParen(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightParen(TokenStream {
                                 offset: 3,
                                 value: ")"
-                            },
+                            },),
                             Some(S(TokenStream {
                                 offset: 4,
                                 value: " "
@@ -67,12 +67,12 @@ mod tests {
                         }
                     },
                     return_ty: Some((
-                        SepArrowRight(
+                        (
                             None,
-                            TokenStream {
+                            TokenArrowRight(TokenStream {
                                 offset: 5,
                                 value: "->"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 7,
                                 value: " "
@@ -98,18 +98,32 @@ mod tests {
             TypeFn::parse(TokenStream::from("fn(string,f32 ) -> i32")),
             Ok((
                 TypeFn {
-                    fn_token: TokenFn(TokenStream {
+                    fn_token: KeywordFn(TokenStream {
                         offset: 0,
                         value: "fn"
                     }),
                     params: Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 2,
                                 value: "("
-                            },
+                            }),
                             None
+                        ),
+                        end: (
+                            Some(S(TokenStream {
+                                offset: 13,
+                                value: " "
+                            })),
+                            TokenRightParen(TokenStream {
+                                offset: 14,
+                                value: ")"
+                            }),
+                            Some(S(TokenStream {
+                                offset: 15,
+                                value: " "
+                            }))
                         ),
                         body: Punctuated {
                             pairs: vec![(
@@ -117,12 +131,12 @@ mod tests {
                                     offset: 3,
                                     value: "string"
                                 })),
-                                SepComma(
+                                (
                                     None,
-                                    TokenStream {
+                                    TokenComma(TokenStream {
                                         offset: 9,
                                         value: ","
-                                    },
+                                    }),
                                     None
                                 )
                             )],
@@ -131,28 +145,14 @@ mod tests {
                                 value: "f32"
                             })))))
                         },
-                        delimiter_end: SepRightParen(
-                            Some(S(TokenStream {
-                                offset: 13,
-                                value: " "
-                            })),
-                            TokenStream {
-                                offset: 14,
-                                value: ")"
-                            },
-                            Some(S(TokenStream {
-                                offset: 15,
-                                value: " "
-                            }))
-                        )
                     },
                     return_ty: Some((
-                        SepArrowRight(
+                        (
                             None,
-                            TokenStream {
+                            TokenArrowRight(TokenStream {
                                 offset: 16,
                                 value: "->"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 18,
                                 value: " "

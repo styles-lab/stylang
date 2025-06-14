@@ -86,7 +86,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (sign, input) = Sign::into_parser().ok().parse(input)?;
         let (trunc, input) = Digits::into_parser().ok().parse(input)?;
 

@@ -240,7 +240,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         ItemClass::into_parser()
             .map(|v| Self::Class(v))
             .map_err(|input: I, err| LangError::from((err, ItemKind::Class(input.span()))))

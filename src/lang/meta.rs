@@ -49,7 +49,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         use parserc::ParseFromInput;
 
         let (delimiter_start, input) = input.parse()?;
@@ -88,7 +88,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         use parserc::ParseFromInput;
 
         let (delimiter_start, input) = input.parse()?;
@@ -127,7 +127,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         use parserc::ParseFromInput;
 
         let (delimiter_start, input) = input.parse()?;
@@ -166,7 +166,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         use parserc::ParseFromInput;
 
         let (delimiter_start, input) = input.parse()?;

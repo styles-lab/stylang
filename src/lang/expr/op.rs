@@ -96,7 +96,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = AssignOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -223,7 +223,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = BoolOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -356,7 +356,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = CompOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -494,7 +494,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = BitsOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -615,7 +615,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = TermOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -736,7 +736,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = FactorOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -853,7 +853,7 @@ where
 {
     type Error = LangError;
 
-    fn parse(input: I) -> parserc::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (op, input) = UnOp::parse(input)?;
         let (oprand, input) = UnOperand::into_parser()

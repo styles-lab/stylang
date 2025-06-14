@@ -1,14 +1,12 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::errors::LangError;
-use crate::lang::input::LangInput;
-
-use crate::lang::token::*;
+use crate::lang::{errors::LangError, token::*};
 
 /// The parser for num types: `i32`,`f32`,`i128`,..
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(input = I, error = LangError)]
+#[input(I)]
+#[error(LangError)]
 pub enum TypeNum<I>
 where
     I: LangInput,
@@ -31,9 +29,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Input, Parse};
+    use parserc::{
+        inputs::{Input, lang::TokenStream},
+        syntax::Syntax,
+    };
 
-    use crate::lang::{input::TokenStream, ty::TypeNum};
+    use crate::lang::ty::TypeNum;
 
     #[test]
     fn test_num_types() {
