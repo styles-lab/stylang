@@ -270,7 +270,7 @@ mod tests {
 
     use super::*;
     use crate::lang::{
-        errors::TokenKind, input::TokenStream, item::Scope, meta::Meta, token::*, ty::TypeNum,
+        errors::SyntaxKind, input::TokenStream, item::Scope, meta::Meta, token::*, ty::TypeNum,
     };
 
     #[test]
@@ -1001,7 +1001,7 @@ mod tests {
         assert_eq!(
             Item::parse(TokenStream::from("pub use a")),
             Err(ControlFlow::Fatal(LangError::Expect {
-                kind: TokenKind::Token(";"),
+                kind: SyntaxKind::Token(";"),
                 span: Span { offset: 9, len: 0 },
                 item: Some(ItemKind::Use(Span { offset: 0, len: 9 }))
             }))

@@ -1,16 +1,11 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    lit::Lit,
-    token::{RangeLimits, SepDotDot},
-};
+use crate::lang::{errors::LangError, lit::Lit, token::*};
 
 /// A range expression: 1..2, 1.., ..2, 1..=2, ..=2.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PattRange<I>
 where
     I: LangInput,
@@ -24,9 +19,9 @@ where
 }
 
 /// The dots in a tuple or slice pattern: [0, 1, ..].
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct PattRest<I>(pub SepDotDot<I>)
+#[error(LangError)]
+pub struct PattRest<I>(pub TokenDotDot<I>)
 where
     I: LangInput;

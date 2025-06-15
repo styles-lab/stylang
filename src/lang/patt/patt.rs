@@ -1,11 +1,14 @@
-use parserc::{Parse, Parser, ParserExt, Punctuated, derive_parse};
+use parserc::{
+    inputs::lang::LangInput,
+    parser::Parser,
+    syntax::{Punctuated, Syntax},
+};
 
 use crate::lang::{
-    errors::{LangError, TokenKind},
-    input::LangInput,
+    errors::{LangError, SyntaxKind},
     lit::Lit,
     patt::{PattRange, PattRest, PattType},
-    token::{Brace, Bracket, Paren, SepComma, SepOr, TokenUnderscore},
+    token::*,
     ty::TypePath,
 };
 
@@ -16,33 +19,33 @@ pub type PattLit<I> = Lit<I>;
 pub type PattPath<I> = TypePath<I>;
 
 /// A tuple pattern: (a, b),(a | b),...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PattTuple<I>(pub Paren<I, Punctuated<Patt<I>, SepComma<I>>>)
 where
     I: LangInput;
 
 /// A dynamically sized slice pattern: [a, b,.., y, z].
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PattSlice<I>(Bracket<I, Punctuated<Patt<I>, SepComma<I>>>)
 where
     I: LangInput;
 
 /// A pattern that matches any value: `_`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PattWild<I>(pub TokenUnderscore<I>)
 where
     I: LangInput;
 
 /// A tuple struct or tuple variant pattern: $path(x, y, .., z).
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PattTupleStruct<I>
 where
     I: LangInput,
@@ -54,9 +57,9 @@ where
 }
 
 /// A tuple struct or tuple variant pattern: $path { x, y, .., z}.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PattStruct<I>
 where
     I: LangInput,
@@ -77,12 +80,12 @@ where
     /// the first pattern.
     pub first: Box<Patt<I>>,
     /// rest segments.
-    pub rest: Vec<(SepOr<I>, Patt<I>)>,
+    pub rest: Vec<(Option<S<I>>, TokenOr<I>, Option<S<I>>, Patt<I>)>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub(super) enum PattUnary<I>
 where
     I: LangInput,
@@ -157,13 +160,11 @@ where
     Or(PattOr<I>),
 }
 
-impl<I> Parse<I> for Patt<I>
+impl<I> Syntax<I, LangError> for Patt<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (patt, input) = PattType::into_parser()
             .map(|v| Self::Type(v))
             .ok()
@@ -181,7 +182,7 @@ where
 
         loop {
             let or;
-            (or, input) = SepOr::into_parser().ok().parse(input)?;
+            (or, input) = <(_, _, _)>::into_parser().ok().parse(input)?;
 
             let Some(or) = or else {
                 break;
@@ -191,10 +192,10 @@ where
 
             (rhs, input) = PattUnary::into_parser()
                 .map(|v| Self::from(v))
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
-                .parse(input)?;
+                .map_err(|_: LangError| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .parse(input.clone())?;
 
-            rest.push((or, rhs));
+            rest.push((or.0, or.1, or.2, rhs));
         }
 
         if rest.is_empty() {
@@ -213,9 +214,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Delimiter, Parse};
 
-    use crate::lang::{input::TokenStream, token::*, ty::Type};
+    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
+
+    use crate::lang::ty::{PathStart, Type};
 
     use super::*;
 
@@ -225,65 +227,61 @@ mod tests {
             Patt::parse(TokenStream::from("[a,..,b,_]")),
             Ok((
                 Patt::Slice(PattSlice(Delimiter {
-                    delimiter_start: SepLeftBracket(
+                    start: (
                         None,
-                        TokenStream {
+                        TokenLeftBracket(TokenStream {
                             offset: 0,
                             value: "["
-                        },
+                        }),
                         None
                     ),
                     body: Punctuated {
                         pairs: vec![
                             (
                                 Patt::Path(TypePath {
-                                    first: Ident(TokenStream {
+                                    first: PathStart::Ident(Ident(TokenStream {
                                         offset: 1,
                                         value: "a"
-                                    }),
+                                    })),
                                     rest: vec![]
                                 }),
-                                SepComma(
+                                (
                                     None,
-                                    TokenStream {
+                                    TokenComma(TokenStream {
                                         offset: 2,
                                         value: ","
-                                    },
+                                    }),
                                     None
                                 )
                             ),
                             (
-                                Patt::Rest(PattRest(SepDotDot(
+                                Patt::Rest(PattRest(TokenDotDot(TokenStream {
+                                    offset: 3,
+                                    value: ".."
+                                }),)),
+                                (
                                     None,
-                                    TokenStream {
-                                        offset: 3,
-                                        value: ".."
-                                    },
-                                    None
-                                ))),
-                                SepComma(
-                                    None,
-                                    TokenStream {
+                                    TokenComma(TokenStream {
                                         offset: 5,
                                         value: ","
-                                    },
+                                    }),
                                     None
                                 )
                             ),
                             (
                                 Patt::Path(TypePath {
-                                    first: Ident(TokenStream {
+                                    first: PathStart::Ident(Ident(TokenStream {
                                         offset: 6,
                                         value: "b"
-                                    }),
+                                    })),
                                     rest: vec![]
                                 }),
-                                SepComma(
+                                (
                                     None,
-                                    TokenStream {
+                                    TokenComma(TokenStream {
                                         offset: 7,
                                         value: ","
-                                    },
+                                    }),
                                     None
                                 )
                             )
@@ -295,12 +293,12 @@ mod tests {
                             }
                         )))))
                     },
-                    delimiter_end: SepRightBracket(
+                    end: (
                         None,
-                        TokenStream {
+                        TokenRightBracket(TokenStream {
                             offset: 9,
                             value: "]"
-                        },
+                        }),
                         None
                     )
                 })),
@@ -319,65 +317,61 @@ mod tests {
             Ok((
                 Patt::Or(PattOr {
                     first: Box::new(Patt::Slice(PattSlice(Delimiter {
-                        delimiter_start: SepLeftBracket(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftBracket(TokenStream {
                                 offset: 0,
                                 value: "["
-                            },
+                            }),
                             None
                         ),
                         body: Punctuated {
                             pairs: vec![
                                 (
                                     Patt::Path(TypePath {
-                                        first: Ident(TokenStream {
+                                        first: PathStart::Ident(Ident(TokenStream {
                                             offset: 1,
                                             value: "a"
-                                        }),
+                                        })),
                                         rest: vec![]
                                     }),
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 2,
                                             value: ","
-                                        },
+                                        }),
                                         None
                                     )
                                 ),
                                 (
-                                    Patt::Rest(PattRest(SepDotDot(
+                                    Patt::Rest(PattRest(TokenDotDot(TokenStream {
+                                        offset: 3,
+                                        value: ".."
+                                    }))),
+                                    (
                                         None,
-                                        TokenStream {
-                                            offset: 3,
-                                            value: ".."
-                                        },
-                                        None
-                                    ))),
-                                    SepComma(
-                                        None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 5,
                                             value: ","
-                                        },
+                                        }),
                                         None
                                     )
                                 ),
                                 (
                                     Patt::Path(TypePath {
-                                        first: Ident(TokenStream {
+                                        first: PathStart::Ident(Ident(TokenStream {
                                             offset: 6,
                                             value: "b"
-                                        }),
+                                        })),
                                         rest: vec![]
                                     }),
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 7,
                                             value: ","
-                                        },
+                                        }),
                                         None
                                     )
                                 )
@@ -389,12 +383,12 @@ mod tests {
                                 }
                             )))))
                         },
-                        delimiter_end: SepRightBracket(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBracket(TokenStream {
                                 offset: 9,
                                 value: "]"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 10,
                                 value: " "
@@ -402,58 +396,56 @@ mod tests {
                         )
                     }))),
                     rest: vec![(
-                        SepOr(
-                            None,
-                            TokenStream {
-                                offset: 11,
-                                value: "|"
-                            },
-                            Some(S(TokenStream {
-                                offset: 12,
-                                value: " "
-                            }))
-                        ),
+                        None,
+                        TokenOr(TokenStream {
+                            offset: 11,
+                            value: "|"
+                        }),
+                        Some(S(TokenStream {
+                            offset: 12,
+                            value: " "
+                        })),
                         Patt::Tuple(PattTuple(Delimiter {
-                            delimiter_start: SepLeftParen(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftParen(TokenStream {
                                     offset: 13,
                                     value: "("
-                                },
+                                }),
                                 None
                             ),
                             body: Punctuated {
                                 pairs: vec![(
                                     Patt::Path(TypePath {
-                                        first: Ident(TokenStream {
+                                        first: PathStart::Ident(Ident(TokenStream {
                                             offset: 14,
                                             value: "a"
-                                        }),
+                                        })),
                                         rest: vec![]
                                     }),
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 15,
                                             value: ","
-                                        },
+                                        }),
                                         None
                                     )
                                 )],
                                 tail: Some(Box::new(Patt::Path(TypePath {
-                                    first: Ident(TokenStream {
+                                    first: PathStart::Ident(Ident(TokenStream {
                                         offset: 16,
                                         value: "b"
-                                    }),
+                                    })),
                                     rest: vec![]
                                 })))
                             },
-                            delimiter_end: SepRightParen(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightParen(TokenStream {
                                     offset: 17,
                                     value: ")"
-                                },
+                                }),
                                 None
                             )
                         }))
@@ -477,12 +469,12 @@ mod tests {
                         offset: 0,
                         value: "value"
                     }),
-                    sep: SepColon(
+                    sep: (
                         None,
-                        TokenStream {
+                        TokenColon(TokenStream {
                             offset: 5,
                             value: ":"
-                        },
+                        }),
                         Some(S(TokenStream {
                             offset: 6,
                             value: " "

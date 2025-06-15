@@ -1,7 +1,7 @@
 use parserc::{ControlFlow, Parse, Parser, ParserExt, Punctuated, derive_parse};
 
 use crate::lang::{
-    errors::{LangError, TokenKind},
+    errors::{LangError, SyntaxKind},
     expr::{
         ExprAssgin, ExprBits, ExprBool, ExprComp, ExprFactor, ExprIf, ExprLoop, ExprPath, ExprTerm,
         ExprUnary, ExprWhile, ExprXml,
@@ -95,12 +95,12 @@ where
             .map(|v| Expr::from(v))
             .boxed()
             .ok()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+            .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
             .parse(input)?;
 
         if start.is_none() && end.is_none() {
             return Err(ControlFlow::Fatal(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }

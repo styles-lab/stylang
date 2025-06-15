@@ -5,7 +5,7 @@ use parserc::parser::{Parser, keyword, next_if, take_while};
 use parserc::syntax::{Delimiter, Syntax, tokens};
 use parserc::{errors::ControlFlow, inputs::lang::LangInput};
 
-use crate::lang::errors::{LangError, TokenKind};
+use crate::lang::errors::{LangError, SyntaxKind};
 
 /// Sequence of `whitespace` chars
 #[derive(Debug, PartialEq, Clone)]
@@ -21,7 +21,7 @@ where
 
         if s.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::S,
+                SyntaxKind::S,
                 input.span(),
             )));
         }
@@ -44,7 +44,7 @@ where
 
         if token.is_some() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Ident,
+                SyntaxKind::Ident,
                 input.span(),
             )));
         }
@@ -54,7 +54,7 @@ where
 
         let span = input.span();
         let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|_: LangError| LangError::expect(TokenKind::Ident, span))
+            .map_err(|_: LangError| LangError::expect(SyntaxKind::Ident, span))
             .parse(input)?;
 
         let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;
@@ -77,7 +77,7 @@ where
 
         if token.is_some() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::XmlIdent,
+                SyntaxKind::XmlIdent,
                 input.span(),
             )));
         }
@@ -86,7 +86,7 @@ where
         let start = input.start();
 
         let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|_: LangError| LangError::expect(TokenKind::XmlIdent, input.span()))
+            .map_err(|_: LangError| LangError::expect(SyntaxKind::XmlIdent, input.span()))
             .parse(input.clone())?;
 
         let (_, input) =
@@ -110,7 +110,7 @@ where
 
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Digits,
+                SyntaxKind::Digits,
                 input.span(),
             )));
         }
@@ -133,7 +133,7 @@ where
 
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::HexDigits,
+                SyntaxKind::HexDigits,
                 input.span(),
             )));
         }
@@ -157,7 +157,7 @@ where
         keyword("E")
             .or(keyword("e"))
             .map(|v| Self(v))
-            .map_err(|_: LangError| LangError::expect(TokenKind::Token("E or e"), span))
+            .map_err(|_: LangError| LangError::expect(SyntaxKind::Token("E or e"), span))
             .parse(input)
     }
 }
@@ -328,7 +328,7 @@ mod tests {
         assert_eq!(
             Ident::parse(TokenStream::from("fn")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Ident,
+                SyntaxKind::Ident,
                 Span { offset: 0, len: 2 }
             )))
         );
@@ -344,7 +344,7 @@ mod tests {
         assert_eq!(
             TokenColon::parse(TokenStream::from("::a")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token(":"),
+                SyntaxKind::Token(":"),
                 Span { offset: 0, len: 3 }
             )))
         );
@@ -352,7 +352,7 @@ mod tests {
         assert_eq!(
             TokenMinus::parse(TokenStream::from("->")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("-"),
+                SyntaxKind::Token("-"),
                 Span { offset: 0, len: 2 }
             )))
         );
@@ -360,7 +360,7 @@ mod tests {
         assert_eq!(
             TokenMinus::parse(TokenStream::from("-=")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("-"),
+                SyntaxKind::Token("-"),
                 Span { offset: 0, len: 2 }
             )))
         );
@@ -368,7 +368,7 @@ mod tests {
         assert_eq!(
             TokenEq::parse(TokenStream::from("==")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("="),
+                SyntaxKind::Token("="),
                 Span { offset: 0, len: 2 }
             )))
         );
@@ -376,7 +376,7 @@ mod tests {
         assert_eq!(
             TokenNot::parse(TokenStream::from("!=")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("!"),
+                SyntaxKind::Token("!"),
                 Span { offset: 0, len: 2 }
             )))
         );
@@ -384,7 +384,7 @@ mod tests {
         assert_eq!(
             TokenLt::parse(TokenStream::from("<=")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token("<"),
+                SyntaxKind::Token("<"),
                 Span { offset: 0, len: 2 }
             )))
         );
@@ -392,7 +392,7 @@ mod tests {
         assert_eq!(
             TokenGt::parse(TokenStream::from(">=")),
             Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::Token(">"),
+                SyntaxKind::Token(">"),
                 Span { offset: 0, len: 2 }
             )))
         );

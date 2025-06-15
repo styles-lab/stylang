@@ -13,7 +13,7 @@ pub enum LangError {
     #[error("unexpect {kind} {span:?}")]
     Unexpect {
         /// token kind.
-        kind: TokenKind,
+        kind: SyntaxKind,
         /// token span.
         span: Span,
         /// optional parsing item.
@@ -24,7 +24,7 @@ pub enum LangError {
     #[error("unexpect {kind} {span:?}")]
     Expect {
         /// token kind.
-        kind: TokenKind,
+        kind: SyntaxKind,
         /// token span.
         span: Span,
         /// optional parsing item.
@@ -34,7 +34,7 @@ pub enum LangError {
     #[error("invalid literial value {kind} {span:?}")]
     Invalid {
         /// token kind.
-        kind: TokenKind,
+        kind: SyntaxKind,
         /// token span.
         span: Span,
         /// optional parsing item.
@@ -50,13 +50,13 @@ impl parserc::errors::ParseError for LangError {
         diagnosis: &'static str,
         input: I,
     ) -> Self {
-        Self::expect(TokenKind::Token(diagnosis), input.span())
+        Self::expect(SyntaxKind::Token(diagnosis), input.span())
     }
 }
 
 impl LangError {
     /// Create a [`LangError::Expect`] error without optional `item` field.
-    pub fn expect(kind: TokenKind, span: Span) -> Self {
+    pub fn expect(kind: SyntaxKind, span: Span) -> Self {
         Self::Expect {
             kind,
             span,
@@ -65,7 +65,7 @@ impl LangError {
     }
 
     /// Create a [`LangError::Unexpect`] error without optional `item` field.
-    pub fn unexpect(kind: TokenKind, span: Span) -> Self {
+    pub fn unexpect(kind: SyntaxKind, span: Span) -> Self {
         Self::Unexpect {
             kind,
             span,
@@ -74,7 +74,7 @@ impl LangError {
     }
 
     /// Create a [`LangError::Invalid`] error without optional `item` field.
-    pub fn invalid(kind: TokenKind, span: Span) -> Self {
+    pub fn invalid(kind: SyntaxKind, span: Span) -> Self {
         Self::Invalid {
             kind,
             span,
@@ -139,7 +139,7 @@ pub enum ItemKind {
 
 /// Error variants pointing to lexical tokens.
 #[derive(Debug, thiserror::Error, PartialEq)]
-pub enum TokenKind {
+pub enum SyntaxKind {
     #[error("`unknown token`")]
     Unknown,
     /// token.

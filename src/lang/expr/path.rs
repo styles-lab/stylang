@@ -155,7 +155,7 @@ mod tests {
     use parserc::{ControlFlow, Delimiter, Parse, Punctuated, span::Span};
 
     use crate::lang::{
-        errors::{LangError, TokenKind},
+        errors::{LangError, SyntaxKind},
         expr::{Expr, ExprPath, ExprRange, PathIndex, PathSegment, PathStart},
         input::TokenStream,
         lit::{Lit, LitNum},
@@ -305,7 +305,7 @@ mod tests {
         assert_eq!(
             Expr::parse(TokenStream::from("..")),
             Err(ControlFlow::Fatal(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 Span { offset: 2, len: 0 }
             )))
         );

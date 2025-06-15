@@ -1,16 +1,13 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    lit::{LitBool, LitColor, LitHexNum, LitNum, LitStr},
-    token::TokenNone,
-};
+use crate::lang::{errors::LangError, token::TokenNone};
+
+use super::*;
 
 /// A literial value.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum Lit<I>
 where
     I: LangInput,

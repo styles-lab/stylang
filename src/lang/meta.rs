@@ -1,21 +1,17 @@
 //! The types for parsing meta-data(comments or attrs).
 
-use parserc::{Parse, Parser, ParserExt, Punctuated, derive_parse, take_till, take_until};
-
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    lit::Lit,
-    token::{
-        Ident, Paren, S, SepComma, TokenAt, TokenBlockEnd, TokenBlockStart, TokenInline,
-        TokenNewLine, TokenOuterBlockStart, TokenOuterline,
-    },
+use parserc::{
+    inputs::lang::LangInput,
+    parser::{Parser, take_till, take_until},
+    syntax::{Punctuated, Syntax},
 };
 
+use crate::lang::{errors::LangError, lit::Lit, token::*};
+
 /// Parsing attribute metadata: `@platform`, `@sol("./erc20.json")`,...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct Attr<I>
 where
     I: LangInput,
@@ -43,16 +39,13 @@ where
     pub delimiter_end: Option<TokenNewLine<I>>,
 }
 
-impl<I> Parse<I> for OuterLineDoc<I>
+impl<I> Syntax<I, LangError> for OuterLineDoc<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
-        use parserc::ParseFromInput;
-
-        let (delimiter_start, input) = input.parse()?;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+        let (delimiter_start, input) = input.syntax()?;
         let (inline, input) = take_till(|c| c == b'\n').parse(input)?;
         let (delimiter_end, input) = TokenNewLine::into_parser().ok().parse(input)?;
 
@@ -82,16 +75,13 @@ where
     pub delimiter_end: Option<TokenNewLine<I>>,
 }
 
-impl<I> Parse<I> for InlineComment<I>
+impl<I> Syntax<I, LangError> for InlineComment<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
-        use parserc::ParseFromInput;
-
-        let (delimiter_start, input) = input.parse()?;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+        let (delimiter_start, input) = input.syntax()?;
         let (inline, input) = take_till(|c| c == b'\n').parse(input)?;
         let (delimiter_end, input) = TokenNewLine::into_parser().ok().parse(input)?;
 
@@ -121,16 +111,13 @@ where
     pub delimiter_end: TokenBlockEnd<I>,
 }
 
-impl<I> Parse<I> for OuterBlockDoc<I>
+impl<I> Syntax<I, LangError> for OuterBlockDoc<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
-        use parserc::ParseFromInput;
-
-        let (delimiter_start, input) = input.parse()?;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+        let (delimiter_start, input) = input.syntax()?;
         let (inline, input) = take_until("*/").parse(input)?;
         let (delimiter_end, input) = TokenBlockEnd::into_parser().fatal().parse(input)?;
 
@@ -160,16 +147,14 @@ where
     pub delimiter_end: TokenBlockEnd<I>,
 }
 
-impl<I> Parse<I> for BlockComment<I>
+impl<I> Syntax<I, LangError> for BlockComment<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
 
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
-        use parserc::ParseFromInput;
-
-        let (delimiter_start, input) = input.parse()?;
+        let (delimiter_start, input) = input.syntax()?;
         let (inline, input) = take_until("*/").parse(input)?;
         let (delimiter_end, input) = TokenBlockEnd::into_parser().fatal().parse(input)?;
 
@@ -185,9 +170,9 @@ where
 }
 
 /// Parser for comments and docs.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum Comment<I>
 where
     I: LangInput,
@@ -202,9 +187,9 @@ where
 pub type Comments<I> = Vec<Comment<I>>;
 
 /// Metadata parser for comment/doc/attr/...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum Meta<I>
 where
     I: LangInput,
@@ -219,9 +204,10 @@ pub type MetaList<I> = Vec<Meta<I>>;
 
 #[cfg(test)]
 mod tests {
-    use parserc::Delimiter;
 
-    use crate::lang::{input::TokenStream, lit::LitStr, token::*};
+    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
+
+    use crate::lang::lit::LitStr;
 
     use super::*;
 
@@ -246,12 +232,12 @@ mod tests {
                         value: "sol"
                     }),
                     params: Some(Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 6,
                                 value: "("
-                            },
+                            }),
                             None
                         ),
                         body: Punctuated {
@@ -261,12 +247,12 @@ mod tests {
                                 value: "erc20.json"
                             }))))
                         },
-                        delimiter_end: SepRightParen(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightParen(TokenStream {
                                 offset: 19,
                                 value: ")"
-                            },
+                            }),
                             None
                         )
                     })
@@ -437,12 +423,12 @@ mod tests {
                             value: "target"
                         }),
                         params: Some(Delimiter {
-                            delimiter_start: SepLeftParen(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftParen(TokenStream {
                                     offset: 588,
                                     value: "("
-                                },
+                                }),
                                 None
                             ),
                             body: Punctuated {
@@ -452,12 +438,12 @@ mod tests {
                                     value: "wasm"
                                 }))))
                             },
-                            delimiter_end: SepRightParen(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightParen(TokenStream {
                                     offset: 595,
                                     value: ")"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 596,
                                     value: "\n        "

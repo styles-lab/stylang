@@ -3,7 +3,7 @@
 use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
-    errors::{LangError, TokenKind},
+    errors::{LangError, SyntaxKind},
     expr::ExprIf,
     input::LangInput,
     lit::Lit,
@@ -158,14 +158,14 @@ where
             let Some(child) = child else {
                 let (end_tag, input) = XmlEnd::into_parser()
                     .map_err(|input: I, _| {
-                        LangError::expect(TokenKind::XmlEndTag(ident_span), input.span())
+                        LangError::expect(SyntaxKind::XmlEndTag(ident_span), input.span())
                     })
                     .fatal()
                     .parse(input)?;
 
                 if start_tag.ident.0.as_str() != end_tag.ident.0.as_str() {
                     return Err(ControlFlow::Fatal(LangError::expect(
-                        TokenKind::XmlEndTag(ident_span),
+                        SyntaxKind::XmlEndTag(ident_span),
                         input.span(),
                     )));
                 }

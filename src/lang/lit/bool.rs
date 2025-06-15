@@ -1,15 +1,11 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    token::{TokenFalse, TokenTrue},
-};
+use crate::lang::{errors::LangError, token::*};
 
 /// A literial bool value.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum LitBool<I>
 where
     I: LangInput,

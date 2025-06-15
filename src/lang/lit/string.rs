@@ -1,22 +1,22 @@
-use parserc::{ControlFlow, Parse, Parser, next, take_till};
-
-use crate::lang::{
-    errors::{LangError, TokenKind},
-    input::LangInput,
+use parserc::{
+    errors::ControlFlow,
+    inputs::lang::LangInput,
+    parser::{Parser, next, take_till},
+    syntax::Syntax,
 };
+
+use crate::lang::errors::{LangError, SyntaxKind};
 
 /// literal string value, be like: `"...\"... "`
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitStr<I>(pub I);
 
-impl<I> Parse<I> for LitStr<I>
+impl<I> Syntax<I, LangError> for LitStr<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (_, mut input) = next(b'"').parse(input)?;
 
         let mut content = input.clone();
@@ -44,7 +44,7 @@ where
             Ok((LitStr(content), input))
         } else {
             Err(ControlFlow::Fatal(LangError::expect(
-                TokenKind::Token("\""),
+                SyntaxKind::Token("\""),
                 input.span(),
             )))
         }
@@ -53,9 +53,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Parse, span::Span};
 
-    use crate::lang::{errors::TokenKind, input::TokenStream};
+    use parserc::inputs::{Span, lang::TokenStream};
 
     use super::*;
 
@@ -64,7 +63,7 @@ mod tests {
         assert_eq!(
             LitStr::parse(TokenStream::from(r#""hello"#)),
             Err(ControlFlow::Fatal(LangError::expect(
-                TokenKind::Token("\""),
+                SyntaxKind::Token("\""),
                 Span { offset: 6, len: 0 }
             )))
         );

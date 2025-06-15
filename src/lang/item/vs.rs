@@ -46,7 +46,7 @@ mod tests {
     use parserc::{ControlFlow, Delimiter, Parse, span::Span};
 
     use crate::lang::{
-        errors::{LangError, TokenKind},
+        errors::{LangError, SyntaxKind},
         input::TokenStream,
         item::{Scope, Visibility},
         token::*,
@@ -164,7 +164,7 @@ mod tests {
         assert_eq!(
             Visibility::parse(TokenStream::from("pub")),
             Err(ControlFlow::Fatal(LangError::expect(
-                TokenKind::S,
+                SyntaxKind::S,
                 Span { offset: 3, len: 0 }
             )))
         );

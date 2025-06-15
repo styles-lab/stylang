@@ -1,7 +1,7 @@
 use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
 
 use crate::lang::{
-    errors::{LangError, TokenKind},
+    errors::{LangError, SyntaxKind},
     expr::{Expr, ExprPath, XmlStart},
     input::LangInput,
     meta::MetaList,
@@ -118,7 +118,7 @@ where
             (operand, input) = AssignOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
                 .fatal()
                 .parse(input)?;
 
@@ -127,7 +127,7 @@ where
 
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }
@@ -245,7 +245,7 @@ where
             (operand, input) = BoolOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
                 .fatal()
                 .parse(input)?;
 
@@ -254,7 +254,7 @@ where
 
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }
@@ -387,7 +387,7 @@ where
             (operand, input) = CompOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
                 .fatal()
                 .parse(input)?;
 
@@ -396,7 +396,7 @@ where
 
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }
@@ -516,7 +516,7 @@ where
             (operand, input) = BitsOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
                 .fatal()
                 .parse(input)?;
 
@@ -525,7 +525,7 @@ where
 
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }
@@ -637,7 +637,7 @@ where
             (operand, input) = TermOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
                 .fatal()
                 .parse(input)?;
 
@@ -646,7 +646,7 @@ where
 
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }
@@ -758,7 +758,7 @@ where
             (operand, input) = FactorOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
                 .fatal()
                 .parse(input)?;
 
@@ -767,7 +767,7 @@ where
 
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
-                TokenKind::RightOperand,
+                SyntaxKind::RightOperand,
                 input.span(),
             )));
         }
@@ -857,7 +857,7 @@ where
         let (meta_list, input) = MetaList::parse(input)?;
         let (op, input) = UnOp::parse(input)?;
         let (oprand, input) = UnOperand::into_parser()
-            .map_err(|input: I, _| LangError::expect(TokenKind::RightOperand, input.span()))
+            .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
             .fatal()
             .parse(input)?;
 
