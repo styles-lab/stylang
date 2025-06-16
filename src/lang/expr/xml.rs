@@ -1,21 +1,20 @@
 //! xml syntax analyser.
 
-use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
+use parserc::{errors::ControlFlow, inputs::lang::LangInput, parser::Parser, syntax::Syntax};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
     expr::ExprIf,
-    input::LangInput,
     lit::Lit,
     meta::MetaList,
     stmt::Block,
-    token::{SepEq, SepGt, SepLt, SepLtSlash, SepSlashGt, XmlIdent},
+    token::*,
 };
 
 /// Xml attribute value parser.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum XmlValue<I>
 where
     I: LangInput,
@@ -25,9 +24,9 @@ where
 }
 
 ///  Xml attr/value pair parser.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct XmlAttr<I>
 where
     I: LangInput,
@@ -37,27 +36,27 @@ where
     /// required tag name.
     pub ident: XmlIdent<I>,
     /// eq token: `=`
-    pub eq_token: SepEq<I>,
+    pub eq_token: (Option<S<I>>, TokenEq<I>, Option<S<I>>),
     /// Value expr.
     pub value: XmlValue<I>,
 }
 
 /// Delimiter end token: `>` or `/>` for XmlStart.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum XmlStartDelimiterEnd<I>
 where
     I: LangInput,
 {
-    Open(SepGt<I>),
-    Closed(SepSlashGt<I>),
+    Open((Option<S<I>>, TokenGt<I>)),
+    Closed((Option<S<I>>, TokenSlashGt<I>)),
 }
 
 /// A parser for xml start tag.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct XmlStart<I>
 where
     I: LangInput,
@@ -65,7 +64,7 @@ where
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
     /// token `<`
-    pub delimiter_start: SepLt<I>,
+    pub delimiter_start: (Option<S<I>>, TokenLt<I>, Option<S<I>>),
     /// required tag name.
     pub ident: XmlIdent<I>,
     /// value list.
@@ -75,9 +74,9 @@ where
 }
 
 /// A parser for xml start tag.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct XmlEnd<I>
 where
     I: LangInput,
@@ -86,19 +85,19 @@ where
     pub meta_list: MetaList<I>,
     /// token `</`
     #[fatal]
-    pub delimiter_start: SepLtSlash<I>,
+    pub delimiter_start: (Option<S<I>>, TokenLtSlash<I>, Option<S<I>>),
     /// required tag name.
     #[fatal]
     pub ident: XmlIdent<I>,
     /// end token: `>`
     #[fatal]
-    pub delimiter_end: SepGt<I>,
+    pub delimiter_end: (Option<S<I>>, TokenGt<I>),
 }
 
 /// Xml child node parser.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum XmlChild<I>
 where
     I: LangInput,
@@ -124,13 +123,11 @@ where
     pub end_tag: Option<XmlEnd<I>>,
 }
 
-impl<I> Parse<I> for ExprXml<I>
+impl<I> Syntax<I, LangError> for ExprXml<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (start_tag, mut input) = XmlStart::parse(input)?;
 
@@ -155,11 +152,11 @@ where
 
             (child, input) = XmlChild::into_parser().ok().parse(input)?;
 
+            let span = input.span();
+
             let Some(child) = child else {
                 let (end_tag, input) = XmlEnd::into_parser()
-                    .map_err(|input: I, _| {
-                        LangError::expect(SyntaxKind::XmlEndTag(ident_span), input.span())
-                    })
+                    .map_err(|_| LangError::expect(SyntaxKind::XmlEndTag(ident_span), span))
                     .fatal()
                     .parse(input)?;
 
@@ -188,16 +185,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Delimiter, Parse};
+    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
 
     use crate::lang::{
-        expr::{Expr, ExprXml, XmlAttr, XmlStart, XmlStartDelimiterEnd, XmlValue},
-        input::TokenStream,
-        lit::{Lit, LitStr},
+        expr::Expr,
+        lit::LitStr,
         meta::Meta,
         stmt::{Block, Stmt, Stmts},
-        token::{Ident, S, SepEq, SepLeftBrace, SepLt, SepRightBrace, SepSlashGt, XmlIdent},
     };
+
+    use super::*;
 
     #[test]
     fn xml_tag_text_field() {
@@ -210,12 +207,12 @@ mod tests {
                     meta_list: vec![],
                     start_tag: XmlStart {
                         meta_list: vec![],
-                        delimiter_start: SepLt(
+                        delimiter_start: (
                             None,
-                            TokenStream {
+                            TokenLt(TokenStream {
                                 offset: 0,
                                 value: "<"
-                            },
+                            }),
                             None
                         ),
                         ident: XmlIdent(TokenStream {
@@ -232,21 +229,21 @@ mod tests {
                                     offset: 12,
                                     value: "text"
                                 }),
-                                eq_token: SepEq(
+                                eq_token: (
                                     None,
-                                    TokenStream {
+                                    TokenEq(TokenStream {
                                         offset: 16,
                                         value: "="
-                                    },
+                                    }),
                                     None
                                 ),
                                 value: XmlValue::Block(Block(Delimiter {
-                                    delimiter_start: SepLeftBrace(
+                                    start: (
                                         None,
-                                        TokenStream {
+                                        TokenLeftBrace(TokenStream {
                                             offset: 17,
                                             value: "{"
-                                        },
+                                        }),
                                         None
                                     ),
                                     body: Stmts(vec![Stmt::Expr(
@@ -257,14 +254,16 @@ mod tests {
                                                 value: "value"
                                             }),
                                         ),
+                                        None,
+                                        None,
                                         None
                                     )]),
-                                    delimiter_end: SepRightBrace(
+                                    end: (
                                         None,
-                                        TokenStream {
+                                        TokenRightBrace(TokenStream {
                                             offset: 23,
                                             value: "}"
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 24,
                                             value: " "
@@ -278,12 +277,12 @@ mod tests {
                                     offset: 25,
                                     value: "prompt"
                                 }),
-                                eq_token: SepEq(
+                                eq_token: (
                                     None,
-                                    TokenStream {
+                                    TokenEq(TokenStream {
                                         offset: 31,
                                         value: "="
-                                    },
+                                    }),
                                     None
                                 ),
                                 value: XmlValue::Lit(Lit::String(LitStr(TokenStream {
@@ -292,13 +291,12 @@ mod tests {
                                 })))
                             }
                         ],
-                        delimiter_end: XmlStartDelimiterEnd::Closed(SepSlashGt(
+                        delimiter_end: XmlStartDelimiterEnd::Closed((
                             None,
-                            TokenStream {
+                            TokenSlashGt(TokenStream {
                                 offset: 96,
                                 value: "/>"
-                            },
-                            None
+                            }),
                         ))
                     },
                     children: vec![],
@@ -325,12 +323,12 @@ mod tests {
                         offset: 0,
                         value: "prompt"
                     }),
-                    eq_token: SepEq(
+                    eq_token: (
                         None,
-                        TokenStream {
+                        TokenEq(TokenStream {
                             offset: 6,
                             value: "="
-                        },
+                        }),
                         None
                     ),
                     value: XmlValue::Lit(Lit::String(LitStr(TokenStream {
@@ -353,21 +351,21 @@ mod tests {
                         offset: 0,
                         value: "text"
                     }),
-                    eq_token: SepEq(
+                    eq_token: (
                         None,
-                        TokenStream {
+                        TokenEq(TokenStream {
                             offset: 4,
                             value: "="
-                        },
+                        }),
                         None
                     ),
                     value: XmlValue::Block(Block(Delimiter {
-                        delimiter_start: SepLeftBrace(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftBrace(TokenStream {
                                 offset: 5,
                                 value: "{"
-                            },
+                            }),
                             None
                         ),
                         body: Stmts(vec![Stmt::Expr(
@@ -378,14 +376,16 @@ mod tests {
                                     value: "value"
                                 }),
                             ),
+                            None,
+                            None,
                             None
                         )]),
-                        delimiter_end: SepRightBrace(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBrace(TokenStream {
                                 offset: 11,
                                 value: "}"
-                            },
+                            }),
                             None
                         )
                     }))
@@ -433,5 +433,15 @@ mod tests {
                 }
             ))
         );
+    }
+
+    #[test]
+    fn test_xml() {
+        println!(
+            "{:?}",
+            ExprXml::parse(TokenStream::from(
+                r#"<label class="header" text="Sponsor styles-lab"/>"#
+            ))
+        )
     }
 }

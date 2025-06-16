@@ -1,22 +1,22 @@
-use parserc::{Parse, Parser, ParserExt, Punctuated, derive_parse};
+use parserc::{
+    inputs::lang::LangInput,
+    parser::Parser,
+    syntax::{Punctuated, Syntax},
+};
 
 use crate::lang::{
     errors::{ItemKind, LangError},
-    input::LangInput,
     item::{ItemFn, Visibility},
     meta::MetaList,
     patt::PattType,
-    token::{
-        Brace, Ident, KeywordClass, KeywordData, KeywordEnum, KeywordMod, KeywordUse, Paren,
-        SepColonColon, SepComma, SepSemiColon, SepStar,
-    },
+    token::*,
     ty::Type,
 };
 
 /// Name field for `class` or `data`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct NameField<I>
 where
     I: LangInput,
@@ -28,9 +28,9 @@ where
 }
 
 /// Uname field for `class` or `data`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct UnameField<I>
 where
     I: LangInput,
@@ -42,9 +42,9 @@ where
 }
 
 /// Name field for `class` or `data`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum Fields<I>
 where
     I: LangInput,
@@ -57,9 +57,9 @@ where
 }
 
 /// Item `class`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ItemClass<I>
 where
     I: LangInput,
@@ -69,7 +69,7 @@ where
     /// visibilty clause.
     pub vs: Option<Visibility<I>>,
     /// keyword `class[s]+`
-    pub keyword: KeywordClass<I>,
+    pub keyword: (KeywordClass<I>, S<I>),
     /// class name.
     #[fatal]
     pub ident: Ident<I>,
@@ -79,9 +79,9 @@ where
 }
 
 /// Item `data`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ItemData<I>
 where
     I: LangInput,
@@ -91,7 +91,7 @@ where
     /// visibilty clause.
     pub vs: Option<Visibility<I>>,
     /// keyword `data[s]+`
-    pub keyword: KeywordData<I>,
+    pub keyword: (KeywordData<I>, S<I>),
     /// class name.
     #[fatal]
     pub ident: Ident<I>,
@@ -101,9 +101,9 @@ where
 }
 
 /// Name field for `class` or `data`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum VariantFields<I>
 where
     I: LangInput,
@@ -113,9 +113,9 @@ where
 }
 
 /// Field for [`ItemEnum`]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct Variant<I>
 where
     I: LangInput,
@@ -129,9 +129,9 @@ where
 }
 
 /// Item `enum`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ItemEnum<I>
 where
     I: LangInput,
@@ -141,7 +141,7 @@ where
     /// visibilty clause.
     pub vs: Option<Visibility<I>>,
     /// keyword `enum[s]+`
-    pub keyword: KeywordEnum<I>,
+    pub keyword: (KeywordEnum<I>, S<I>),
     /// class name.
     #[fatal]
     pub ident: Ident<I>,
@@ -151,9 +151,9 @@ where
 }
 
 /// Item `mod`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ItemMod<I>
 where
     I: LangInput,
@@ -163,7 +163,7 @@ where
     /// visibilty clause.
     pub vs: Option<Visibility<I>>,
     /// keyword `mod[s]+`
-    pub keyword: KeywordMod<I>,
+    pub keyword: (KeywordMod<I>, S<I>),
     /// mod name.
     #[fatal]
     pub ident: Ident<I>,
@@ -173,34 +173,39 @@ where
 }
 
 /// Path used by `ItemUse`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct UsePath<I>
 where
     I: LangInput,
 {
     /// first element of use path.
     pub first: Ident<I>,
-    pub rest: Vec<(SepColonColon<I>, UseSegment<I>)>,
+    pub rest: Vec<(
+        Option<S<I>>,
+        TokenColonColon<I>,
+        Option<S<I>>,
+        UseSegment<I>,
+    )>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum UseSegment<I>
 where
     I: LangInput,
 {
     Ident(Ident<I>),
-    Glob(SepStar<I>),
+    Glob(TokenStar<I>),
     Group(Brace<I, Punctuated<UsePath<I>, SepComma<I>>>),
 }
 
 /// Item `use`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ItemUse<I>
 where
     I: LangInput,
@@ -210,7 +215,7 @@ where
     /// visibilty clause.
     pub vs: Option<Visibility<I>>,
     /// keyword `use[s]+`
-    pub keyword: KeywordUse<I>,
+    pub keyword: (KeywordUse<I>, S<I>),
     /// path clause.
     #[fatal]
     pub path: UsePath<I>,
@@ -234,31 +239,30 @@ where
     MetaList(MetaList<I>),
 }
 
-impl<I> Parse<I> for Item<I>
+impl<I> Syntax<I, LangError> for Item<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        let span = input.span();
         ItemClass::into_parser()
             .map(|v| Self::Class(v))
-            .map_err(|input: I, err| LangError::from((err, ItemKind::Class(input.span()))))
+            .map_err(|err| LangError::from((err, ItemKind::Class(span))))
             .or(ItemData::into_parser()
                 .map(|v| Self::Data(v))
-                .map_err(|input: I, err| LangError::from((err, ItemKind::Data(input.span())))))
+                .map_err(|err| LangError::from((err, ItemKind::Data(span)))))
             .or(ItemEnum::into_parser()
                 .map(|v| Self::Enum(v))
-                .map_err(|input: I, err| LangError::from((err, ItemKind::Enum(input.span())))))
+                .map_err(|err| LangError::from((err, ItemKind::Enum(span)))))
             .or(ItemFn::into_parser()
                 .map(|v| Self::Fn(v))
-                .map_err(|input: I, err| LangError::from((err, ItemKind::Fn(input.span())))))
+                .map_err(|err| LangError::from((err, ItemKind::Fn(span)))))
             .or(ItemMod::into_parser()
                 .map(|v| Self::Mod(v))
-                .map_err(|input: I, err| LangError::from((err, ItemKind::Mod(input.span())))))
+                .map_err(|err| LangError::from((err, ItemKind::Mod(span)))))
             .or(ItemUse::into_parser()
                 .map(|v| Self::Use(v))
-                .map_err(|input: I, err| LangError::from((err, ItemKind::Use(input.span())))))
+                .map_err(|err| LangError::from((err, ItemKind::Use(span)))))
             .or(MetaList::into_parser().map(|v| Self::MetaList(v)))
             .parse(input)
     }
@@ -266,12 +270,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Delimiter, Parse, span::Span};
+    use parserc::{
+        errors::ControlFlow,
+        inputs::{Span, lang::TokenStream},
+        syntax::Delimiter,
+    };
+
+    use crate::lang::{errors::SyntaxKind, item::Scope, meta::Meta, ty::TypeNum};
 
     use super::*;
-    use crate::lang::{
-        errors::SyntaxKind, input::TokenStream, item::Scope, meta::Meta, token::*, ty::TypeNum,
-    };
 
     #[test]
     fn use_path() {
@@ -281,11 +288,11 @@ mod tests {
                 Item::Use(ItemUse {
                     meta_list: vec![],
                     vs: None,
-                    keyword: KeywordUse(
-                        TokenStream {
+                    keyword: (
+                        KeywordUse(TokenStream {
                             offset: 0,
                             value: "use"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 3,
                             value: " "
@@ -298,35 +305,31 @@ mod tests {
                         }),
                         rest: vec![
                             (
-                                SepColonColon(
-                                    None,
-                                    TokenStream {
-                                        offset: 5,
-                                        value: "::"
-                                    },
-                                    None
-                                ),
+                                None,
+                                TokenColonColon(TokenStream {
+                                    offset: 5,
+                                    value: "::"
+                                }),
+                                None,
                                 UseSegment::Ident(Ident(TokenStream {
                                     offset: 7,
                                     value: "b"
                                 }))
                             ),
                             (
-                                SepColonColon(
-                                    None,
-                                    TokenStream {
-                                        offset: 8,
-                                        value: "::"
-                                    },
-                                    None
-                                ),
+                                None,
+                                TokenColonColon(TokenStream {
+                                    offset: 8,
+                                    value: "::"
+                                }),
+                                None,
                                 UseSegment::Group(Delimiter {
-                                    delimiter_start: SepLeftBrace(
+                                    start: (
                                         None,
-                                        TokenStream {
+                                        TokenLeftBrace(TokenStream {
                                             offset: 10,
                                             value: "{"
-                                        },
+                                        }),
                                         None
                                     ),
                                     body: Punctuated {
@@ -338,12 +341,12 @@ mod tests {
                                                 }),
                                                 rest: vec![]
                                             },
-                                            SepComma(
+                                            (
                                                 None,
-                                                TokenStream {
+                                                TokenComma(TokenStream {
                                                     offset: 12,
                                                     value: ","
-                                                },
+                                                }),
                                                 None
                                             )
                                         )],
@@ -353,43 +356,37 @@ mod tests {
                                                 value: "d"
                                             }),
                                             rest: vec![(
-                                                SepColonColon(
-                                                    None,
-                                                    TokenStream {
-                                                        offset: 14,
-                                                        value: "::"
-                                                    },
-                                                    None
-                                                ),
-                                                UseSegment::Glob(SepStar(
-                                                    None,
-                                                    TokenStream {
-                                                        offset: 16,
-                                                        value: "*"
-                                                    },
-                                                    None
-                                                ))
+                                                None,
+                                                TokenColonColon(TokenStream {
+                                                    offset: 14,
+                                                    value: "::"
+                                                }),
+                                                None,
+                                                UseSegment::Glob(TokenStar(TokenStream {
+                                                    offset: 16,
+                                                    value: "*"
+                                                }))
                                             )]
                                         }))
                                     },
-                                    delimiter_end: SepRightBrace(
+                                    end: (
                                         None,
-                                        TokenStream {
+                                        TokenRightBrace(TokenStream {
                                             offset: 17,
                                             value: "}"
-                                        },
+                                        }),
                                         None
                                     )
                                 })
                             )
                         ]
                     },
-                    semi_colon: SepSemiColon(
+                    semi_colon: (
                         None,
-                        TokenStream {
+                        TokenSemiColon(TokenStream {
                             offset: 18,
                             value: ";"
-                        },
+                        }),
                         None
                     )
                 }),
@@ -416,11 +413,11 @@ mod tests {
                         value: "\n                "
                     }))],
                     vs: None,
-                    keyword: KeywordData(
-                        TokenStream {
+                    keyword: (
+                        KeywordData(TokenStream {
                             offset: 17,
                             value: "data"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 21,
                             value: " "
@@ -432,12 +429,12 @@ mod tests {
                     }),
                     fields: Fields::Uname(
                         Delimiter {
-                            delimiter_start: SepLeftParen(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftParen(TokenStream {
                                     offset: 23,
                                     value: "("
-                                },
+                                }),
                                 None
                             ),
                             body: Punctuated {
@@ -449,12 +446,12 @@ mod tests {
                                             value: "i32"
                                         })))
                                     },
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 27,
                                             value: ","
-                                        },
+                                        }),
                                         None
                                     )
                                 )],
@@ -466,21 +463,21 @@ mod tests {
                                     }))
                                 }))
                             },
-                            delimiter_end: SepRightParen(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightParen(TokenStream {
                                     offset: 34,
                                     value: ")"
-                                },
+                                }),
                                 None
                             )
                         },
-                        SepSemiColon(
+                        (
                             None,
-                            TokenStream {
+                            TokenSemiColon(TokenStream {
                                 offset: 35,
                                 value: ";"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 36,
                                 value: "\n                "
@@ -511,11 +508,11 @@ mod tests {
                         value: "\n                "
                     }))],
                     vs: None,
-                    keyword: KeywordClass(
-                        TokenStream {
+                    keyword: (
+                        KeywordClass(TokenStream {
                             offset: 17,
                             value: "class"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 22,
                             value: " "
@@ -527,12 +524,12 @@ mod tests {
                     }),
                     fields: Fields::Uname(
                         Delimiter {
-                            delimiter_start: SepLeftParen(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftParen(TokenStream {
                                     offset: 24,
                                     value: "("
-                                },
+                                }),
                                 None
                             ),
                             body: Punctuated {
@@ -544,12 +541,12 @@ mod tests {
                                             value: "i32"
                                         })))
                                     },
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 28,
                                             value: ","
-                                        },
+                                        }),
                                         None
                                     )
                                 )],
@@ -561,21 +558,21 @@ mod tests {
                                     }))
                                 }))
                             },
-                            delimiter_end: SepRightParen(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightParen(TokenStream {
                                     offset: 35,
                                     value: ")"
-                                },
+                                }),
                                 None
                             )
                         },
-                        SepSemiColon(
+                        (
                             None,
-                            TokenStream {
+                            TokenSemiColon(TokenStream {
                                 offset: 36,
                                 value: ";"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 37,
                                 value: "\n                "
@@ -609,11 +606,11 @@ mod tests {
                         value: "\n            "
                     }))],
                     vs: None,
-                    keyword: KeywordClass(
-                        TokenStream {
+                    keyword: (
+                        KeywordClass(TokenStream {
                             offset: 13,
                             value: "class"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 18,
                             value: " "
@@ -624,15 +621,15 @@ mod tests {
                         value: "A"
                     }),
                     fields: Fields::Name(Delimiter {
-                        delimiter_start: SepLeftBrace(
+                        start: (
                             Some(S(TokenStream {
                                 offset: 20,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenLeftBrace(TokenStream {
                                 offset: 21,
                                 value: "{"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 22,
                                 value: "\n                "
@@ -648,12 +645,12 @@ mod tests {
                                                 offset: 39,
                                                 value: "name"
                                             }),
-                                            sep: SepColon(
+                                            sep: (
                                                 None,
-                                                TokenStream {
+                                                TokenColon(TokenStream {
                                                     offset: 43,
                                                     value: ":"
-                                                },
+                                                }),
                                                 Some(S(TokenStream {
                                                     offset: 44,
                                                     value: " "
@@ -665,12 +662,12 @@ mod tests {
                                             }))
                                         }
                                     },
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 51,
                                             value: ","
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 52,
                                             value: "\n                "
@@ -685,12 +682,12 @@ mod tests {
                                                 offset: 69,
                                                 value: "level"
                                             }),
-                                            sep: SepColon(
+                                            sep: (
                                                 None,
-                                                TokenStream {
+                                                TokenColon(TokenStream {
                                                     offset: 74,
                                                     value: ":"
-                                                },
+                                                }),
                                                 Some(S(TokenStream {
                                                     offset: 75,
                                                     value: " "
@@ -702,12 +699,12 @@ mod tests {
                                             })))
                                         }
                                     },
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 79,
                                             value: ","
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 80,
                                             value: "\n            "
@@ -717,12 +714,12 @@ mod tests {
                             ],
                             tail: None
                         },
-                        delimiter_end: SepRightBrace(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBrace(TokenStream {
                                 offset: 93,
                                 value: "}"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 94,
                                 value: "\n                "
@@ -759,29 +756,33 @@ mod tests {
                         value: "\n        "
                     }))],
                     vs: Some(Visibility::Scope {
-                        token: TokenPub(TokenStream {
+                        token: KeywordPub(TokenStream {
                             offset: 9,
                             value: "pub"
                         }),
                         scope: Delimiter {
-                            delimiter_start: SepLeftParen(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftParen(TokenStream {
                                     offset: 12,
                                     value: "("
-                                },
+                                }),
                                 None
                             ),
-                            body: Scope::Crate(TokenCrate(TokenStream {
-                                offset: 13,
-                                value: "crate"
-                            })),
-                            delimiter_end: SepRightParen(
+                            body: Scope::Crate(
                                 None,
-                                TokenStream {
+                                TokenCrate(TokenStream {
+                                    offset: 13,
+                                    value: "crate"
+                                }),
+                                None
+                            ),
+                            end: (
+                                None,
+                                TokenRightParen(TokenStream {
                                     offset: 18,
                                     value: ")"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 19,
                                     value: " "
@@ -789,11 +790,11 @@ mod tests {
                             )
                         }
                     }),
-                    keyword: KeywordEnum(
-                        TokenStream {
+                    keyword: (
+                        KeywordEnum(TokenStream {
                             offset: 20,
                             value: "enum"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 24,
                             value: " "
@@ -804,15 +805,15 @@ mod tests {
                         value: "A"
                     }),
                     variants: Delimiter {
-                        delimiter_start: SepLeftBrace(
+                        start: (
                             Some(S(TokenStream {
                                 offset: 26,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenLeftBrace(TokenStream {
                                 offset: 27,
                                 value: "{"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 28,
                                 value: "\n            "
@@ -827,15 +828,15 @@ mod tests {
                                         value: "A"
                                     }),
                                     fields: Some(VariantFields::Uname(Delimiter {
-                                        delimiter_start: SepLeftParen(
+                                        start: (
                                             Some(S(TokenStream {
                                                 offset: 42,
                                                 value: " "
                                             })),
-                                            TokenStream {
+                                            TokenLeftParen(TokenStream {
                                                 offset: 43,
                                                 value: "("
-                                            },
+                                            }),
                                             None
                                         ),
                                         body: Punctuated {
@@ -850,22 +851,22 @@ mod tests {
                                                 )))
                                             }))
                                         },
-                                        delimiter_end: SepRightParen(
+                                        end: (
                                             None,
-                                            TokenStream {
+                                            TokenRightParen(TokenStream {
                                                 offset: 47,
                                                 value: ")"
-                                            },
+                                            }),
                                             None
                                         )
                                     }))
                                 },
-                                SepComma(
+                                (
                                     None,
-                                    TokenStream {
+                                    TokenComma(TokenStream {
                                         offset: 48,
                                         value: ","
-                                    },
+                                    }),
                                     Some(S(TokenStream {
                                         offset: 49,
                                         value: "\n            "
@@ -879,15 +880,15 @@ mod tests {
                                     value: "B"
                                 }),
                                 fields: Some(VariantFields::Name(Delimiter {
-                                    delimiter_start: SepLeftBrace(
+                                    start: (
                                         Some(S(TokenStream {
                                             offset: 63,
                                             value: " "
                                         })),
-                                        TokenStream {
+                                        TokenLeftBrace(TokenStream {
                                             offset: 64,
                                             value: "{"
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 65,
                                             value: "\n                "
@@ -902,12 +903,12 @@ mod tests {
                                                         offset: 82,
                                                         value: "name"
                                                     }),
-                                                    sep: SepColon(
+                                                    sep: (
                                                         None,
-                                                        TokenStream {
+                                                        TokenColon(TokenStream {
                                                             offset: 86,
                                                             value: ":"
-                                                        },
+                                                        }),
                                                         Some(S(TokenStream {
                                                             offset: 87,
                                                             value: " "
@@ -919,12 +920,12 @@ mod tests {
                                                     }))
                                                 }
                                             },
-                                            SepComma(
+                                            (
                                                 None,
-                                                TokenStream {
+                                                TokenComma(TokenStream {
                                                     offset: 94,
                                                     value: ","
-                                                },
+                                                }),
                                                 Some(S(TokenStream {
                                                     offset: 95,
                                                     value: "\n                "
@@ -938,12 +939,12 @@ mod tests {
                                                     offset: 112,
                                                     value: "value"
                                                 }),
-                                                sep: SepColon(
+                                                sep: (
                                                     None,
-                                                    TokenStream {
+                                                    TokenColon(TokenStream {
                                                         offset: 117,
                                                         value: ":"
-                                                    },
+                                                    }),
                                                     Some(S(TokenStream {
                                                         offset: 118,
                                                         value: " "
@@ -958,15 +959,15 @@ mod tests {
                                             }
                                         }))
                                     },
-                                    delimiter_end: SepRightBrace(
+                                    end: (
                                         Some(S(TokenStream {
                                             offset: 122,
                                             value: "\n            "
                                         })),
-                                        TokenStream {
+                                        TokenRightBrace(TokenStream {
                                             offset: 135,
                                             value: "}"
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 136,
                                             value: "\n        "
@@ -975,12 +976,12 @@ mod tests {
                                 }))
                             }))
                         },
-                        delimiter_end: SepRightBrace(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBrace(TokenStream {
                                 offset: 145,
                                 value: "}"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 146,
                                 value: "\n            "
@@ -1015,21 +1016,21 @@ mod tests {
             Ok((
                 Item::Use(ItemUse {
                     meta_list: vec![],
-                    vs: Some(Visibility::Outer {
-                        token: TokenPub(TokenStream {
+                    vs: Some(Visibility::Outer(
+                        KeywordPub(TokenStream {
                             offset: 0,
                             value: "pub"
                         }),
-                        tail_s: S(TokenStream {
+                        S(TokenStream {
                             offset: 3,
                             value: " "
                         })
-                    }),
-                    keyword: KeywordUse(
-                        TokenStream {
+                    )),
+                    keyword: (
+                        KeywordUse(TokenStream {
                             offset: 4,
                             value: "use"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 7,
                             value: " "
@@ -1042,12 +1043,12 @@ mod tests {
                         }),
                         rest: vec![]
                     },
-                    semi_colon: SepSemiColon(
+                    semi_colon: (
                         None,
-                        TokenStream {
+                        TokenSemiColon(TokenStream {
                             offset: 9,
                             value: ";"
-                        },
+                        }),
                         None
                     )
                 }),

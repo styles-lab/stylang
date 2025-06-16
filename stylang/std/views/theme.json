@@ -76,13 +76,24 @@
         "value": "class_merge"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 106,
             "value": "("
           },
           null
+        ],
+        "end": [
+          null,
+          {
+            "offset": 120,
+            "value": ")"
+          },
+          {
+            "offset": 121,
+            "value": " "
+          }
         ],
         "body": {
           "pairs": [],
@@ -112,18 +123,7 @@
               }
             }
           }
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 120,
-            "value": ")"
-          },
-          {
-            "offset": 121,
-            "value": " "
-          }
-        ]
+        }
       },
       "return_ty": {
         "token": [

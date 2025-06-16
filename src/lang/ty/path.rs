@@ -6,25 +6,12 @@ use crate::lang::{errors::LangError, token::*};
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error(LangError)]
-pub enum PathStart<I>
-where
-    I: LangInput,
-{
-    Super(TokenSuper<I>),
-    Crate(TokenCrate<I>),
-    Ident(Ident<I>),
-}
-
-/// The parser for type path, be like `std::collection::HashMap`.
-#[derive(Debug, PartialEq, Clone, Syntax)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
 pub struct TypePath<I>
 where
     I: LangInput,
 {
     /// first segment: `ident`.
-    pub first: PathStart<I>,
+    pub first: Ident<I>,
     /// rest segments: `[::ident]*`
     pub rest: Vec<(Option<S<I>>, TokenColonColon<I>, Option<S<I>>, Ident<I>)>,
 }
@@ -42,10 +29,10 @@ mod tests {
             TypePath::parse(TokenStream::from("super:: collection :: HashMap")),
             Ok((
                 TypePath {
-                    first: PathStart::Super(TokenSuper(TokenStream {
+                    first: Ident(TokenStream {
                         offset: 0,
                         value: "super"
-                    })),
+                    }),
                     rest: vec![
                         (
                             None,
@@ -96,10 +83,10 @@ mod tests {
             TypePath::parse(TokenStream::from("crate")),
             Ok((
                 TypePath {
-                    first: PathStart::Crate(TokenCrate(TokenStream {
+                    first: Ident(TokenStream {
                         offset: 0,
                         value: "crate"
-                    })),
+                    }),
                     rest: vec![]
                 },
                 TokenStream {

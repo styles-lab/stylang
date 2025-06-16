@@ -34,16 +34,16 @@
     "Use": {
       "meta_list": [],
       "vs": {
-        "Outer": {
-          "token": {
+        "Outer": [
+          {
             "offset": 10,
             "value": "pub"
           },
-          "tail_s": {
+          {
             "offset": 13,
             "value": " "
           }
-        }
+        ]
       },
       "keyword": [
         {
@@ -62,23 +62,17 @@
         },
         "rest": [
           [
-            [
-              null,
-              {
-                "offset": 22,
-                "value": "::"
-              },
-              null
-            ],
+            null,
             {
-              "Glob": [
-                null,
-                {
-                  "offset": 24,
-                  "value": "*"
-                },
-                null
-              ]
+              "offset": 22,
+              "value": "::"
+            },
+            null,
+            {
+              "Glob": {
+                "offset": 24,
+                "value": "*"
+              }
             }
           ]
         ]
@@ -131,16 +125,16 @@
     "Use": {
       "meta_list": [],
       "vs": {
-        "Outer": {
-          "token": {
+        "Outer": [
+          {
             "offset": 39,
             "value": "pub"
           },
-          "tail_s": {
+          {
             "offset": 42,
             "value": " "
           }
-        }
+        ]
       },
       "keyword": [
         {
@@ -159,23 +153,17 @@
         },
         "rest": [
           [
-            [
-              null,
-              {
-                "offset": 52,
-                "value": "::"
-              },
-              null
-            ],
+            null,
             {
-              "Glob": [
-                null,
-                {
-                  "offset": 54,
-                  "value": "*"
-                },
-                null
-              ]
+              "offset": 52,
+              "value": "::"
+            },
+            null,
+            {
+              "Glob": {
+                "offset": 54,
+                "value": "*"
+              }
             }
           ]
         ]

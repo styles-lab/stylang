@@ -19,7 +19,7 @@
         "value": "main"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 7,
@@ -27,11 +27,7 @@
           },
           null
         ],
-        "body": {
-          "pairs": [],
-          "tail": null
-        },
-        "delimiter_end": [
+        "end": [
           null,
           {
             "offset": 8,
@@ -41,7 +37,11 @@
             "offset": 9,
             "value": " "
           }
-        ]
+        ],
+        "body": {
+          "pairs": [],
+          "tail": null
+        }
       },
       "return_ty": {
         "token": [
@@ -64,7 +64,7 @@
       },
       "body": {
         "Block": {
-          "delimiter_start": [
+          "start": [
             {
               "offset": 17,
               "value": " "
@@ -76,6 +76,17 @@
             {
               "offset": 19,
               "value": "\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 69,
+              "value": "}"
+            },
+            {
+              "offset": 70,
+              "value": "\n"
             }
           ],
           "body": [
@@ -150,17 +161,15 @@
                     }
                   }
                 },
-                [
-                  null,
-                  {
-                    "offset": 33,
-                    "value": ";"
-                  },
-                  {
-                    "offset": 34,
-                    "value": "\n    "
-                  }
-                ]
+                null,
+                {
+                  "offset": 33,
+                  "value": ";"
+                },
+                {
+                  "offset": 34,
+                  "value": "\n    "
+                }
               ]
             },
             {
@@ -423,29 +432,16 @@
                     }
                   }
                 },
-                [
-                  null,
-                  {
-                    "offset": 67,
-                    "value": ";"
-                  },
-                  {
-                    "offset": 68,
-                    "value": "\n"
-                  }
-                ]
+                null,
+                {
+                  "offset": 67,
+                  "value": ";"
+                },
+                {
+                  "offset": 68,
+                  "value": "\n"
+                }
               ]
-            }
-          ],
-          "delimiter_end": [
-            null,
-            {
-              "offset": 69,
-              "value": "}"
-            },
-            {
-              "offset": 70,
-              "value": "\n"
             }
           ]
         }

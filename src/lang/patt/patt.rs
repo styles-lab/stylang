@@ -217,7 +217,7 @@ mod tests {
 
     use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
 
-    use crate::lang::ty::{PathStart, Type};
+    use crate::lang::ty::Type;
 
     use super::*;
 
@@ -239,10 +239,10 @@ mod tests {
                         pairs: vec![
                             (
                                 Patt::Path(TypePath {
-                                    first: PathStart::Ident(Ident(TokenStream {
+                                    first: Ident(TokenStream {
                                         offset: 1,
                                         value: "a"
-                                    })),
+                                    }),
                                     rest: vec![]
                                 }),
                                 (
@@ -270,10 +270,10 @@ mod tests {
                             ),
                             (
                                 Patt::Path(TypePath {
-                                    first: PathStart::Ident(Ident(TokenStream {
+                                    first: Ident(TokenStream {
                                         offset: 6,
                                         value: "b"
-                                    })),
+                                    }),
                                     rest: vec![]
                                 }),
                                 (
@@ -329,10 +329,10 @@ mod tests {
                             pairs: vec![
                                 (
                                     Patt::Path(TypePath {
-                                        first: PathStart::Ident(Ident(TokenStream {
+                                        first: Ident(TokenStream {
                                             offset: 1,
                                             value: "a"
-                                        })),
+                                        }),
                                         rest: vec![]
                                     }),
                                     (
@@ -360,10 +360,10 @@ mod tests {
                                 ),
                                 (
                                     Patt::Path(TypePath {
-                                        first: PathStart::Ident(Ident(TokenStream {
+                                        first: Ident(TokenStream {
                                             offset: 6,
                                             value: "b"
-                                        })),
+                                        }),
                                         rest: vec![]
                                     }),
                                     (
@@ -417,10 +417,10 @@ mod tests {
                             body: Punctuated {
                                 pairs: vec![(
                                     Patt::Path(TypePath {
-                                        first: PathStart::Ident(Ident(TokenStream {
+                                        first: Ident(TokenStream {
                                             offset: 14,
                                             value: "a"
-                                        })),
+                                        }),
                                         rest: vec![]
                                     }),
                                     (
@@ -433,10 +433,10 @@ mod tests {
                                     )
                                 )],
                                 tail: Some(Box::new(Patt::Path(TypePath {
-                                    first: PathStart::Ident(Ident(TokenStream {
+                                    first: Ident(TokenStream {
                                         offset: 16,
                                         value: "b"
-                                    })),
+                                    }),
                                     rest: vec![]
                                 })))
                             },

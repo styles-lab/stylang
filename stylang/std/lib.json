@@ -3,16 +3,16 @@
     "Mod": {
       "meta_list": [],
       "vs": {
-        "Outer": {
-          "token": {
+        "Outer": [
+          {
             "offset": 0,
             "value": "pub"
           },
-          "tail_s": {
+          {
             "offset": 3,
             "value": " "
           }
-        }
+        ]
       },
       "keyword": [
         {
@@ -26,16 +26,16 @@
       ],
       "ident": {
         "offset": 8,
-        "value": "view"
+        "value": "views"
       },
       "semi_colon": [
         null,
         {
-          "offset": 12,
+          "offset": 13,
           "value": ";"
         },
         {
-          "offset": 13,
+          "offset": 14,
           "value": "\n\n"
         }
       ]
@@ -45,38 +45,41 @@
     "Mod": {
       "meta_list": [],
       "vs": {
-        "Outer": {
-          "token": {
-            "offset": 15,
+        "Outer": [
+          {
+            "offset": 16,
             "value": "pub"
           },
-          "tail_s": {
-            "offset": 18,
+          {
+            "offset": 19,
             "value": " "
           }
-        }
+        ]
       },
       "keyword": [
         {
-          "offset": 19,
+          "offset": 20,
           "value": "mod"
         },
         {
-          "offset": 22,
+          "offset": 23,
           "value": " "
         }
       ],
       "ident": {
-        "offset": 23,
+        "offset": 24,
         "value": "platform"
       },
       "semi_colon": [
         null,
         {
-          "offset": 31,
+          "offset": 32,
           "value": ";"
         },
-        null
+        {
+          "offset": 33,
+          "value": "\n"
+        }
       ]
     }
   }

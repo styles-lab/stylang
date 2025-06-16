@@ -1,17 +1,11 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError,
-    expr::{Expr, ExprBlock},
-    input::LangInput,
-    meta::MetaList,
-    token::{KeywordElse, KeywordIf, KeywordLoop, KeywordWhile},
-};
+use crate::lang::{errors::LangError, expr::*, meta::MetaList, token::*};
 
 /// An if expression with an optional else block: if expr { ... } else { ... }.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprIf<I>
 where
     I: LangInput,
@@ -19,7 +13,7 @@ where
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
     /// keyword `if`
-    pub keyword: KeywordIf<I>,
+    pub keyword: (KeywordIf<I>, S<I>),
     /// condition expr.
     #[fatal]
     pub cond: Box<Expr<I>>,
@@ -31,9 +25,9 @@ where
 }
 
 /// Conditionless loop: loop { ... }.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprLoop<I>
 where
     I: LangInput,
@@ -48,9 +42,9 @@ where
 }
 
 /// Condition loop: while $expr { ... }.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprWhile<I>
 where
     I: LangInput,
@@ -58,7 +52,7 @@ where
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
     /// keyword `loop`
-    pub keyword: KeywordWhile<I>,
+    pub keyword: (KeywordWhile<I>, S<I>),
     /// condition expr.
     #[fatal]
     pub cond: Box<Expr<I>>,
@@ -69,18 +63,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Delimiter, Parse, Punctuated};
+
+    use parserc::{
+        inputs::lang::TokenStream,
+        syntax::{Delimiter, Punctuated},
+    };
 
     use crate::lang::{
-        expr::{
-            BitsOp, CompOp, Expr, ExprBits, ExprBlock, ExprComp, ExprIf, ExprPath, PathCall,
-            PathSegment, PathStart,
-        },
-        input::TokenStream,
         lit::{Lit, LitNum},
         meta::Meta,
         stmt::{Block, Stmts},
-        token::*,
         ty::TypePath,
     };
 
@@ -93,11 +85,11 @@ mod tests {
             Ok((
                 Expr::While(ExprWhile {
                     meta_list: vec![],
-                    keyword: KeywordWhile(
-                        TokenStream {
+                    keyword: (
+                        KeywordWhile(TokenStream {
                             offset: 0,
                             value: "while"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 5,
                             value: " "
@@ -114,20 +106,20 @@ mod tests {
                                     value: "a"
                                 })
                             )),
-                            op: BitsOp::BitXor(SepCaret(
+                            op: BitsOp::BitXor(
                                 Some(S(TokenStream {
                                     offset: 7,
                                     value: " "
                                 })),
-                                TokenStream {
+                                TokenCaret(TokenStream {
                                     offset: 8,
                                     value: "^"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 9,
                                     value: " "
                                 }))
-                            )),
+                            ),
                             right_operand: Box::new(Expr::Lit(
                                 vec![],
                                 Lit::Num(LitNum {
@@ -143,20 +135,20 @@ mod tests {
                                 })
                             ))
                         })),
-                        op: CompOp::Ne(SepNe(
+                        op: CompOp::Ne(
                             Some(S(TokenStream {
                                 offset: 11,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenNe(TokenStream {
                                 offset: 12,
                                 value: "!="
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 14,
                                 value: " "
                             }))
-                        )),
+                        ),
                         right_operand: Box::new(Expr::Lit(
                             vec![],
                             Lit::Num(LitNum {
@@ -178,21 +170,21 @@ mod tests {
                             value: " "
                         }))],
                         block: Block(Delimiter {
-                            delimiter_start: SepLeftBrace(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftBrace(TokenStream {
                                     offset: 17,
                                     value: "{"
-                                },
+                                }),
                                 None
                             ),
                             body: Stmts(vec![]),
-                            delimiter_end: SepRightBrace(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightBrace(TokenStream {
                                     offset: 18,
                                     value: "}"
-                                },
+                                }),
                                 None
                             )
                         })
@@ -213,18 +205,18 @@ mod tests {
             Ok((
                 Expr::If(ExprIf {
                     meta_list: vec![],
-                    keyword: KeywordIf(
-                        TokenStream {
+                    keyword: (
+                        KeywordIf(TokenStream {
                             offset: 0,
                             value: "if"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 2,
                             value: " "
                         })
                     ),
                     cond: Box::new(Expr::Path(ExprPath {
-                        first: PathStart::TypePath(
+                        first: Box::new(Expr::TypePath(
                             vec![],
                             TypePath {
                                 first: Ident(TokenStream {
@@ -232,40 +224,38 @@ mod tests {
                                     value: "web3"
                                 }),
                                 rest: vec![(
-                                    SepColonColon(
-                                        None,
-                                        TokenStream {
-                                            offset: 7,
-                                            value: "::"
-                                        },
-                                        None
-                                    ),
+                                    None,
+                                    TokenColonColon(TokenStream {
+                                        offset: 7,
+                                        value: "::"
+                                    }),
+                                    None,
                                     Ident(TokenStream {
                                         offset: 9,
                                         value: "is_connected"
                                     })
                                 )]
                             }
-                        ),
+                        )),
                         rest: vec![PathSegment::Call(PathCall(Delimiter {
-                            delimiter_start: SepLeftParen(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftParen(TokenStream {
                                     offset: 21,
                                     value: "("
-                                },
+                                }),
                                 None
                             ),
                             body: Punctuated {
                                 pairs: vec![],
                                 tail: None
                             },
-                            delimiter_end: SepRightParen(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightParen(TokenStream {
                                     offset: 22,
                                     value: ")"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 23,
                                     value: " "
@@ -276,21 +266,21 @@ mod tests {
                     then_branch: ExprBlock {
                         meta_list: vec![],
                         block: Block(Delimiter {
-                            delimiter_start: SepLeftBrace(
+                            start: (
                                 None,
-                                TokenStream {
+                                TokenLeftBrace(TokenStream {
                                     offset: 24,
                                     value: "{"
-                                },
+                                }),
                                 None
                             ),
                             body: Stmts(vec![]),
-                            delimiter_end: SepRightBrace(
+                            end: (
                                 None,
-                                TokenStream {
+                                TokenRightBrace(TokenStream {
                                     offset: 25,
                                     value: "}"
-                                },
+                                }),
                                 None
                             )
                         })

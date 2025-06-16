@@ -1,4 +1,9 @@
-use parserc::{ControlFlow, Parse, Parser, ParserExt, Punctuated, derive_parse};
+use parserc::{
+    errors::ControlFlow,
+    inputs::lang::LangInput,
+    parser::Parser,
+    syntax::{Punctuated, Syntax},
+};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
@@ -6,22 +11,18 @@ use crate::lang::{
         ExprAssgin, ExprBits, ExprBool, ExprComp, ExprFactor, ExprIf, ExprLoop, ExprPath, ExprTerm,
         ExprUnary, ExprWhile, ExprXml,
     },
-    input::LangInput,
     lit::Lit,
     meta::MetaList,
     patt::Patt,
     stmt::Block,
-    token::{
-        Brace, Bracket, Digits, Ident, KeywordLet, Paren, RangeLimits, SepColon, SepComma, SepEq,
-        SepSemiColon,
-    },
+    token::*,
     ty::TypePath,
 };
 
 /// A group of stmts with optional meta-data list.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprBlock<I>
 where
     I: LangInput,
@@ -32,9 +33,9 @@ where
     pub block: Block<I>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum RangeOperand<I>
 where
     I: LangInput,
@@ -76,13 +77,11 @@ where
     pub end: Option<Box<Expr<I>>>,
 }
 
-impl<I> Parse<I> for ExprRange<I>
+impl<I> Syntax<I, LangError> for ExprRange<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (start, input) = RangeOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
@@ -91,11 +90,13 @@ where
 
         let (limits, input) = RangeLimits::parse(input)?;
 
+        let span = input.span();
+
         let (end, input) = RangeOperand::into_parser()
             .map(|v| Expr::from(v))
             .boxed()
             .ok()
-            .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+            .map_err(|_: LangError| LangError::expect(SyntaxKind::RightOperand, span))
             .parse(input)?;
 
         if start.is_none() && end.is_none() {
@@ -110,9 +111,9 @@ where
 }
 
 /// A tuple expression: (a, b, c, d).
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprTuple<I>(
     pub MetaList<I>,
     pub Paren<I, Punctuated<Expr<I>, SepComma<I>>>,
@@ -121,9 +122,9 @@ where
     I: LangInput;
 
 /// A name filed init expr: a: 10,
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprField<I>
 where
     I: LangInput,
@@ -131,16 +132,21 @@ where
     /// parameter name.
     pub ident: Ident<I>,
     /// seperate token: `:`
-    pub sep: SepColon<I>,
+    pub sep: (Option<S<I>>, TokenColon<I>, Option<S<I>>),
     /// type declaration clause.
     #[fatal]
     pub value: Box<Expr<I>>,
 }
 /// fields init expr.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct Fields<I>(Brace<I, Punctuated<(Ident<I>, SepColon<I>, Expr<I>), SepComma<I>>>)
+#[error(LangError)]
+pub struct Fields<I>(
+    Brace<
+        I,
+        Punctuated<(Ident<I>, Option<S<I>>, TokenColon<I>, Option<S<I>>, Expr<I>), SepComma<I>>,
+    >,
+)
 where
     I: LangInput;
 
@@ -157,13 +163,11 @@ where
     pub fields: Fields<I>,
 }
 
-impl<I> Parse<I> for ExprStruct<I>
+impl<I> Syntax<I, LangError> for ExprStruct<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (ty, input) = TypePath::parse(input)?;
         let (fields, input) = Fields::parse(input)?;
@@ -189,17 +193,28 @@ where
 }
 
 /// Repeat parser: `[0u8;N]`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
-pub struct ExprRepeat<I>(pub Bracket<I, (Box<Expr<I>>, SepSemiColon<I>, Digits<I>)>)
+#[error(LangError)]
+pub struct ExprRepeat<I>(
+    pub  Bracket<
+        I,
+        (
+            Box<Expr<I>>,
+            Option<S<I>>,
+            TokenSemiColon<I>,
+            Option<S<I>>,
+            Digits<I>,
+        ),
+    >,
+)
 where
     I: LangInput;
 
 /// Repeat parser: `[0u8;N]`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprLet<I>
 where
     I: LangInput,
@@ -207,21 +222,21 @@ where
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
     /// keyword `let`
-    pub keyword: KeywordLet<I>,
+    pub keyword: (KeywordLet<I>, S<I>),
     /// let pattern.
     #[fatal]
     pub patt: (MetaList<I>, Patt<I>),
     /// token `=`
     #[fatal]
-    pub eq_token: SepEq<I>,
+    pub eq_token: (Option<S<I>>, TokenEq<I>, Option<S<I>>),
     /// init expr.
     #[fatal]
     pub expr: Box<Expr<I>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum _Expr<I>
 where
     I: LangInput,
@@ -279,13 +294,11 @@ where
     TypePath(MetaList<I>, TypePath<I>),
 }
 
-impl<I> Parse<I> for Expr<I>
+impl<I> Syntax<I, LangError> for Expr<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (expr, input) = _Expr::parse(input)?;
 
         let expr = match expr {
@@ -318,15 +331,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Delimiter, Parse};
+
+    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
 
     use crate::lang::{
-        expr::{Expr, PathCall, PathSegment, PathStart},
-        input::TokenStream,
-        lit::{Lit, LitNum, LitStr},
+        expr::{PathCall, PathSegment},
+        lit::{LitNum, LitStr},
         meta::{Attr, Meta},
         patt::PattType,
-        token::*,
         ty::Type,
     };
 
@@ -346,15 +358,15 @@ mod tests {
                         })
                     )),
                     fields: Fields(Delimiter {
-                        delimiter_start: SepLeftBrace(
+                        start: (
                             Some(S(TokenStream {
                                 offset: 3,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenLeftBrace(TokenStream {
                                 offset: 4,
                                 value: "{"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 5,
                                 value: " "
@@ -367,17 +379,15 @@ mod tests {
                                         offset: 6,
                                         value: "a"
                                     }),
-                                    SepColon(
-                                        None,
-                                        TokenStream {
-                                            offset: 7,
-                                            value: ":"
-                                        },
-                                        Some(S(TokenStream {
-                                            offset: 8,
-                                            value: " "
-                                        }))
-                                    ),
+                                    None,
+                                    TokenColon(TokenStream {
+                                        offset: 7,
+                                        value: ":"
+                                    }),
+                                    Some(S(TokenStream {
+                                        offset: 8,
+                                        value: " "
+                                    })),
                                     Expr::Lit(
                                         Default::default(),
                                         Lit::Num(LitNum {
@@ -393,12 +403,12 @@ mod tests {
                                         })
                                     ),
                                 ),
-                                SepComma(
+                                (
                                     None,
-                                    TokenStream {
+                                    TokenComma(TokenStream {
                                         offset: 10,
                                         value: ","
-                                    },
+                                    }),
                                     Some(S(TokenStream {
                                         offset: 11,
                                         value: " "
@@ -410,17 +420,15 @@ mod tests {
                                     offset: 12,
                                     value: "b"
                                 }),
-                                SepColon(
-                                    None,
-                                    TokenStream {
-                                        offset: 13,
-                                        value: ":"
-                                    },
-                                    Some(S(TokenStream {
-                                        offset: 14,
-                                        value: " "
-                                    }))
-                                ),
+                                None,
+                                TokenColon(TokenStream {
+                                    offset: 13,
+                                    value: ":"
+                                }),
+                                Some(S(TokenStream {
+                                    offset: 14,
+                                    value: " "
+                                })),
                                 Expr::Lit(
                                     Default::default(),
                                     Lit::String(LitStr(TokenStream {
@@ -430,12 +438,12 @@ mod tests {
                                 ),
                             )))
                         },
-                        delimiter_end: SepRightBrace(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBrace(TokenStream {
                                 offset: 22,
                                 value: "}"
-                            },
+                            }),
                             None
                         )
                     })
@@ -454,30 +462,30 @@ mod tests {
             Expr::parse(TokenStream::from("[Some(1);10]")),
             Ok((
                 Expr::Repeat(ExprRepeat(Delimiter {
-                    delimiter_start: SepLeftBracket(
+                    start: (
                         None,
-                        TokenStream {
+                        TokenLeftBracket(TokenStream {
                             offset: 0,
                             value: "["
-                        },
+                        }),
                         None
                     ),
                     body: (
                         Box::new(Expr::Path(ExprPath {
-                            first: PathStart::Ident(
+                            first: Box::new(Expr::Ident(
                                 vec![],
                                 Ident(TokenStream {
                                     offset: 1,
                                     value: "Some"
                                 })
-                            ),
+                            )),
                             rest: vec![PathSegment::Call(PathCall(Delimiter {
-                                delimiter_start: SepLeftParen(
+                                start: (
                                     None,
-                                    TokenStream {
+                                    TokenLeftParen(TokenStream {
                                         offset: 5,
                                         value: "("
-                                    },
+                                    }),
                                     None
                                 ),
                                 body: Punctuated {
@@ -497,35 +505,33 @@ mod tests {
                                         })
                                     )))
                                 },
-                                delimiter_end: SepRightParen(
+                                end: (
                                     None,
-                                    TokenStream {
+                                    TokenRightParen(TokenStream {
                                         offset: 7,
                                         value: ")"
-                                    },
+                                    }),
                                     None
                                 )
                             }))]
                         })),
-                        SepSemiColon(
-                            None,
-                            TokenStream {
-                                offset: 8,
-                                value: ";"
-                            },
-                            None
-                        ),
+                        None,
+                        TokenSemiColon(TokenStream {
+                            offset: 8,
+                            value: ";"
+                        }),
+                        None,
                         Digits(TokenStream {
                             offset: 9,
                             value: "10"
                         })
                     ),
-                    delimiter_end: SepRightBracket(
+                    end: (
                         None,
-                        TokenStream {
+                        TokenRightBracket(TokenStream {
                             offset: 11,
                             value: "]"
-                        },
+                        }),
                         None
                     )
                 })),
@@ -546,11 +552,11 @@ mod tests {
             Ok((
                 Expr::Let(ExprLet {
                     meta_list: vec![],
-                    keyword: KeywordLet(
-                        TokenStream {
+                    keyword: (
+                        KeywordLet(TokenStream {
                             offset: 0,
                             value: "let"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 3,
                             value: " "
@@ -599,12 +605,12 @@ mod tests {
                                 offset: 19,
                                 value: "value"
                             }),
-                            sep: SepColon(
+                            sep: (
                                 None,
-                                TokenStream {
+                                TokenColon(TokenStream {
                                     offset: 24,
                                     value: ":"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 25,
                                     value: " "
@@ -616,15 +622,15 @@ mod tests {
                             }))
                         })
                     ),
-                    eq_token: SepEq(
+                    eq_token: (
                         Some(S(TokenStream {
                             offset: 32,
                             value: " "
                         })),
-                        TokenStream {
+                        TokenEq(TokenStream {
                             offset: 33,
                             value: "="
-                        },
+                        }),
                         Some(S(TokenStream {
                             offset: 34,
                             value: " "

@@ -44,7 +44,7 @@
         "value": "TextDecoration"
       },
       "variants": {
-        "delimiter_start": [
+        "start": [
           {
             "offset": 101,
             "value": " "
@@ -56,6 +56,17 @@
           {
             "offset": 103,
             "value": "\n    "
+          }
+        ],
+        "end": [
+          null,
+          {
+            "offset": 161,
+            "value": "}"
+          },
+          {
+            "offset": 162,
+            "value": "\n\n\n"
           }
         ],
         "body": {
@@ -146,18 +157,7 @@
             ]
           ],
           "tail": null
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 161,
-            "value": "}"
-          },
-          {
-            "offset": 162,
-            "value": "\n\n\n"
-          }
-        ]
+        }
       }
     }
   },
@@ -306,7 +306,7 @@
         "value": "WritingMode"
       },
       "variants": {
-        "delimiter_start": [
+        "start": [
           {
             "offset": 798,
             "value": " "
@@ -318,6 +318,17 @@
           {
             "offset": 800,
             "value": "\n    "
+          }
+        ],
+        "end": [
+          null,
+          {
+            "offset": 1978,
+            "value": "}"
+          },
+          {
+            "offset": 1979,
+            "value": "\n\n\n"
           }
         ],
         "body": {
@@ -838,18 +849,7 @@
             ]
           ],
           "tail": null
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 1978,
-            "value": "}"
-          },
-          {
-            "offset": 1979,
-            "value": "\n\n\n"
-          }
-        ]
+        }
       }
     }
   },
@@ -924,7 +924,7 @@
       },
       "fields": {
         "Name": {
-          "delimiter_start": [
+          "start": [
             {
               "offset": 2183,
               "value": " "
@@ -936,6 +936,17 @@
             {
               "offset": 2185,
               "value": "\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 2329,
+              "value": "}"
+            },
+            {
+              "offset": 2330,
+              "value": "\n\n"
             }
           ],
           "body": {
@@ -1128,18 +1139,7 @@
               ]
             ],
             "tail": null
-          },
-          "delimiter_end": [
-            null,
-            {
-              "offset": 2329,
-              "value": "}"
-            },
-            {
-              "offset": 2330,
-              "value": "\n\n"
-            }
-          ]
+          }
         }
       }
     }
@@ -1190,7 +1190,7 @@
       },
       "fields": {
         "Name": {
-          "delimiter_start": [
+          "start": [
             {
               "offset": 2363,
               "value": " "
@@ -1202,6 +1202,17 @@
             {
               "offset": 2365,
               "value": "\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 2424,
+              "value": "}"
+            },
+            {
+              "offset": 2425,
+              "value": "\n\n"
             }
           ],
           "body": {
@@ -1286,18 +1297,7 @@
               ]
             ],
             "tail": null
-          },
-          "delimiter_end": [
-            null,
-            {
-              "offset": 2424,
-              "value": "}"
-            },
-            {
-              "offset": 2425,
-              "value": "\n\n"
-            }
-          ]
+          }
         }
       }
     }
@@ -1348,7 +1348,7 @@
       },
       "fields": {
         "Name": {
-          "delimiter_start": [
+          "start": [
             {
               "offset": 2487,
               "value": " "
@@ -1360,6 +1360,17 @@
             {
               "offset": 2489,
               "value": "\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 2647,
+              "value": "}"
+            },
+            {
+              "offset": 2648,
+              "value": "\n\n"
             }
           ],
           "body": {
@@ -1531,7 +1542,7 @@
                           "value": "fn"
                         },
                         "params": {
-                          "delimiter_start": [
+                          "start": [
                             null,
                             {
                               "offset": 2635,
@@ -1539,11 +1550,7 @@
                             },
                             null
                           ],
-                          "body": {
-                            "pairs": [],
-                            "tail": null
-                          },
-                          "delimiter_end": [
+                          "end": [
                             null,
                             {
                               "offset": 2636,
@@ -1553,7 +1560,11 @@
                               "offset": 2637,
                               "value": " "
                             }
-                          ]
+                          ],
+                          "body": {
+                            "pairs": [],
+                            "tail": null
+                          }
                         },
                         "return_ty": [
                           [
@@ -1592,18 +1603,7 @@
               ]
             ],
             "tail": null
-          },
-          "delimiter_end": [
-            null,
-            {
-              "offset": 2647,
-              "value": "}"
-            },
-            {
-              "offset": 2648,
-              "value": "\n\n"
-            }
-          ]
+          }
         }
       }
     }
@@ -1685,13 +1685,24 @@
         "value": "label"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 2742,
             "value": "("
           },
           null
+        ],
+        "end": [
+          null,
+          {
+            "offset": 2787,
+            "value": ")"
+          },
+          {
+            "offset": 2788,
+            "value": " "
+          }
         ],
         "body": {
           "pairs": [
@@ -1809,18 +1820,7 @@
               }
             }
           }
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 2787,
-            "value": ")"
-          },
-          {
-            "offset": 2788,
-            "value": " "
-          }
-        ]
+        }
       },
       "return_ty": {
         "token": [
@@ -1958,13 +1958,24 @@
         "value": "text_field"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 2967,
             "value": "("
           },
           null
+        ],
+        "end": [
+          null,
+          {
+            "offset": 3050,
+            "value": ")"
+          },
+          {
+            "offset": 3051,
+            "value": " "
+          }
         ],
         "body": {
           "pairs": [
@@ -2163,7 +2174,7 @@
                     "value": "fn"
                   },
                   "params": {
-                    "delimiter_start": [
+                    "start": [
                       null,
                       {
                         "offset": 3040,
@@ -2171,11 +2182,7 @@
                       },
                       null
                     ],
-                    "body": {
-                      "pairs": [],
-                      "tail": null
-                    },
-                    "delimiter_end": [
+                    "end": [
                       null,
                       {
                         "offset": 3041,
@@ -2185,7 +2192,11 @@
                         "offset": 3042,
                         "value": " "
                       }
-                    ]
+                    ],
+                    "body": {
+                      "pairs": [],
+                      "tail": null
+                    }
                   },
                   "return_ty": [
                     [
@@ -2210,18 +2221,7 @@
               }
             }
           }
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 3050,
-            "value": ")"
-          },
-          {
-            "offset": 3051,
-            "value": " "
-          }
-        ]
+        }
       },
       "return_ty": {
         "token": [

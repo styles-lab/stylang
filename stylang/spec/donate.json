@@ -45,7 +45,7 @@
         "value": "main"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 46,
@@ -53,11 +53,7 @@
           },
           null
         ],
-        "body": {
-          "pairs": [],
-          "tail": null
-        },
-        "delimiter_end": [
+        "end": [
           null,
           {
             "offset": 47,
@@ -67,7 +63,11 @@
             "offset": 48,
             "value": " "
           }
-        ]
+        ],
+        "body": {
+          "pairs": [],
+          "tail": null
+        }
       },
       "return_ty": {
         "token": [
@@ -90,7 +90,7 @@
       },
       "body": {
         "Block": {
-          "delimiter_start": [
+          "start": [
             {
               "offset": 56,
               "value": " "
@@ -102,6 +102,17 @@
             {
               "offset": 58,
               "value": "\n\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 979,
+              "value": "}"
+            },
+            {
+              "offset": 980,
+              "value": "\n\n"
             }
           ],
           "body": [
@@ -217,17 +228,15 @@
                     }
                   }
                 },
-                [
-                  null,
-                  {
-                    "offset": 103,
-                    "value": ";"
-                  },
-                  {
-                    "offset": 104,
-                    "value": "\n\n    "
-                  }
-                ]
+                null,
+                {
+                  "offset": 103,
+                  "value": ";"
+                },
+                {
+                  "offset": 104,
+                  "value": "\n\n    "
+                }
               ]
             },
             {
@@ -256,10 +265,6 @@
                           {
                             "offset": 127,
                             "value": ">"
-                          },
-                          {
-                            "offset": 128,
-                            "value": "\n        "
                           }
                         ]
                       }
@@ -267,7 +272,14 @@
                     "children": [
                       {
                         "Xml": {
-                          "meta_list": [],
+                          "meta_list": [
+                            {
+                              "S": {
+                                "offset": 128,
+                                "value": "\n        "
+                              }
+                            }
+                          ],
                           "start_tag": {
                             "meta_list": [],
                             "delimiter_start": [
@@ -289,10 +301,6 @@
                                 {
                                   "offset": 144,
                                   "value": ">"
-                                },
-                                {
-                                  "offset": 145,
-                                  "value": "\n            "
                                 }
                               ]
                             }
@@ -300,7 +308,14 @@
                           "children": [
                             {
                               "Xml": {
-                                "meta_list": [],
+                                "meta_list": [
+                                  {
+                                    "S": {
+                                      "offset": 145,
+                                      "value": "\n            "
+                                    }
+                                  }
+                                ],
                                 "start_tag": {
                                   "meta_list": [],
                                   "delimiter_start": [
@@ -322,10 +337,6 @@
                                       {
                                         "offset": 165,
                                         "value": ">"
-                                      },
-                                      {
-                                        "offset": 166,
-                                        "value": "\n                "
                                       }
                                     ]
                                   }
@@ -338,7 +349,10 @@
                                           "Comment": {
                                             "Inline": {
                                               "delimiter_start": [
-                                                null,
+                                                {
+                                                  "offset": 166,
+                                                  "value": "\n                "
+                                                },
                                                 {
                                                   "offset": 183,
                                                   "value": "//"
@@ -388,14 +402,12 @@
                                                 },
                                                 "rest": [
                                                   [
-                                                    [
-                                                      null,
-                                                      {
-                                                        "offset": 226,
-                                                        "value": "::"
-                                                      },
-                                                      null
-                                                    ],
+                                                    null,
+                                                    {
+                                                      "offset": 226,
+                                                      "value": "::"
+                                                    },
+                                                    null,
                                                     {
                                                       "offset": 228,
                                                       "value": "is_connected"
@@ -408,7 +420,7 @@
                                           "rest": [
                                             {
                                               "Call": {
-                                                "delimiter_start": [
+                                                "start": [
                                                   null,
                                                   {
                                                     "offset": 240,
@@ -416,11 +428,7 @@
                                                   },
                                                   null
                                                 ],
-                                                "body": {
-                                                  "pairs": [],
-                                                  "tail": null
-                                                },
-                                                "delimiter_end": [
+                                                "end": [
                                                   null,
                                                   {
                                                     "offset": 241,
@@ -430,7 +438,11 @@
                                                     "offset": 242,
                                                     "value": " "
                                                   }
-                                                ]
+                                                ],
+                                                "body": {
+                                                  "pairs": [],
+                                                  "tail": null
+                                                }
                                               }
                                             }
                                           ]
@@ -439,7 +451,7 @@
                                       "then_branch": {
                                         "meta_list": [],
                                         "block": {
-                                          "delimiter_start": [
+                                          "start": [
                                             null,
                                             {
                                               "offset": 243,
@@ -448,6 +460,17 @@
                                             {
                                               "offset": 244,
                                               "value": "\n                    "
+                                            }
+                                          ],
+                                          "end": [
+                                            null,
+                                            {
+                                              "offset": 331,
+                                              "value": "}"
+                                            },
+                                            {
+                                              "offset": 332,
+                                              "value": " "
                                             }
                                           ],
                                           "body": [
@@ -538,10 +561,6 @@
                                                           {
                                                             "offset": 312,
                                                             "value": "/>"
-                                                          },
-                                                          {
-                                                            "offset": 314,
-                                                            "value": "\n                "
                                                           }
                                                         ]
                                                       }
@@ -550,39 +569,34 @@
                                                     "end_tag": null
                                                   }
                                                 },
+                                                {
+                                                  "offset": 314,
+                                                  "value": "\n                "
+                                                },
+                                                null,
                                                 null
                                               ]
-                                            }
-                                          ],
-                                          "delimiter_end": [
-                                            null,
-                                            {
-                                              "offset": 331,
-                                              "value": "}"
-                                            },
-                                            {
-                                              "offset": 332,
-                                              "value": " "
                                             }
                                           ]
                                         }
                                       },
                                       "else_branch": [
-                                        [
-                                          {
-                                            "offset": 333,
-                                            "value": "else"
-                                          },
-                                          {
-                                            "offset": 337,
-                                            "value": " "
-                                          }
-                                        ],
+                                        {
+                                          "offset": 333,
+                                          "value": "else"
+                                        },
                                         {
                                           "Block": {
-                                            "meta_list": [],
+                                            "meta_list": [
+                                              {
+                                                "S": {
+                                                  "offset": 337,
+                                                  "value": " "
+                                                }
+                                              }
+                                            ],
                                             "block": {
-                                              "delimiter_start": [
+                                              "start": [
                                                 null,
                                                 {
                                                   "offset": 338,
@@ -591,6 +605,17 @@
                                                 {
                                                   "offset": 339,
                                                   "value": "\n                    "
+                                                }
+                                              ],
+                                              "end": [
+                                                null,
+                                                {
+                                                  "offset": 448,
+                                                  "value": "}"
+                                                },
+                                                {
+                                                  "offset": 449,
+                                                  "value": "\n\n                "
                                                 }
                                               ],
                                               "body": [
@@ -681,10 +706,6 @@
                                                               {
                                                                 "offset": 429,
                                                                 "value": "/>"
-                                                              },
-                                                              {
-                                                                "offset": 431,
-                                                                "value": "\n                "
                                                               }
                                                             ]
                                                           }
@@ -693,19 +714,13 @@
                                                         "end_tag": null
                                                       }
                                                     },
+                                                    {
+                                                      "offset": 431,
+                                                      "value": "\n                "
+                                                    },
+                                                    null,
                                                     null
                                                   ]
-                                                }
-                                              ],
-                                              "delimiter_end": [
-                                                null,
-                                                {
-                                                  "offset": 448,
-                                                  "value": "}"
-                                                },
-                                                {
-                                                  "offset": 449,
-                                                  "value": "\n\n                "
                                                 }
                                               ]
                                             }
@@ -738,10 +753,6 @@
                                             {
                                               "offset": 471,
                                               "value": ">"
-                                            },
-                                            {
-                                              "offset": 472,
-                                              "value": "\n                    "
                                             }
                                           ]
                                         }
@@ -749,7 +760,14 @@
                                       "children": [
                                         {
                                           "Xml": {
-                                            "meta_list": [],
+                                            "meta_list": [
+                                              {
+                                                "S": {
+                                                  "offset": 472,
+                                                  "value": "\n                    "
+                                                }
+                                              }
+                                            ],
                                             "start_tag": {
                                               "meta_list": [],
                                               "delimiter_start": [
@@ -788,13 +806,24 @@
                                                   ],
                                                   "value": {
                                                     "Block": {
-                                                      "delimiter_start": [
+                                                      "start": [
                                                         null,
                                                         {
                                                           "offset": 510,
                                                           "value": "{"
                                                         },
                                                         null
+                                                      ],
+                                                      "end": [
+                                                        null,
+                                                        {
+                                                          "offset": 516,
+                                                          "value": "}"
+                                                        },
+                                                        {
+                                                          "offset": 517,
+                                                          "value": " "
+                                                        }
                                                       ],
                                                       "body": [
                                                         {
@@ -808,19 +837,10 @@
                                                                 }
                                                               ]
                                                             },
+                                                            null,
+                                                            null,
                                                             null
                                                           ]
-                                                        }
-                                                      ],
-                                                      "delimiter_end": [
-                                                        null,
-                                                        {
-                                                          "offset": 516,
-                                                          "value": "}"
-                                                        },
-                                                        {
-                                                          "offset": 517,
-                                                          "value": " "
                                                         }
                                                       ]
                                                     }
@@ -856,10 +876,6 @@
                                                   {
                                                     "offset": 589,
                                                     "value": "/>"
-                                                  },
-                                                  {
-                                                    "offset": 591,
-                                                    "value": "\n                    "
                                                   }
                                                 ]
                                               }
@@ -870,7 +886,14 @@
                                         },
                                         {
                                           "Xml": {
-                                            "meta_list": [],
+                                            "meta_list": [
+                                              {
+                                                "S": {
+                                                  "offset": 591,
+                                                  "value": "\n                    "
+                                                }
+                                              }
+                                            ],
                                             "start_tag": {
                                               "meta_list": [],
                                               "delimiter_start": [
@@ -975,7 +998,7 @@
                                                   ],
                                                   "value": {
                                                     "Block": {
-                                                      "delimiter_start": [
+                                                      "start": [
                                                         null,
                                                         {
                                                           "offset": 770,
@@ -984,6 +1007,17 @@
                                                         {
                                                           "offset": 771,
                                                           "value": "\n                            "
+                                                        }
+                                                      ],
+                                                      "end": [
+                                                        null,
+                                                        {
+                                                          "offset": 867,
+                                                          "value": "}"
+                                                        },
+                                                        {
+                                                          "offset": 868,
+                                                          "value": "\n                    "
                                                         }
                                                       ],
                                                       "body": [
@@ -1003,13 +1037,24 @@
                                                                 "rest": [
                                                                   {
                                                                     "Call": {
-                                                                      "delimiter_start": [
+                                                                      "start": [
                                                                         null,
                                                                         {
                                                                           "offset": 806,
                                                                           "value": "("
                                                                         },
                                                                         null
+                                                                      ],
+                                                                      "end": [
+                                                                        null,
+                                                                        {
+                                                                          "offset": 841,
+                                                                          "value": ")"
+                                                                        },
+                                                                        {
+                                                                          "offset": 842,
+                                                                          "value": "\n                        "
+                                                                        }
                                                                       ],
                                                                       "body": {
                                                                         "pairs": [],
@@ -1051,36 +1096,16 @@
                                                                             }
                                                                           ]
                                                                         }
-                                                                      },
-                                                                      "delimiter_end": [
-                                                                        null,
-                                                                        {
-                                                                          "offset": 841,
-                                                                          "value": ")"
-                                                                        },
-                                                                        {
-                                                                          "offset": 842,
-                                                                          "value": "\n                        "
-                                                                        }
-                                                                      ]
+                                                                      }
                                                                     }
                                                                   }
                                                                 ]
                                                               }
                                                             },
+                                                            null,
+                                                            null,
                                                             null
                                                           ]
-                                                        }
-                                                      ],
-                                                      "delimiter_end": [
-                                                        null,
-                                                        {
-                                                          "offset": 867,
-                                                          "value": "}"
-                                                        },
-                                                        {
-                                                          "offset": 868,
-                                                          "value": "\n                    "
                                                         }
                                                       ]
                                                     }
@@ -1093,10 +1118,6 @@
                                                   {
                                                     "offset": 889,
                                                     "value": "/>"
-                                                  },
-                                                  {
-                                                    "offset": 891,
-                                                    "value": "\n                "
                                                   }
                                                 ]
                                               }
@@ -1107,7 +1128,14 @@
                                         }
                                       ],
                                       "end_tag": {
-                                        "meta_list": [],
+                                        "meta_list": [
+                                          {
+                                            "S": {
+                                              "offset": 891,
+                                              "value": "\n                "
+                                            }
+                                          }
+                                        ],
                                         "delimiter_start": [
                                           null,
                                           {
@@ -1125,10 +1153,6 @@
                                           {
                                             "offset": 913,
                                             "value": ">"
-                                          },
-                                          {
-                                            "offset": 914,
-                                            "value": "\n            "
                                           }
                                         ]
                                       }
@@ -1136,7 +1160,14 @@
                                   }
                                 ],
                                 "end_tag": {
-                                  "meta_list": [],
+                                  "meta_list": [
+                                    {
+                                      "S": {
+                                        "offset": 914,
+                                        "value": "\n            "
+                                      }
+                                    }
+                                  ],
                                   "delimiter_start": [
                                     null,
                                     {
@@ -1154,10 +1185,6 @@
                                     {
                                       "offset": 935,
                                       "value": ">"
-                                    },
-                                    {
-                                      "offset": 936,
-                                      "value": "\n        "
                                     }
                                   ]
                                 }
@@ -1165,7 +1192,14 @@
                             }
                           ],
                           "end_tag": {
-                            "meta_list": [],
+                            "meta_list": [
+                              {
+                                "S": {
+                                  "offset": 936,
+                                  "value": "\n        "
+                                }
+                              }
+                            ],
                             "delimiter_start": [
                               null,
                               {
@@ -1183,10 +1217,6 @@
                               {
                                 "offset": 953,
                                 "value": ">"
-                              },
-                              {
-                                "offset": 954,
-                                "value": "\n    "
                               }
                             ]
                           }
@@ -1194,7 +1224,14 @@
                       }
                     ],
                     "end_tag": {
-                      "meta_list": [],
+                      "meta_list": [
+                        {
+                          "S": {
+                            "offset": 954,
+                            "value": "\n    "
+                          }
+                        }
+                      ],
                       "delimiter_start": [
                         null,
                         {
@@ -1212,28 +1249,18 @@
                         {
                           "offset": 977,
                           "value": ">"
-                        },
-                        {
-                          "offset": 978,
-                          "value": "\n"
                         }
                       ]
                     }
                   }
                 },
+                {
+                  "offset": 978,
+                  "value": "\n"
+                },
+                null,
                 null
               ]
-            }
-          ],
-          "delimiter_end": [
-            null,
-            {
-              "offset": 979,
-              "value": "}"
-            },
-            {
-              "offset": 980,
-              "value": "\n\n"
             }
           ]
         }
@@ -1292,13 +1319,24 @@
         "value": "transfer"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 1010,
             "value": "("
           },
           null
+        ],
+        "end": [
+          null,
+          {
+            "offset": 1041,
+            "value": ")"
+          },
+          {
+            "offset": 1042,
+            "value": " "
+          }
         ],
         "body": {
           "pairs": [
@@ -1370,18 +1408,7 @@
               }
             }
           }
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 1041,
-            "value": ")"
-          },
-          {
-            "offset": 1042,
-            "value": " "
-          }
-        ]
+        }
       },
       "return_ty": {
         "token": [
@@ -1397,11 +1424,19 @@
         ],
         "ty": {
           "Array": {
-            "delimiter_start": [
+            "start": [
               null,
               {
                 "offset": 1046,
                 "value": "["
+              },
+              null
+            ],
+            "end": [
+              null,
+              {
+                "offset": 1052,
+                "value": "]"
               },
               null
             ],
@@ -1414,26 +1449,16 @@
                   }
                 }
               },
-              [
-                null,
-                {
-                  "offset": 1049,
-                  "value": ";"
-                },
-                null
-              ],
+              null,
+              {
+                "offset": 1049,
+                "value": ";"
+              },
+              null,
               {
                 "offset": 1050,
                 "value": "20"
               }
-            ],
-            "delimiter_end": [
-              null,
-              {
-                "offset": 1052,
-                "value": "]"
-              },
-              null
             ]
           }
         }
@@ -1473,13 +1498,24 @@
         "value": "donate"
       },
       "params": {
-        "delimiter_start": [
+        "start": [
           null,
           {
             "offset": 1065,
             "value": "("
           },
           null
+        ],
+        "end": [
+          null,
+          {
+            "offset": 1080,
+            "value": ")"
+          },
+          {
+            "offset": 1081,
+            "value": " "
+          }
         ],
         "body": {
           "pairs": [],
@@ -1511,23 +1547,12 @@
               }
             }
           }
-        },
-        "delimiter_end": [
-          null,
-          {
-            "offset": 1080,
-            "value": ")"
-          },
-          {
-            "offset": 1081,
-            "value": " "
-          }
-        ]
+        }
       },
       "return_ty": null,
       "body": {
         "Block": {
-          "delimiter_start": [
+          "start": [
             null,
             {
               "offset": 1082,
@@ -1536,6 +1561,17 @@
             {
               "offset": 1083,
               "value": "\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 1119,
+              "value": "}"
+            },
+            {
+              "offset": 1120,
+              "value": "\n"
             }
           ],
           "body": [
@@ -1594,11 +1630,19 @@
                         "rest": [
                           {
                             "Call": {
-                              "delimiter_start": [
+                              "start": [
                                 null,
                                 {
                                   "offset": 1105,
                                   "value": "("
+                                },
+                                null
+                              ],
+                              "end": [
+                                null,
+                                {
+                                  "offset": 1116,
+                                  "value": ")"
                                 },
                                 null
                               ],
@@ -1644,15 +1688,7 @@
                                     }
                                   ]
                                 }
-                              },
-                              "delimiter_end": [
-                                null,
-                                {
-                                  "offset": 1116,
-                                  "value": ")"
-                                },
-                                null
-                              ]
+                              }
                             }
                           }
                         ]
@@ -1660,29 +1696,16 @@
                     }
                   }
                 },
-                [
-                  null,
-                  {
-                    "offset": 1117,
-                    "value": ";"
-                  },
-                  {
-                    "offset": 1118,
-                    "value": "\n"
-                  }
-                ]
+                null,
+                {
+                  "offset": 1117,
+                  "value": ";"
+                },
+                {
+                  "offset": 1118,
+                  "value": "\n"
+                }
               ]
-            }
-          ],
-          "delimiter_end": [
-            null,
-            {
-              "offset": 1119,
-              "value": "}"
-            },
-            {
-              "offset": 1120,
-              "value": "\n"
             }
           ]
         }

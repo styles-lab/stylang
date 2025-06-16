@@ -1,20 +1,17 @@
-use parserc::{Punctuated, derive_parse};
+use parserc::{
+    inputs::lang::LangInput,
+    syntax::{Punctuated, Syntax},
+};
 
 use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    item::Visibility,
-    meta::MetaList,
-    patt::PattType,
-    stmt::Block,
-    token::{Ident, KeywordExtern, KeywordFn, Paren, SepArrowRight, SepComma, SepSemiColon},
+    errors::LangError, item::Visibility, meta::MetaList, patt::PattType, stmt::Block, token::*,
     ty::Type,
 };
 
 /// Formal parameter for [`ItemFn`]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct Param<I>
 where
     I: LangInput,
@@ -26,9 +23,9 @@ where
 }
 
 /// Body block for [`ItemFn`]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum Body<I>
 where
     I: LangInput,
@@ -36,26 +33,26 @@ where
     /// a stmts block.
     Block(Block<I>),
     /// Virtual function body.
-    SemiColon(SepSemiColon<I>),
+    SemiColon(Option<S<I>>, TokenSemiColon<I>, Option<S<I>>),
 }
 
 /// Item parser for `free function` item.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ReturnType<I>
 where
     I: LangInput,
 {
-    pub token: SepArrowRight<I>,
+    pub token: (Option<S<I>>, TokenArrowRight<I>, Option<S<I>>),
     #[fatal]
     pub ty: Box<Type<I>>,
 }
 
 /// Item parser for `free function` item.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ItemFn<I>
 where
     I: LangInput,
@@ -63,11 +60,11 @@ where
     /// leading meta-data list.
     pub meta_list: MetaList<I>,
     /// optional `extern` keyword.
-    pub extern_keyword: Option<KeywordExtern<I>>,
+    pub extern_keyword: Option<(KeywordExtern<I>, S<I>)>,
     /// visibilty clause.
     pub vs: Option<Visibility<I>>,
     /// keyword `fn[s]+`
-    pub fn_keyword: KeywordFn<I>,
+    pub fn_keyword: (KeywordFn<I>, S<I>),
     /// function name.
     #[fatal]
     pub ident: Ident<I>,
@@ -83,18 +80,15 @@ where
 
 #[cfg(test)]
 mod tests {
-
-    use parserc::{Delimiter, Parse, Punctuated};
+    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
 
     use crate::lang::{
-        input::TokenStream,
-        item::{Body, ItemFn, Param, ReturnType},
         meta::{Attr, Comment, Meta, OuterLineDoc},
-        patt::PattType,
-        stmt::{Block, Stmts},
-        token::*,
-        ty::{Type, TypePath},
+        stmt::Stmts,
+        ty::TypePath,
     };
+
+    use super::*;
 
     #[test]
     fn virtual_fn() {
@@ -155,22 +149,22 @@ mod tests {
                             value: "\n                "
                         }))
                     ],
-                    extern_keyword: Some(KeywordExtern(
-                        TokenStream {
+                    extern_keyword: Some((
+                        KeywordExtern(TokenStream {
                             offset: 126,
                             value: "extern"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 132,
                             value: " "
                         })
                     )),
                     vs: None,
-                    fn_keyword: KeywordFn(
-                        TokenStream {
+                    fn_keyword: (
+                        KeywordFn(TokenStream {
                             offset: 133,
                             value: "fn"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 135,
                             value: " "
@@ -181,12 +175,12 @@ mod tests {
                         value: "label"
                     }),
                     params: Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 141,
                                 value: "("
-                            },
+                            }),
                             None
                         ),
                         body: Punctuated {
@@ -199,12 +193,12 @@ mod tests {
                                                 offset: 142,
                                                 value: "label"
                                             }),
-                                            sep: SepColon(
+                                            sep: (
                                                 None,
-                                                TokenStream {
+                                                TokenColon(TokenStream {
                                                     offset: 147,
                                                     value: ":"
-                                                },
+                                                }),
                                                 Some(S(TokenStream {
                                                     offset: 148,
                                                     value: " "
@@ -219,12 +213,12 @@ mod tests {
                                             }),
                                         }
                                     },
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 154,
                                             value: ","
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 155,
                                             value: " "
@@ -239,12 +233,12 @@ mod tests {
                                                 offset: 156,
                                                 value: "layout"
                                             }),
-                                            sep: SepColon(
+                                            sep: (
                                                 None,
-                                                TokenStream {
+                                                TokenColon(TokenStream {
                                                     offset: 162,
                                                     value: ":"
-                                                },
+                                                }),
                                                 Some(S(TokenStream {
                                                     offset: 163,
                                                     value: " "
@@ -259,12 +253,12 @@ mod tests {
                                             })
                                         }
                                     },
-                                    SepComma(
+                                    (
                                         None,
-                                        TokenStream {
+                                        TokenComma(TokenStream {
                                             offset: 174,
                                             value: ","
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 175,
                                             value: " "
@@ -279,12 +273,12 @@ mod tests {
                                         offset: 176,
                                         value: "fill"
                                     }),
-                                    sep: SepColon(
+                                    sep: (
                                         None,
-                                        TokenStream {
+                                        TokenColon(TokenStream {
                                             offset: 180,
                                             value: ":"
-                                        },
+                                        }),
                                         Some(S(TokenStream {
                                             offset: 181,
                                             value: " "
@@ -300,12 +294,12 @@ mod tests {
                                 }
                             }))
                         },
-                        delimiter_end: SepRightParen(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightParen(TokenStream {
                                 offset: 186,
                                 value: ")"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 187,
                                 value: " "
@@ -313,33 +307,33 @@ mod tests {
                         )
                     },
                     return_ty: Some(ReturnType {
-                        token: SepArrowRight(
+                        token: (
                             None,
-                            TokenStream {
+                            TokenArrowRight(TokenStream {
                                 offset: 188,
                                 value: "->"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 190,
                                 value: " "
                             }))
                         ),
-                        ty: Box::new(Type::View(TokenView(TokenStream {
+                        ty: Box::new(Type::View(KeywordView(TokenStream {
                             offset: 191,
                             value: "view"
                         })))
                     }),
-                    body: Body::SemiColon(SepSemiColon(
+                    body: Body::SemiColon(
                         None,
-                        TokenStream {
+                        TokenSemiColon(TokenStream {
                             offset: 195,
                             value: ";"
-                        },
+                        }),
                         Some(S(TokenStream {
                             offset: 196,
                             value: "\n            "
                         }))
-                    ))
+                    )
                 },
                 TokenStream {
                     offset: 209,
@@ -358,11 +352,11 @@ mod tests {
                     meta_list: vec![],
                     extern_keyword: None,
                     vs: None,
-                    fn_keyword: KeywordFn(
-                        TokenStream {
+                    fn_keyword: (
+                        KeywordFn(TokenStream {
                             offset: 0,
                             value: "fn"
-                        },
+                        }),
                         S(TokenStream {
                             offset: 2,
                             value: " "
@@ -373,24 +367,24 @@ mod tests {
                         value: "test"
                     }),
                     params: Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 7,
                                 value: "("
-                            },
+                            }),
                             None
                         ),
                         body: Punctuated {
                             pairs: vec![],
                             tail: None
                         },
-                        delimiter_end: SepRightParen(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightParen(TokenStream {
                                 offset: 8,
                                 value: ")"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 9,
                                 value: " "
@@ -399,21 +393,21 @@ mod tests {
                     },
                     return_ty: None,
                     body: Body::Block(Block(Delimiter {
-                        delimiter_start: SepLeftBrace(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftBrace(TokenStream {
                                 offset: 10,
                                 value: "{"
-                            },
+                            }),
                             None
                         ),
                         body: Stmts(vec![]),
-                        delimiter_end: SepRightBrace(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBrace(TokenStream {
                                 offset: 11,
                                 value: "}"
-                            },
+                            }),
                             None
                         )
                     }))

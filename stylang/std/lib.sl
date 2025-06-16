@@ -1,3 +1,3 @@
-pub mod view;
+pub mod views;
 
 pub mod platform;

@@ -1,13 +1,11 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError, expr::Expr, input::LangInput, meta::MetaList, token::KeywordMatch,
-};
+use crate::lang::{errors::LangError, expr::Expr, meta::MetaList, token::KeywordMatch};
 
 // A `match` pattern expr.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct ExprMatch<I>
 where
     I: LangInput,

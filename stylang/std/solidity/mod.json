@@ -16,7 +16,7 @@
               "value": "sol"
             },
             "params": {
-              "delimiter_start": [
+              "start": [
                 null,
                 {
                   "offset": 4,
@@ -24,16 +24,7 @@
                 },
                 null
               ],
-              "body": {
-                "pairs": [],
-                "tail": {
-                  "String": {
-                    "offset": 6,
-                    "value": "./erc20.json"
-                  }
-                }
-              },
-              "delimiter_end": [
+              "end": [
                 null,
                 {
                   "offset": 19,
@@ -43,22 +34,31 @@
                   "offset": 20,
                   "value": "\n"
                 }
-              ]
+              ],
+              "body": {
+                "pairs": [],
+                "tail": {
+                  "String": {
+                    "offset": 6,
+                    "value": "./erc20.json"
+                  }
+                }
+              }
             }
           }
         }
       ],
       "vs": {
-        "Outer": {
-          "token": {
+        "Outer": [
+          {
             "offset": 21,
             "value": "pub"
           },
-          "tail_s": {
+          {
             "offset": 24,
             "value": " "
           }
-        }
+        ]
       },
       "keyword": [
         {

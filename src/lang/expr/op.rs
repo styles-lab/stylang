@@ -1,43 +1,42 @@
-use parserc::{ControlFlow, Parse, Parser, ParserExt, derive_parse};
+use parserc::errors::ControlFlow;
+use parserc::parser::Parser;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::{LangError, SyntaxKind},
-    expr::{Expr, ExprPath, XmlStart},
-    input::LangInput,
-    meta::MetaList,
-    token::*,
-};
+use crate::lang::errors::{LangError, SyntaxKind};
+use crate::lang::expr::{Expr, ExprPath, XmlStart};
+use crate::lang::meta::MetaList;
+use crate::lang::token::*;
 
 /// Ops: `&=`,`=`,...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum AssignOp<I>
 where
     I: LangInput,
 {
     /// `&=`
-    AndAssign(SepPlusEq<I>),
+    AndAssign((Option<S<I>>, TokenPlusEq<I>, Option<S<I>>)),
     /// `-=`
-    SubAssign(SepMinusEq<I>),
+    SubAssign((Option<S<I>>, TokenMinusEq<I>, Option<S<I>>)),
     /// `*=`
-    MulAssign(SepStarEq<I>),
+    MulAssign((Option<S<I>>, TokenStarEq<I>, Option<S<I>>)),
     /// `/=`
-    DivAssign(TokenSlashEq<I>),
+    DivAssign((Option<S<I>>, TokenSlashEq<I>, Option<S<I>>)),
     /// `%=`
-    RemAssign(SepPercentEq<I>),
+    RemAssign((Option<S<I>>, TokenPercentEq<I>, Option<S<I>>)),
     /// `^=`
-    BitXorAssign(SepCaretEq<I>),
+    BitXorAssign((Option<S<I>>, TokenCaretEq<I>, Option<S<I>>)),
     /// `&=`
-    BitAndAssign(SepAndEq<I>),
+    BitAndAssign((Option<S<I>>, TokenAndEq<I>, Option<S<I>>)),
     /// `|=`
-    BitOrAssign(SepSlashEq<I>),
+    BitOrAssign((Option<S<I>>, TokenSlashEq<I>, Option<S<I>>)),
     /// `<<=`
-    ShlAssign(SepShlEq<I>),
+    ShlAssign((Option<S<I>>, TokenShlEq<I>, Option<S<I>>)),
     /// `>>=`
-    ShrAssign(SepShrEq<I>),
+    ShrAssign((Option<S<I>>, TokenShrEq<I>, Option<S<I>>)),
     /// `=`
-    Assign(SepEq<I>),
+    Assign((Option<S<I>>, TokenEq<I>, Option<S<I>>)),
 }
 
 /// A bool expr: a && b, a || b,...
@@ -57,9 +56,9 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum AssignOperand<I>
 where
     I: LangInput,
@@ -90,13 +89,11 @@ where
     }
 }
 
-impl<I> Parse<I> for ExprAssgin<I>
+impl<I> Syntax<I, LangError> for ExprAssgin<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = AssignOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -115,10 +112,11 @@ where
 
             let operand;
 
+            let span = input.span();
             (operand, input) = AssignOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
                 .fatal()
                 .parse(input)?;
 
@@ -156,17 +154,17 @@ where
 }
 
 /// Ops: `||`,`&&`,...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum BoolOp<I>
 where
     I: LangInput,
 {
     /// `&&`
-    And(SepAndAnd<I>),
+    And((Option<S<I>>, TokenAndAnd<I>, Option<S<I>>)),
     /// `||`
-    Or(SepOrOr<I>),
+    Or((Option<S<I>>, TokenOrOr<I>, Option<S<I>>)),
 }
 
 /// A bool expr: a && b, a || b,...
@@ -186,9 +184,9 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum BoolOperand<I>
 where
     I: LangInput,
@@ -217,13 +215,11 @@ where
     }
 }
 
-impl<I> Parse<I> for ExprBool<I>
+impl<I> Syntax<I, LangError> for ExprBool<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = BoolOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -242,10 +238,12 @@ where
 
             let operand;
 
+            let span = input.span();
+
             (operand, input) = BoolOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
                 .fatal()
                 .parse(input)?;
 
@@ -283,25 +281,25 @@ where
 }
 
 /// compare ops: `==`,`<`,...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum CompOp<I>
 where
     I: LangInput,
 {
     /// `==`
-    Eq(SepEqEq<I>),
+    Eq(Option<S<I>>, TokenEqEq<I>, Option<S<I>>),
     /// <=
-    Le(SepLe<I>),
+    Le(Option<S<I>>, TokenLe<I>, Option<S<I>>),
     /// >=
-    Ge(SepGe<I>),
+    Ge(Option<S<I>>, TokenGe<I>, Option<S<I>>),
     /// !=
-    Ne(SepNe<I>),
+    Ne(Option<S<I>>, TokenNe<I>, Option<S<I>>),
     /// <
-    Lt(SepLt<I>),
+    Lt(Option<S<I>>, TokenLt<I>, Option<S<I>>),
     /// >
-    Gt(SepGt<I>),
+    Gt(Option<S<I>>, TokenGt<I>, Option<S<I>>),
 }
 
 /// A comp expr: a > b, a != b, ...
@@ -321,9 +319,9 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum CompOperand<I>
 where
     I: LangInput,
@@ -350,13 +348,11 @@ where
     }
 }
 
-impl<I> Parse<I> for ExprComp<I>
+impl<I> Syntax<I, LangError> for ExprComp<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = CompOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -372,7 +368,7 @@ where
                 break;
             };
 
-            if let CompOp::Lt(_) = &op {
+            if let CompOp::Lt(_, _, _) = &op {
                 let (xml_start, _) = XmlStart::into_parser().ok().parse(input.clone())?;
 
                 if xml_start.is_some() {
@@ -384,10 +380,12 @@ where
 
             let operand;
 
+            let span = input.span();
+
             (operand, input) = CompOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
                 .fatal()
                 .parse(input)?;
 
@@ -425,23 +423,23 @@ where
 }
 
 /// Ops: `^`,`<<`,...
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum BitsOp<I>
 where
     I: LangInput,
 {
     /// `^`
-    BitXor(SepCaret<I>),
+    BitXor(Option<S<I>>, TokenCaret<I>, Option<S<I>>),
     /// `&`
-    BitAnd(SepAnd<I>),
+    BitAnd(Option<S<I>>, TokenAnd<I>, Option<S<I>>),
     /// `|`
-    BitOr(SepOr<I>),
+    BitOr(Option<S<I>>, TokenOr<I>, Option<S<I>>),
     /// `<<`
-    Shl(SepShl<I>),
+    Shl(Option<S<I>>, TokenShl<I>, Option<S<I>>),
     /// `>>`
-    Shr(SepShr<I>),
+    Shr(Option<S<I>>, TokenShr<I>, Option<S<I>>),
 }
 
 /// A bits expr: a ^ b, a & b,...
@@ -461,9 +459,9 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum BitsOperand<I>
 where
     I: LangInput,
@@ -488,13 +486,11 @@ where
     }
 }
 
-impl<I> Parse<I> for ExprBits<I>
+impl<I> Syntax<I, LangError> for ExprBits<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = BitsOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -513,10 +509,12 @@ where
 
             let operand;
 
+            let span = input.span();
+
             (operand, input) = BitsOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
                 .fatal()
                 .parse(input)?;
 
@@ -554,17 +552,17 @@ where
 }
 
 /// ops: `+`,`-`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum TermOp<I>
 where
     I: LangInput,
 {
     /// `+`
-    Add(SepPlus<I>),
+    Add(Option<S<I>>, TokenPlus<I>, Option<S<I>>),
     /// `-`
-    Sub(SepMinus<I>),
+    Sub(Option<S<I>>, TokenMinus<I>, Option<S<I>>),
 }
 
 /// A factor expr: a + b, a - b,...
@@ -584,9 +582,9 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum TermOperand<I>
 where
     I: LangInput,
@@ -609,13 +607,11 @@ where
     }
 }
 
-impl<I> Parse<I> for ExprTerm<I>
+impl<I> Syntax<I, LangError> for ExprTerm<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = TermOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -634,10 +630,12 @@ where
 
             let operand;
 
+            let span = input.span();
+
             (operand, input) = TermOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
                 .fatal()
                 .parse(input)?;
 
@@ -675,24 +673,24 @@ where
 }
 
 /// ops: `*`,`/`,`%`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum FactorOp<I>
 where
     I: LangInput,
 {
     /// `*`
-    Mul(SepStar<I>),
+    Mul(Option<S<I>>, TokenStar<I>, Option<S<I>>),
     /// `/`
-    Div(SepSlash<I>),
+    Div(Option<S<I>>, TokenSlash<I>, Option<S<I>>),
     /// `%`
-    Rem(SepPercent<I>),
+    Rem(Option<S<I>>, TokenPercent<I>, Option<S<I>>),
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum FactorOperand<I>
 where
     I: LangInput,
@@ -730,13 +728,11 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
-impl<I> Parse<I> for ExprFactor<I>
+impl<I> Syntax<I, LangError> for ExprFactor<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (mut left_operand, mut input) = FactorOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -755,10 +751,12 @@ where
 
             let operand;
 
+            let span = input.span();
+
             (operand, input) = FactorOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
-                .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
                 .fatal()
                 .parse(input)?;
 
@@ -795,9 +793,9 @@ where
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 enum UnOperand<I>
 where
     I: LangInput,
@@ -819,17 +817,17 @@ where
 }
 
 /// A unary operation: !x, *x.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum UnOp<I>
 where
     I: LangInput,
 {
     /// !x
-    Not(SepNot<I>),
+    Not(TokenNot<I>),
     /// -y
-    Neg(SepMinus<I>),
+    Neg(TokenMinus<I>),
 }
 
 /// A binary operation: a + b, a += b.
@@ -847,17 +845,17 @@ where
     pub operand: Box<Expr<I>>,
 }
 
-impl<I> Parse<I> for ExprUnary<I>
+impl<I> Syntax<I, LangError> for ExprUnary<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let (meta_list, input) = MetaList::parse(input)?;
         let (op, input) = UnOp::parse(input)?;
+
+        let span = input.span();
         let (oprand, input) = UnOperand::into_parser()
-            .map_err(|input: I, _| LangError::expect(SyntaxKind::RightOperand, input.span()))
+            .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
             .fatal()
             .parse(input)?;
 
@@ -874,14 +872,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::Parse;
+    use parserc::inputs::lang::TokenStream;
 
     use crate::lang::{
-        expr::*,
-        input::TokenStream,
+        expr::Expr,
         lit::{Lit, LitNum},
-        token::*,
     };
+
+    use super::*;
 
     #[test]
     fn priority() {
@@ -897,15 +895,15 @@ mod tests {
                             value: "a"
                         })
                     )),
-                    op: AssignOp::BitXorAssign(SepCaretEq(
+                    op: AssignOp::BitXorAssign((
                         Some(S(TokenStream {
                             offset: 1,
                             value: " "
                         })),
-                        TokenStream {
+                        TokenCaretEq(TokenStream {
                             offset: 2,
                             value: "^="
-                        },
+                        }),
                         Some(S(TokenStream {
                             offset: 4,
                             value: " "
@@ -920,20 +918,20 @@ mod tests {
                                 value: "b"
                             })
                         )),
-                        op: CompOp::Gt(SepGt(
+                        op: CompOp::Gt(
                             Some(S(TokenStream {
                                 offset: 6,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenGt(TokenStream {
                                 offset: 7,
                                 value: ">"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 8,
                                 value: " "
                             }))
-                        )),
+                        ),
                         right_operand: Box::new(Expr::Bits(ExprBits {
                             meta_list: vec![],
                             left_operand: Box::new(Expr::Ident(
@@ -943,20 +941,20 @@ mod tests {
                                     value: "c"
                                 })
                             )),
-                            op: BitsOp::BitXor(SepCaret(
+                            op: BitsOp::BitXor(
                                 Some(S(TokenStream {
                                     offset: 10,
                                     value: " "
                                 })),
-                                TokenStream {
+                                TokenCaret(TokenStream {
                                     offset: 11,
                                     value: "^"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 12,
                                     value: " "
                                 }))
-                            )),
+                            ),
                             right_operand: Box::new(Expr::Term(ExprTerm {
                                 meta_list: vec![],
                                 left_operand: Box::new(Expr::Lit(
@@ -973,20 +971,20 @@ mod tests {
                                         unit: None
                                     })
                                 )),
-                                op: TermOp::Add(SepPlus(
+                                op: TermOp::Add(
                                     Some(S(TokenStream {
                                         offset: 14,
                                         value: " "
                                     })),
-                                    TokenStream {
+                                    TokenPlus(TokenStream {
                                         offset: 15,
                                         value: "+"
-                                    },
+                                    }),
                                     Some(S(TokenStream {
                                         offset: 16,
                                         value: " "
                                     }))
-                                )),
+                                ),
                                 right_operand: Box::new(Expr::Factor(ExprFactor {
                                     meta_list: vec![],
                                     left_operand: Box::new(Expr::Ident(
@@ -996,14 +994,14 @@ mod tests {
                                             value: "d"
                                         })
                                     )),
-                                    op: FactorOp::Mul(SepStar(
+                                    op: FactorOp::Mul(
                                         None,
-                                        TokenStream {
+                                        TokenStar(TokenStream {
                                             offset: 18,
                                             value: "*"
-                                        },
+                                        }),
                                         None
-                                    )),
+                                    ),
                                     right_operand: Box::new(Expr::Lit(
                                         vec![],
                                         Lit::Num(LitNum {
@@ -1047,20 +1045,20 @@ mod tests {
                                 value: "a"
                             })
                         )),
-                        op: TermOp::Add(SepPlus(
+                        op: TermOp::Add(
                             Some(S(TokenStream {
                                 offset: 1,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenPlus(TokenStream {
                                 offset: 2,
                                 value: "+"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 3,
                                 value: " "
                             }))
-                        )),
+                        ),
                         right_operand: Box::new(Expr::Factor(ExprFactor {
                             meta_list: vec![],
                             left_operand: Box::new(Expr::Ident(
@@ -1070,20 +1068,20 @@ mod tests {
                                     value: "b"
                                 })
                             )),
-                            op: FactorOp::Mul(SepStar(
+                            op: FactorOp::Mul(
                                 Some(S(TokenStream {
                                     offset: 5,
                                     value: " "
                                 })),
-                                TokenStream {
+                                TokenStar(TokenStream {
                                     offset: 6,
                                     value: "*"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 7,
                                     value: " "
                                 }))
-                            )),
+                            ),
                             right_operand: Box::new(Expr::Lit(
                                 vec![],
                                 Lit::Num(LitNum {
@@ -1100,20 +1098,20 @@ mod tests {
                             ))
                         }))
                     })),
-                    op: TermOp::Add(SepPlus(
+                    op: TermOp::Add(
                         Some(S(TokenStream {
                             offset: 9,
                             value: " "
                         })),
-                        TokenStream {
+                        TokenPlus(TokenStream {
                             offset: 10,
                             value: "+"
-                        },
+                        }),
                         Some(S(TokenStream {
                             offset: 11,
                             value: " "
                         }))
-                    )),
+                    ),
                     right_operand: Box::new(Expr::Factor(ExprFactor {
                         meta_list: vec![],
                         left_operand: Box::new(Expr::Factor(ExprFactor {
@@ -1125,20 +1123,20 @@ mod tests {
                                     value: "c"
                                 })
                             )),
-                            op: FactorOp::Div(SepSlash(
+                            op: FactorOp::Div(
                                 Some(S(TokenStream {
                                     offset: 13,
                                     value: " "
                                 })),
-                                TokenStream {
+                                TokenSlash(TokenStream {
                                     offset: 14,
                                     value: "/"
-                                },
+                                }),
                                 Some(S(TokenStream {
                                     offset: 15,
                                     value: " "
                                 }))
-                            )),
+                            ),
                             right_operand: Box::new(Expr::Lit(
                                 vec![],
                                 Lit::Num(LitNum {
@@ -1154,20 +1152,20 @@ mod tests {
                                 })
                             ))
                         })),
-                        op: FactorOp::Mul(SepStar(
+                        op: FactorOp::Mul(
                             Some(S(TokenStream {
                                 offset: 17,
                                 value: " "
                             })),
-                            TokenStream {
+                            TokenStar(TokenStream {
                                 offset: 18,
                                 value: "*"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 19,
                                 value: " "
                             }))
-                        )),
+                        ),
                         right_operand: Box::new(Expr::Lit(
                             vec![],
                             Lit::Num(LitNum {

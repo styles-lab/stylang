@@ -1,19 +1,22 @@
-use parserc::{Parse, Parser, ParserExt, Punctuated, derive_parse};
+use parserc::{
+    inputs::lang::LangInput,
+    parser::Parser,
+    syntax::{Punctuated, Syntax},
+};
 
+use super::*;
 use crate::lang::{
     errors::LangError,
-    expr::{Expr, ExprBlock, ExprIf, ExprRepeat, ExprStruct, ExprTuple},
-    input::LangInput,
     lit::Lit,
     meta::MetaList,
-    token::*,
+    token::{Bracket, Digits, Ident, Paren, S, SepComma, TokenDot},
     ty::TypePath,
 };
 
 /// Path `start element` parser.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum PathStart<I>
+enum PathStart<I>
 where
     I: LangInput,
 {
@@ -35,13 +38,29 @@ where
     Ident(MetaList<I>, Ident<I>),
 }
 
-impl<I> Parse<I> for PathStart<I>
+impl<I> From<PathStart<I>> for Expr<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
+    fn from(value: PathStart<I>) -> Self {
+        match value {
+            PathStart::Struct(expr_struct) => Self::Struct(expr_struct),
+            PathStart::If(expr_if) => Self::If(expr_if),
+            PathStart::Block(expr_block) => Self::Block(expr_block),
+            PathStart::Tuple(expr_tuple) => Self::Tuple(expr_tuple),
+            PathStart::Repeat(expr_repeat) => Self::Repeat(expr_repeat),
+            PathStart::Lit(metas, lit) => Self::Lit(metas, lit),
+            PathStart::TypePath(metas, type_path) => Self::TypePath(metas, type_path),
+            PathStart::Ident(metas, ident) => Self::Ident(metas, ident),
+        }
+    }
+}
 
-    fn parse(input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+impl<I> Syntax<I, LangError> for PathStart<I>
+where
+    I: LangInput,
+{
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         ExprStruct::into_parser()
             .map(|v| Self::Struct(v))
             .or(ExprIf::into_parser().map(|v| Self::If(v)))
@@ -64,52 +83,45 @@ where
 }
 
 /// `Path` call segement parser.
-#[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
+#[error(LangError)]
 pub struct PathCall<I>(pub Paren<I, Punctuated<Expr<I>, SepComma<I>>>)
 where
     I: LangInput;
 
 /// index parser for `Path` expr.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct PathIndex<I>(pub Bracket<I, Punctuated<Expr<I>, SepComma<I>>>)
 where
     I: LangInput;
 
 /// `Path` field index parser.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum PathField<I>
 where
     I: LangInput,
 {
-    Name {
-        /// `.`
-        dot_sep: SepDot<I>,
-        /// a,b,...
-        name: Ident<I>,
-    },
-    Uname {
-        /// `.`
-        dot_sep: SepDot<I>,
-        /// 1,10,..
-        index: Digits<I>,
-    },
+    Name(Ident<I>),
+    Uname(Digits<I>),
 }
 
 /// The rest element parser for expr `Path`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum PathSegment<I>
 where
     I: LangInput,
 {
-    Field(PathField<I>),
+    Field {
+        dot_sep: (Option<S<I>>, TokenDot<I>, Option<S<I>>),
+        field: PathField<I>,
+    },
     Call(PathCall<I>),
     Index(PathIndex<I>),
 }
@@ -117,15 +129,32 @@ where
 /// A parser for expr `Path`.
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
 pub struct ExprPath<I>
 where
     I: LangInput,
 {
     /// The first element.
-    pub first: PathStart<I>,
+    pub first: Box<Expr<I>>,
     /// The rest path segment list.
     pub rest: Vec<PathSegment<I>>,
+}
+
+impl<I> Syntax<I, LangError> for ExprPath<I>
+where
+    I: LangInput,
+{
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+
+        let (first, input) = PathStart::into_parser()
+            .map(|v| Expr::from(v))
+            .boxed()
+            .parse(input)?;
+
+        let (rest, input) = input.syntax()?;
+
+        Ok((Self { first, rest }, input))
+    }
 }
 
 impl<I> From<ExprPath<I>> for Expr<I>
@@ -134,16 +163,7 @@ where
 {
     fn from(value: ExprPath<I>) -> Self {
         if value.rest.is_empty() {
-            match value.first {
-                PathStart::Ident(metas, type_path) => Self::Ident(metas, type_path),
-                PathStart::TypePath(metas, type_path) => Self::TypePath(metas, type_path),
-                PathStart::Lit(metas, lit) => Self::Lit(metas, lit),
-                PathStart::Tuple(expr_tuple) => Self::Tuple(expr_tuple),
-                PathStart::Repeat(expr_repeat) => Self::Repeat(expr_repeat),
-                PathStart::Struct(expr_struct) => Self::Struct(expr_struct),
-                PathStart::If(expr_if) => Self::If(expr_if),
-                PathStart::Block(expr_block) => Self::Block(expr_block),
-            }
+            *value.first
         } else {
             Self::Path(value)
         }
@@ -152,15 +172,19 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Delimiter, Parse, Punctuated, span::Span};
+    use parserc::{
+        errors::ControlFlow,
+        inputs::{Span, lang::TokenStream},
+        syntax::Delimiter,
+    };
 
     use crate::lang::{
-        errors::{LangError, SyntaxKind},
-        expr::{Expr, ExprPath, ExprRange, PathIndex, PathSegment, PathStart},
-        input::TokenStream,
-        lit::{Lit, LitNum},
-        token::*,
+        errors::SyntaxKind,
+        lit::LitNum,
+        token::{RangeLimits, TokenDotDot, TokenDotDotEq, TokenLeftBracket, TokenRightBracket},
     };
+
+    use super::*;
 
     #[test]
     fn range() {
@@ -168,32 +192,33 @@ mod tests {
             Expr::parse(TokenStream::from("a[..10]")),
             Ok((
                 Expr::Path(ExprPath {
-                    first: PathStart::Ident(
+                    first: Box::new(Expr::Ident(
                         Default::default(),
                         Ident(TokenStream {
                             offset: 0,
                             value: "a"
-                        }),
-                    ),
+                        })
+                    )),
+
                     rest: vec![PathSegment::Index(PathIndex(Delimiter {
-                        delimiter_start: SepLeftBracket(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftBracket(TokenStream {
                                 offset: 1,
                                 value: "["
-                            },
+                            }),
                             None
                         ),
                         body: Punctuated {
                             pairs: vec![],
                             tail: Some(Box::new(Expr::Range(ExprRange {
                                 start: None,
-                                limits: RangeLimits::HalfOpen(SepDotDot(
+                                limits: RangeLimits::HalfOpen((
                                     None,
-                                    TokenStream {
+                                    TokenDotDot(TokenStream {
                                         offset: 2,
                                         value: ".."
-                                    },
+                                    }),
                                     None
                                 )),
                                 end: Some(Box::new(Expr::Lit(
@@ -212,12 +237,12 @@ mod tests {
                                 ),))
                             })))
                         },
-                        delimiter_end: SepRightBracket(
+                        end: (
                             None,
-                            TokenStream {
+                            TokenRightBracket(TokenStream {
                                 offset: 6,
                                 value: "]"
-                            },
+                            }),
                             None
                         )
                     }))]
@@ -234,12 +259,12 @@ mod tests {
             Ok((
                 Expr::Range(ExprRange {
                     start: None,
-                    limits: RangeLimits::Closed(SepDotDotEq(
+                    limits: RangeLimits::Closed((
                         None,
-                        TokenStream {
+                        TokenDotDotEq(TokenStream {
                             offset: 0,
                             value: "..="
-                        },
+                        }),
                         None
                     )),
                     end: Some(Box::new(Expr::Lit(
@@ -282,12 +307,12 @@ mod tests {
                             unit: None
                         })
                     ),)),
-                    limits: RangeLimits::Closed(SepDotDotEq(
+                    limits: RangeLimits::Closed((
                         None,
-                        TokenStream {
+                        TokenDotDotEq(TokenStream {
                             offset: 2,
                             value: "..="
-                        },
+                        }),
                         None
                     )),
                     end: None

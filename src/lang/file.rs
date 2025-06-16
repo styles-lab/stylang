@@ -1,12 +1,15 @@
 use std::ops::Deref;
 
-use parserc::{ControlFlow, Input, Parse, span::WithSpan};
-
-use crate::lang::{
-    errors::LangError,
-    input::{LangInput, TokenStream},
-    item::Item,
+use parserc::{
+    errors::ControlFlow,
+    inputs::{
+        Input, WithSpan,
+        lang::{LangInput, TokenStream},
+    },
+    syntax::Syntax,
 };
+
+use crate::lang::{errors::LangError, item::Item};
 
 /// A parser for one `stylang` source file.
 #[derive(Debug, PartialEq, Clone)]
@@ -25,13 +28,11 @@ where
     }
 }
 
-impl<I> Parse<I> for File<I>
+impl<I> Syntax<I, LangError> for File<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(mut input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(mut input: I) -> parserc::errors::Result<Self, I, LangError> {
         let mut items = vec![];
 
         loop {

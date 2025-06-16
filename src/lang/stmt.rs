@@ -1,23 +1,27 @@
-use parserc::{Parse, derive_parse};
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
 use crate::lang::{
     errors::LangError,
     expr::Expr,
-    input::LangInput,
     item::Item,
-    token::{Brace, SepSemiColon},
+    token::{Brace, S, TokenSemiColon},
 };
 
 /// A statement, usually ending in a semicolon.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub enum Stmt<I>
 where
     I: LangInput,
 {
     /// expr end with optional `;`
-    Expr(Expr<I>, Option<SepSemiColon<I>>),
+    Expr(
+        Expr<I>,
+        Option<S<I>>,
+        Option<TokenSemiColon<I>>,
+        Option<S<I>>,
+    ),
     /// declare a `class`,`data`,`fn`,...
     Item(Item<I>),
 }
@@ -29,13 +33,11 @@ pub struct Stmts<I>(pub Vec<Stmt<I>>)
 where
     I: LangInput;
 
-impl<I> Parse<I> for Stmts<I>
+impl<I> Syntax<I, LangError> for Stmts<I>
 where
     I: LangInput,
 {
-    type Error = LangError;
-
-    fn parse(mut input: I) -> parserc::errors::Result<Self, I, Self::Error> {
+    fn parse(mut input: I) -> parserc::errors::Result<Self, I, LangError> {
         let mut stmts = vec![];
 
         loop {
@@ -57,22 +59,24 @@ where
 }
 
 /// stmts group by `{..}`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError,input = I)]
+#[error(LangError)]
 pub struct Block<I>(pub Brace<I, Stmts<I>>)
 where
     I: LangInput;
 
 #[cfg(test)]
 mod tests {
-    use parserc::{Delimiter, Parse};
+    use parserc::{
+        inputs::lang::TokenStream,
+        syntax::{Delimiter, Syntax},
+    };
 
     use crate::lang::{
         expr::Expr,
-        input::TokenStream,
         stmt::{Block, Stmt, Stmts},
-        token::{Ident, SepLeftBrace, SepRightBrace},
+        token::{Ident, TokenLeftBrace, TokenRightBrace},
     };
 
     #[test]
@@ -81,12 +85,12 @@ mod tests {
             Block::parse(TokenStream::from("{value}")),
             Ok((
                 Block(Delimiter {
-                    delimiter_start: SepLeftBrace(
+                    start: (
                         None,
-                        TokenStream {
+                        TokenLeftBrace(TokenStream {
                             offset: 0,
                             value: "{"
-                        },
+                        }),
                         None
                     ),
                     body: Stmts(vec![Stmt::Expr(
@@ -97,14 +101,16 @@ mod tests {
                                 value: "value"
                             })
                         ),
+                        None,
+                        None,
                         None
                     )]),
-                    delimiter_end: SepRightBrace(
+                    end: (
                         None,
-                        TokenStream {
+                        TokenRightBrace(TokenStream {
                             offset: 6,
                             value: "}"
-                        },
+                        }),
                         None
                     )
                 }),

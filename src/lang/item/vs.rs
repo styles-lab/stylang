@@ -1,72 +1,68 @@
-use parserc::derive_parse;
+use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
-use crate::lang::{
-    errors::LangError,
-    input::LangInput,
-    token::{Paren, S, TokenCrate, TokenPub, TokenSuper},
-};
+use crate::lang::{errors::LangError, token::*};
 
 /// Optional scope for visibility level `pub`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError, input = I)]
+#[error(LangError)]
 pub enum Scope<I>
 where
     I: LangInput,
 {
-    Crate(TokenCrate<I>),
-    Super(TokenSuper<I>),
+    Crate(Option<S<I>>, TokenCrate<I>, Option<S<I>>),
+    Super(Option<S<I>>, TokenSuper<I>, Option<S<I>>),
 }
 
 /// The visibility level of an item: `pub`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive_parse(error = LangError, input = I)]
+#[error(LangError)]
 pub enum Visibility<I>
 where
     I: LangInput,
 {
     Scope {
         /// Token `pub`.
-        token: TokenPub<I>,
+        token: KeywordPub<I>,
         /// optional scope part.
         scope: Paren<I, Scope<I>>,
     },
-    Outer {
+    Outer(
         /// Token `pub`.
-        token: TokenPub<I>,
+        KeywordPub<I>,
         /// required tail `ws`.
         #[fatal]
-        tail_s: S<I>,
-    },
+        S<I>,
+    ),
 }
 
 #[cfg(test)]
 mod tests {
-    use parserc::{ControlFlow, Delimiter, Parse, span::Span};
-
-    use crate::lang::{
-        errors::{LangError, SyntaxKind},
-        input::TokenStream,
-        item::{Scope, Visibility},
-        token::*,
+    use parserc::{
+        errors::ControlFlow,
+        inputs::{Span, lang::TokenStream},
+        syntax::Delimiter,
     };
+
+    use super::*;
+    use crate::lang::{errors::SyntaxKind, item::Visibility};
 
     #[test]
     fn without_scope() {
         assert_eq!(
             Visibility::parse(TokenStream::from("pub ")),
             Ok((
-                Visibility::Outer {
-                    token: TokenPub(TokenStream {
+                Visibility::Outer(
+                    KeywordPub(TokenStream {
                         offset: 0,
                         value: "pub"
                     }),
-                    tail_s: S(TokenStream {
+                    S(TokenStream {
                         offset: 3,
                         value: " "
                     })
-                },
+                ),
                 TokenStream {
                     offset: 4,
                     value: ""
@@ -81,29 +77,33 @@ mod tests {
             Visibility::parse(TokenStream::from("pub(crate) ")),
             Ok((
                 Visibility::Scope {
-                    token: TokenPub(TokenStream {
+                    token: KeywordPub(TokenStream {
                         offset: 0,
                         value: "pub"
                     }),
                     scope: Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 3,
                                 value: "("
-                            },
+                            }),
                             None
                         ),
-                        body: Scope::Crate(TokenCrate(TokenStream {
-                            offset: 4,
-                            value: "crate"
-                        })),
-                        delimiter_end: SepRightParen(
+                        body: Scope::Crate(
                             None,
-                            TokenStream {
+                            TokenCrate(TokenStream {
+                                offset: 4,
+                                value: "crate"
+                            }),
+                            None
+                        ),
+                        end: (
+                            None,
+                            TokenRightParen(TokenStream {
                                 offset: 9,
                                 value: ")"
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 10,
                                 value: " "
@@ -121,29 +121,33 @@ mod tests {
             Visibility::parse(TokenStream::from("pub(super) ")),
             Ok((
                 Visibility::Scope {
-                    token: TokenPub(TokenStream {
+                    token: KeywordPub(TokenStream {
                         offset: 0,
                         value: "pub",
                     }),
                     scope: Delimiter {
-                        delimiter_start: SepLeftParen(
+                        start: (
                             None,
-                            TokenStream {
+                            TokenLeftParen(TokenStream {
                                 offset: 3,
                                 value: "(",
-                            },
+                            }),
                             None,
                         ),
-                        body: Scope::Super(TokenSuper(TokenStream {
-                            offset: 4,
-                            value: "super",
-                        })),
-                        delimiter_end: SepRightParen(
+                        body: Scope::Super(
                             None,
-                            TokenStream {
+                            TokenSuper(TokenStream {
+                                offset: 4,
+                                value: "super",
+                            }),
+                            None
+                        ),
+                        end: (
+                            None,
+                            TokenRightParen(TokenStream {
                                 offset: 9,
                                 value: ")",
-                            },
+                            }),
                             Some(S(TokenStream {
                                 offset: 10,
                                 value: " ",

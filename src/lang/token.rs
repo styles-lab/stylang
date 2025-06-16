@@ -40,15 +40,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let (token, _) = Token::into_parser().ok().parse(input.clone())?;
-
-        if token.is_some() {
-            return Err(ControlFlow::Recovable(LangError::expect(
-                SyntaxKind::Ident,
-                input.span(),
-            )));
-        }
-
         let mut content = input.clone();
         let start = input.start();
 
@@ -73,15 +64,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let (token, _) = Token::into_parser().ok().parse(input.clone())?;
-
-        if token.is_some() {
-            return Err(ControlFlow::Recovable(LangError::expect(
-                SyntaxKind::XmlIdent,
-                input.span(),
-            )));
-        }
-
         let mut content = input.clone();
         let start = input.start();
 
@@ -172,9 +154,9 @@ where
     I: LangInput,
 {
     /// ..=
-    Closed(TokenDotDotEq<I>),
+    Closed((Option<S<I>>, TokenDotDotEq<I>, Option<S<I>>)),
     /// ..
-    HalfOpen(TokenDotDot<I>),
+    HalfOpen((Option<S<I>>, TokenDotDot<I>, Option<S<I>>)),
 }
 
 tokens!(match Token {
@@ -292,6 +274,8 @@ tokens!(match Token {
 
 /// Seperator `[S]*,[S]*`
 pub type SepComma<I> = (Option<S<I>>, TokenComma<I>, Option<S<I>>);
+/// Seperator `[S]*;[S]*`
+pub type SepSemiColon<I> = (Option<S<I>>, TokenSemiColon<I>, Option<S<I>>);
 /// Seperator `[S]*->[S]*`
 pub type SepArrowRight<I> = (Option<S<I>>, TokenArrowRight<I>, Option<S<I>>);
 
@@ -322,17 +306,6 @@ mod tests {
     use parserc::inputs::{Span, lang::TokenStream};
 
     use super::*;
-
-    #[test]
-    fn test_ident() {
-        assert_eq!(
-            Ident::parse(TokenStream::from("fn")),
-            Err(ControlFlow::Recovable(LangError::expect(
-                SyntaxKind::Ident,
-                Span { offset: 0, len: 2 }
-            )))
-        );
-    }
 
     #[test]
     fn test_lookahead() {
