@@ -151,7 +151,7 @@ where
             .boxed()
             .parse(input)?;
 
-        let (rest, input) = input.syntax()?;
+        let (rest, input) = input.parse()?;
 
         Ok((Self { first, rest }, input))
     }

@@ -45,7 +45,7 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         use parserc::syntax::SyntaxEx;
-        let (delimiter_start, input) = input.syntax()?;
+        let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_till(|c| c == b'\n').parse(input)?;
         let (delimiter_end, input) = TokenNewLine::into_parser().ok().parse(input)?;
 
@@ -81,7 +81,7 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         use parserc::syntax::SyntaxEx;
-        let (delimiter_start, input) = input.syntax()?;
+        let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_till(|c| c == b'\n').parse(input)?;
         let (delimiter_end, input) = TokenNewLine::into_parser().ok().parse(input)?;
 
@@ -117,7 +117,7 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         use parserc::syntax::SyntaxEx;
-        let (delimiter_start, input) = input.syntax()?;
+        let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_until("*/").parse(input)?;
         let (delimiter_end, input) = TokenBlockEnd::into_parser().fatal().parse(input)?;
 
@@ -154,7 +154,7 @@ where
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         use parserc::syntax::SyntaxEx;
 
-        let (delimiter_start, input) = input.syntax()?;
+        let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_until("*/").parse(input)?;
         let (delimiter_end, input) = TokenBlockEnd::into_parser().fatal().parse(input)?;
 
