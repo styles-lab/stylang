@@ -2,7 +2,7 @@
 //!
 
 use parserc::parser::{Parser, keyword, next_if, take_while};
-use parserc::syntax::{Delimiter, Syntax, tokens};
+use parserc::syntax::{AsSpan, Delimiter, Syntax, tokens};
 use parserc::{errors::ControlFlow, inputs::lang::LangInput};
 
 use crate::lang::errors::{LangError, SyntaxKind};
@@ -22,11 +22,20 @@ where
         if s.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::S,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
         Ok((Self(s), input))
+    }
+}
+
+impl<I> AsSpan for S<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
     }
 }
 
@@ -41,16 +50,28 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let mut content = input.clone();
-        let start = input.start();
+        let start = input.start().unwrap();
 
-        let span = input.span();
+        let span = input.as_span().unwrap();
         let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
             .map_err(|_: LangError| LangError::expect(SyntaxKind::Ident, span))
             .parse(input)?;
 
         let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;
 
-        Ok((Self(content.split_to(input.start() - start)), input))
+        Ok((
+            Self(content.split_to(input.start().unwrap() - start)),
+            input,
+        ))
+    }
+}
+
+impl<I> AsSpan for Ident<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
     }
 }
 
@@ -65,16 +86,30 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let mut content = input.clone();
-        let start = input.start();
+        let start = input.start().unwrap();
 
         let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|_: LangError| LangError::expect(SyntaxKind::XmlIdent, input.span()))
+            .map_err(|_: LangError| {
+                LangError::expect(SyntaxKind::XmlIdent, input.as_span().unwrap())
+            })
             .parse(input.clone())?;
 
         let (_, input) =
             take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
 
-        Ok((Self(content.split_to(input.start() - start)), input))
+        Ok((
+            Self(content.split_to(input.start().unwrap() - start)),
+            input,
+        ))
+    }
+}
+
+impl<I> AsSpan for XmlIdent<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
     }
 }
 
@@ -93,11 +128,20 @@ where
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Digits,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
         Ok((Digits(digits), input))
+    }
+}
+
+impl<I> AsSpan for Digits<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
     }
 }
 
@@ -116,11 +160,20 @@ where
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::HexDigits,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
         Ok((HexDigits(digits), input))
+    }
+}
+
+impl<I> AsSpan for HexDigits<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
     }
 }
 
@@ -134,13 +187,22 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let span = input.span();
+        let span = input.as_span().unwrap();
 
         keyword("E")
             .or(keyword("e"))
             .map(|v| Self(v))
             .map_err(|_: LangError| LangError::expect(SyntaxKind::Token("E or e"), span))
             .parse(input)
+    }
+}
+
+impl<I> AsSpan for TokenExp<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
     }
 }
 
@@ -270,6 +332,7 @@ tokens!(match Token {
     ".." => TokenDotDot,
     "." => TokenDot,
     ":" => TokenColon,
+    "=>" => TokenFatArrow,
 });
 
 /// Seperator `[S]*,[S]*`

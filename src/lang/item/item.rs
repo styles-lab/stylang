@@ -1,7 +1,7 @@
 use parserc::{
     inputs::lang::LangInput,
     parser::Parser,
-    syntax::{Punctuated, Syntax},
+    syntax::{AsSpan, Punctuated, Syntax},
 };
 
 use crate::lang::{
@@ -244,7 +244,7 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let span = input.span();
+        let span = input.as_span().unwrap();
         ItemClass::into_parser()
             .map(|v| Self::Class(v))
             .map_err(|err| LangError::from((err, ItemKind::Class(span))))
@@ -265,6 +265,23 @@ where
                 .map_err(|err| LangError::from((err, ItemKind::Use(span)))))
             .or(MetaList::into_parser().map(|v| Self::MetaList(v)))
             .parse(input)
+    }
+}
+
+impl<I> AsSpan for Item<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        match self {
+            Item::Class(item_class) => item_class.as_span(),
+            Item::Data(item_data) => item_data.as_span(),
+            Item::Enum(item_enum) => item_enum.as_span(),
+            Item::Fn(item_fn) => item_fn.as_span(),
+            Item::Mod(item_mod) => item_mod.as_span(),
+            Item::Use(item_use) => item_use.as_span(),
+            Item::MetaList(metas) => metas.as_span(),
+        }
     }
 }
 

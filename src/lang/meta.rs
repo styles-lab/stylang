@@ -1,9 +1,9 @@
 //! The types for parsing meta-data(comments or attrs).
 
 use parserc::{
-    inputs::lang::LangInput,
+    inputs::{SpanJoin, lang::LangInput},
     parser::{Parser, take_till, take_until},
-    syntax::{Punctuated, Syntax},
+    syntax::{AsSpan, Punctuated, Syntax},
 };
 
 use crate::lang::{errors::LangError, lit::Lit, token::*};
@@ -60,6 +60,17 @@ where
     }
 }
 
+impl<I> AsSpan for OuterLineDoc<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.delimiter_start
+            .as_span()
+            .join(self.delimiter_end.as_span())
+    }
+}
+
 /// Inline doc: `// ...`
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -73,6 +84,17 @@ where
     pub inline: I,
     /// newline token.
     pub delimiter_end: Option<TokenNewLine<I>>,
+}
+
+impl<I> AsSpan for InlineComment<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.delimiter_start
+            .as_span()
+            .join(self.delimiter_end.as_span())
+    }
 }
 
 impl<I> Syntax<I, LangError> for InlineComment<I>
@@ -111,6 +133,17 @@ where
     pub delimiter_end: TokenBlockEnd<I>,
 }
 
+impl<I> AsSpan for OuterBlockDoc<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.delimiter_start
+            .as_span()
+            .join(self.delimiter_end.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for OuterBlockDoc<I>
 where
     I: LangInput,
@@ -145,6 +178,17 @@ where
     pub inline: I,
     /// Delimiter end token: `*/`
     pub delimiter_end: TokenBlockEnd<I>,
+}
+
+impl<I> AsSpan for BlockComment<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.delimiter_start
+            .as_span()
+            .join(self.delimiter_end.as_span())
+    }
 }
 
 impl<I> Syntax<I, LangError> for BlockComment<I>

@@ -1,15 +1,15 @@
 use parserc::{
     errors::ControlFlow,
-    inputs::lang::LangInput,
+    inputs::{SpanJoin, lang::LangInput},
     parser::Parser,
-    syntax::{Punctuated, Syntax},
+    syntax::{AsSpan, Punctuated, Syntax},
 };
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
     expr::{
-        ExprAssgin, ExprBits, ExprBool, ExprComp, ExprFactor, ExprIf, ExprLoop, ExprPath, ExprTerm,
-        ExprUnary, ExprWhile, ExprXml,
+        ExprAssgin, ExprBits, ExprBool, ExprComp, ExprFactor, ExprIf, ExprLoop, ExprMatch,
+        ExprPath, ExprTerm, ExprUnary, ExprWhile, ExprXml,
     },
     lit::Lit,
     meta::MetaList,
@@ -77,6 +77,18 @@ where
     pub end: Option<Box<Expr<I>>>,
 }
 
+impl<I> AsSpan for ExprRange<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.start
+            .as_span()
+            .join(self.limits.as_span())
+            .join(self.end.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for ExprRange<I>
 where
     I: LangInput,
@@ -90,7 +102,7 @@ where
 
         let (limits, input) = RangeLimits::parse(input)?;
 
-        let span = input.span();
+        let span = input.as_span().unwrap();
 
         let (end, input) = RangeOperand::into_parser()
             .map(|v| Expr::from(v))
@@ -102,7 +114,7 @@ where
         if start.is_none() && end.is_none() {
             return Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -161,6 +173,15 @@ where
     pub ty: Box<Expr<I>>,
     /// field init expr.
     pub fields: Fields<I>,
+}
+
+impl<I> AsSpan for ExprStruct<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.ty.as_span().join(self.fields.as_span())
+    }
 }
 
 impl<I> Syntax<I, LangError> for ExprStruct<I>
@@ -241,6 +262,7 @@ enum _Expr<I>
 where
     I: LangInput,
 {
+    Match(ExprMatch<I>),
     Tuple(ExprTuple<I>),
     Unary(ExprUnary<I>),
     Block(ExprBlock<I>),
@@ -271,6 +293,7 @@ pub enum Expr<I>
 where
     I: LangInput,
 {
+    Match(ExprMatch<I>),
     Tuple(ExprTuple<I>),
     Unary(ExprUnary<I>),
     Block(ExprBlock<I>),
@@ -294,6 +317,38 @@ where
     TypePath(MetaList<I>, TypePath<I>),
 }
 
+impl<I> AsSpan for Expr<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        match self {
+            Expr::Match(expr_match) => expr_match.as_span(),
+            Expr::Tuple(expr_tuple) => expr_tuple.as_span(),
+            Expr::Unary(expr_unary) => expr_unary.as_span(),
+            Expr::Block(expr_block) => expr_block.as_span(),
+            Expr::Repeat(expr_repeat) => expr_repeat.as_span(),
+            Expr::If(expr_if) => expr_if.as_span(),
+            Expr::Let(expr_let) => expr_let.as_span(),
+            Expr::Loop(expr_loop) => expr_loop.as_span(),
+            Expr::While(expr_while) => expr_while.as_span(),
+            Expr::Xml(expr_xml) => expr_xml.as_span(),
+            Expr::Assgin(expr_assgin) => expr_assgin.as_span(),
+            Expr::Bool(expr_bool) => expr_bool.as_span(),
+            Expr::Comp(expr_comp) => expr_comp.as_span(),
+            Expr::Bits(expr_bits) => expr_bits.as_span(),
+            Expr::Term(expr_term) => expr_term.as_span(),
+            Expr::Factor(expr_factor) => expr_factor.as_span(),
+            Expr::Struct(expr_struct) => expr_struct.as_span(),
+            Expr::Range(expr_range) => expr_range.as_span(),
+            Expr::Path(expr_path) => expr_path.as_span(),
+            Expr::Ident(metas, ident) => metas.as_span().join(ident.as_span()),
+            Expr::Lit(metas, lit) => metas.as_span().join(lit.as_span()),
+            Expr::TypePath(metas, type_path) => metas.as_span().join(type_path.as_span()),
+        }
+    }
+}
+
 impl<I> Syntax<I, LangError> for Expr<I>
 where
     I: LangInput,
@@ -302,6 +357,7 @@ where
         let (expr, input) = _Expr::parse(input)?;
 
         let expr = match expr {
+            _Expr::Match(expr_match) => Self::Match(expr_match),
             _Expr::Tuple(expr_tuple) => Self::Tuple(expr_tuple),
             _Expr::Unary(expr_unary) => Self::Unary(expr_unary),
             _Expr::Block(expr_block) => Self::Block(expr_block),

@@ -1,5 +1,7 @@
 use parserc::errors::ControlFlow;
+use parserc::inputs::SpanJoin;
 use parserc::parser::Parser;
+use parserc::syntax::AsSpan;
 use parserc::{inputs::lang::LangInput, syntax::Syntax};
 
 use crate::lang::errors::{LangError, SyntaxKind};
@@ -54,6 +56,18 @@ where
     pub op: AssignOp<I>,
     /// right operand.
     pub right_operand: Box<Expr<I>>,
+}
+
+impl<I> AsSpan for ExprAssgin<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.left_operand.as_span())
+            .join(self.op.as_span())
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Syntax)]
@@ -112,7 +126,7 @@ where
 
             let operand;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
             (operand, input) = AssignOperand::into_parser()
                 .map(|v| Expr::from(v))
                 .boxed()
@@ -126,7 +140,7 @@ where
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -184,6 +198,18 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
+impl<I> AsSpan for ExprBool<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.left_operand.as_span())
+            .join(self.op.as_span())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error(LangError)]
@@ -238,7 +264,7 @@ where
 
             let operand;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
 
             (operand, input) = BoolOperand::into_parser()
                 .map(|v| Expr::from(v))
@@ -253,7 +279,7 @@ where
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -319,6 +345,18 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
+impl<I> AsSpan for ExprComp<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.left_operand.as_span())
+            .join(self.op.as_span())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error(LangError)]
@@ -380,7 +418,7 @@ where
 
             let operand;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
 
             (operand, input) = CompOperand::into_parser()
                 .map(|v| Expr::from(v))
@@ -395,7 +433,7 @@ where
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -459,6 +497,18 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
+impl<I> AsSpan for ExprBits<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.left_operand.as_span())
+            .join(self.op.as_span())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error(LangError)]
@@ -509,7 +559,7 @@ where
 
             let operand;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
 
             (operand, input) = BitsOperand::into_parser()
                 .map(|v| Expr::from(v))
@@ -524,7 +574,7 @@ where
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -582,6 +632,18 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
+impl<I> AsSpan for ExprTerm<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.left_operand.as_span())
+            .join(self.op.as_span())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error(LangError)]
@@ -630,7 +692,7 @@ where
 
             let operand;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
 
             (operand, input) = TermOperand::into_parser()
                 .map(|v| Expr::from(v))
@@ -645,7 +707,7 @@ where
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -728,6 +790,18 @@ where
     pub right_operand: Box<Expr<I>>,
 }
 
+impl<I> AsSpan for ExprFactor<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.left_operand.as_span())
+            .join(self.op.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for ExprFactor<I>
 where
     I: LangInput,
@@ -751,7 +825,7 @@ where
 
             let operand;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
 
             (operand, input) = FactorOperand::into_parser()
                 .map(|v| Expr::from(v))
@@ -766,7 +840,7 @@ where
         if operands.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::RightOperand,
-                input.span(),
+                input.as_span().unwrap(),
             )));
         }
 
@@ -845,6 +919,18 @@ where
     pub operand: Box<Expr<I>>,
 }
 
+impl<I> AsSpan for ExprUnary<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.op.as_span())
+            .join(self.operand.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for ExprUnary<I>
 where
     I: LangInput,
@@ -853,7 +939,7 @@ where
         let (meta_list, input) = MetaList::parse(input)?;
         let (op, input) = UnOp::parse(input)?;
 
-        let span = input.span();
+        let span = input.as_span().unwrap();
         let (oprand, input) = UnOperand::into_parser()
             .map_err(|_| LangError::expect(SyntaxKind::RightOperand, span))
             .fatal()

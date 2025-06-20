@@ -3,7 +3,7 @@ use std::ops::Deref;
 use parserc::{
     errors::ControlFlow,
     inputs::{
-        Input, WithSpan,
+        Input,
         lang::{LangInput, TokenStream},
     },
     syntax::Syntax,
@@ -74,7 +74,9 @@ impl<'a> TryFrom<&'a String> for File<TokenStream<'a>> {
         let (script, input) = File::parse(input)?;
 
         if !input.is_empty() {
-            return Err(ControlFlow::Fatal(LangError::Unparsed(input.span())));
+            return Err(ControlFlow::Fatal(LangError::Unparsed(
+                input.as_span().unwrap(),
+            )));
         }
 
         Ok(script)

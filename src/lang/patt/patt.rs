@@ -1,7 +1,7 @@
 use parserc::{
-    inputs::lang::LangInput,
+    inputs::{SpanJoin, lang::LangInput},
     parser::Parser,
-    syntax::{Punctuated, Syntax},
+    syntax::{AsSpan, Punctuated, Syntax},
 };
 
 use crate::lang::{
@@ -83,6 +83,15 @@ where
     pub rest: Vec<(Option<S<I>>, TokenOr<I>, Option<S<I>>, Patt<I>)>,
 }
 
+impl<I> AsSpan for PattOr<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.first.as_span().join(self.rest.as_span())
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error(LangError)]
@@ -160,6 +169,27 @@ where
     Or(PattOr<I>),
 }
 
+impl<I> AsSpan for Patt<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        match self {
+            Patt::Lit(lit) => lit.as_span(),
+            Patt::Rest(patt_rest) => patt_rest.as_span(),
+            Patt::Range(patt_range) => patt_range.as_span(),
+            Patt::Wild(patt_wild) => patt_wild.as_span(),
+            Patt::Type(patt_type) => patt_type.as_span(),
+            Patt::Slice(patt_slice) => patt_slice.as_span(),
+            Patt::Tuple(patt_tuple) => patt_tuple.as_span(),
+            Patt::TupleStruct(patt_tuple_struct) => patt_tuple_struct.as_span(),
+            Patt::Struct(patt_struct) => patt_struct.as_span(),
+            Patt::Path(type_path) => type_path.as_span(),
+            Patt::Or(patt_or) => patt_or.as_span(),
+        }
+    }
+}
+
 impl<I> Syntax<I, LangError> for Patt<I>
 where
     I: LangInput,
@@ -192,7 +222,9 @@ where
 
             (rhs, input) = PattUnary::into_parser()
                 .map(|v| Self::from(v))
-                .map_err(|_: LangError| LangError::expect(SyntaxKind::RightOperand, input.span()))
+                .map_err(|_: LangError| {
+                    LangError::expect(SyntaxKind::RightOperand, input.as_span().unwrap())
+                })
                 .parse(input.clone())?;
 
             rest.push((or.0, or.1, or.2, rhs));

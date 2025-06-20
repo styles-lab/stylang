@@ -1,8 +1,8 @@
 use parserc::{
     errors::ControlFlow,
-    inputs::lang::LangInput,
+    inputs::{Span, lang::LangInput},
     parser::{Parser, next, take_till},
-    syntax::Syntax,
+    syntax::{AsSpan, Syntax},
 };
 
 use crate::lang::errors::{LangError, SyntaxKind};
@@ -11,6 +11,18 @@ use crate::lang::errors::{LangError, SyntaxKind};
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitStr<I>(pub I);
+
+impl<I> AsSpan for LitStr<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span().map(|span| Span {
+            offset: span.offset - 1,
+            len: span.len + 2,
+        })
+    }
+}
 
 impl<I> Syntax<I, LangError> for LitStr<I>
 where
@@ -37,7 +49,7 @@ where
         }
 
         if let Some('"') = input.as_str().chars().next() {
-            content.split_off(input.start() - content.start());
+            content.split_off(input.start().unwrap() - content.start().unwrap());
 
             input.split_to(1);
 
@@ -45,7 +57,7 @@ where
         } else {
             Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::Token("\""),
-                input.span(),
+                input.as_span().unwrap(),
             )))
         }
     }

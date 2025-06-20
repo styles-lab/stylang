@@ -1,4 +1,9 @@
-use parserc::{errors::ControlFlow, inputs::lang::LangInput, parser::Parser, syntax::Syntax};
+use parserc::{
+    errors::ControlFlow,
+    inputs::{SpanJoin, lang::LangInput},
+    parser::Parser,
+    syntax::{AsSpan, Syntax},
+};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
@@ -16,6 +21,15 @@ where
     pub digits: HexDigits<I>,
 }
 
+impl<I> AsSpan for HexColor<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.num_sign_token.as_span().join(self.digits.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for HexColor<I>
 where
     I: LangInput,
@@ -30,7 +44,7 @@ where
             _ => {
                 return Err(ControlFlow::Fatal(LangError::invalid(
                     SyntaxKind::HexColor,
-                    digits.0.span(),
+                    digits.0.as_span().unwrap(),
                 )));
             }
         }
@@ -66,6 +80,15 @@ where
     pub delimiter_end: (Option<S<I>>, TokenRightParen<I>, Option<S<I>>),
 }
 
+impl<I> AsSpan for RgbColor<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.rgb_token.as_span().join(self.delimiter_end.as_span())
+    }
+}
+
 impl<I> RgbColor<I>
 where
     I: LangInput,
@@ -74,11 +97,11 @@ where
         match usize::from_str_radix(digits.as_str(), 10) {
             Ok(v) if v > 255 => Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                digits.span(),
+                digits.as_span().unwrap(),
             ))),
             Err(_) => Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                digits.span(),
+                digits.as_span().unwrap(),
             ))),
             Ok(_) => Ok(()),
         }

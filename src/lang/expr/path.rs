@@ -1,7 +1,7 @@
 use parserc::{
-    inputs::lang::LangInput,
+    inputs::{SpanJoin, lang::LangInput},
     parser::Parser,
-    syntax::{Punctuated, Syntax},
+    syntax::{AsSpan, Punctuated, Syntax},
 };
 
 use super::*;
@@ -137,6 +137,15 @@ where
     pub first: Box<Expr<I>>,
     /// The rest path segment list.
     pub rest: Vec<PathSegment<I>>,
+}
+
+impl<I> AsSpan for ExprPath<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.first.as_span().join(self.rest.as_span())
+    }
 }
 
 impl<I> Syntax<I, LangError> for ExprPath<I>

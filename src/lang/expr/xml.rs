@@ -1,6 +1,11 @@
 //! xml syntax analyser.
 
-use parserc::{errors::ControlFlow, inputs::lang::LangInput, parser::Parser, syntax::Syntax};
+use parserc::{
+    errors::ControlFlow,
+    inputs::{SpanJoin, lang::LangInput},
+    parser::Parser,
+    syntax::{AsSpan, Syntax},
+};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
@@ -123,6 +128,19 @@ where
     pub end_tag: Option<XmlEnd<I>>,
 }
 
+impl<I> AsSpan for ExprXml<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.meta_list
+            .as_span()
+            .join(self.start_tag.as_span())
+            .join(self.children.as_span())
+            .join(self.end_tag.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for ExprXml<I>
 where
     I: LangInput,
@@ -145,14 +163,14 @@ where
 
         let mut children = vec![];
 
-        let ident_span = start_tag.ident.0.span();
+        let ident_span = start_tag.ident.as_span().unwrap();
 
         loop {
             let child;
 
             (child, input) = XmlChild::into_parser().ok().parse(input)?;
 
-            let span = input.span();
+            let span = input.as_span().unwrap();
 
             let Some(child) = child else {
                 let (end_tag, input) = XmlEnd::into_parser()
@@ -163,7 +181,7 @@ where
                 if start_tag.ident.0.as_str() != end_tag.ident.0.as_str() {
                     return Err(ControlFlow::Fatal(LangError::expect(
                         SyntaxKind::XmlEndTag(ident_span),
-                        input.span(),
+                        input.as_span().unwrap(),
                     )));
                 }
 

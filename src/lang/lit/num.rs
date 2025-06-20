@@ -1,4 +1,9 @@
-use parserc::{errors::ControlFlow, inputs::lang::LangInput, parser::Parser, syntax::Syntax};
+use parserc::{
+    errors::ControlFlow,
+    inputs::{SpanJoin, lang::LangInput},
+    parser::Parser,
+    syntax::{AsSpan, Syntax},
+};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
@@ -79,6 +84,21 @@ where
     pub unit: Option<Unit<I>>,
 }
 
+impl<I> AsSpan for LitNum<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.sign
+            .as_span()
+            .join(self.trunc.as_span())
+            .join(self.dot.as_span())
+            .join(self.fract.as_span())
+            .join(self.exp.as_span())
+            .join(self.unit.as_span())
+    }
+}
+
 impl<I> Syntax<I, LangError> for LitNum<I>
 where
     I: LangInput,
@@ -92,7 +112,9 @@ where
         let (trunc, dot, fract, input) = match (trunc, dot) {
             (trunc, Some(dot)) => {
                 let (fract, input) = Digits::into_parser()
-                    .map_err(|_: LangError| LangError::expect(SyntaxKind::Digits, input.span()))
+                    .map_err(|_: LangError| {
+                        LangError::expect(SyntaxKind::Digits, input.as_span().unwrap())
+                    })
                     .parse(input.clone())?;
 
                 (trunc, Some(dot), Some(fract), input)
@@ -100,7 +122,7 @@ where
             (None, None) => {
                 return Err(ControlFlow::Recovable(LangError::expect(
                     SyntaxKind::Digits,
-                    input.span(),
+                    input.as_span().unwrap(),
                 )));
             }
             (trunc, _) => (trunc, None, None, input),

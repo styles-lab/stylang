@@ -1,6 +1,6 @@
 //! Types associated with error reporting by this module.
 
-use parserc::inputs::{Span, WithSpan};
+use parserc::inputs::Span;
 
 /// Error variants return by compiler frontend.
 #[derive(Debug, thiserror::Error, PartialEq)]
@@ -46,11 +46,8 @@ pub enum LangError {
 }
 
 impl parserc::errors::ParseError for LangError {
-    fn expect_token<I: parserc::inputs::Input + WithSpan>(
-        diagnosis: &'static str,
-        input: I,
-    ) -> Self {
-        Self::expect(SyntaxKind::Token(diagnosis), input.span())
+    fn expect_token<I: parserc::inputs::Input>(diagnosis: &'static str, input: I) -> Self {
+        Self::expect(SyntaxKind::Token(diagnosis), input.as_span().unwrap())
     }
 }
 
@@ -191,6 +188,12 @@ pub enum SyntaxKind {
     If,
     #[error("`arm-expr`")]
     ArmExpr,
+    #[error("`arm-body`")]
+    ArmBody,
+    #[error("`match-expr`")]
+    MatchExpr,
+    #[error("`match-arms`")]
+    MatchArms,
     #[error("`type`")]
     Type,
     #[error("`hex-color`")]

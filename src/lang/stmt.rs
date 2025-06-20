@@ -1,4 +1,7 @@
-use parserc::{inputs::lang::LangInput, syntax::Syntax};
+use parserc::{
+    inputs::lang::LangInput,
+    syntax::{AsSpan, Syntax},
+};
 
 use crate::lang::{
     errors::LangError,
@@ -32,6 +35,15 @@ where
 pub struct Stmts<I>(pub Vec<Stmt<I>>)
 where
     I: LangInput;
+
+impl<I> AsSpan for Stmts<I>
+where
+    I: LangInput,
+{
+    fn as_span(&self) -> Option<parserc::inputs::Span> {
+        self.0.as_span()
+    }
+}
 
 impl<I> Syntax<I, LangError> for Stmts<I>
 where
