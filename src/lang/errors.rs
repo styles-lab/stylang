@@ -1,13 +1,13 @@
 //! Types associated with error reporting by this module.
 
-use parserc::inputs::Span;
+use parserc::{errors::ErrorKind, lang::Span};
 
 /// Error variants return by compiler frontend.
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum LangError {
     /// Unhandle parsing error.
     #[error(transparent)]
-    Fallback(#[from] parserc::errors::ErrorKind),
+    Fallback(parserc::errors::ErrorKind<usize>),
 
     /// Report an unexpect token error with span information.
     #[error("unexpect {kind} {span:?}")]
@@ -45,11 +45,16 @@ pub enum LangError {
     Unparsed(Span),
 }
 
-impl parserc::errors::ParseError for LangError {
-    fn expect_token<I: parserc::inputs::Input>(diagnosis: &'static str, input: I) -> Self {
-        Self::expect(SyntaxKind::Token(diagnosis), input.as_span().unwrap())
+impl From<ErrorKind<usize>> for LangError {
+    fn from(value: ErrorKind<usize>) -> Self {
+        match value {
+            ErrorKind::Token(name, span) => Self::expect(SyntaxKind::Token(name), span),
+            value => Self::Fallback(value),
+        }
     }
 }
+
+impl parserc::errors::ParseError<usize> for LangError {}
 
 impl LangError {
     /// Create a [`LangError::Expect`] error without optional `item` field.
@@ -202,4 +207,6 @@ pub enum SyntaxKind {
     RgbDigits,
     #[error("`class,data,fn,...`")]
     Item,
+    #[error("`slice init expr`")]
+    ExprSlice,
 }

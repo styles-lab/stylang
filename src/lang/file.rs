@@ -2,10 +2,8 @@ use std::ops::Deref;
 
 use parserc::{
     errors::ControlFlow,
-    inputs::{
-        Input,
-        lang::{LangInput, TokenStream},
-    },
+    input::Input,
+    lang::{LangInput, TokenStream},
     syntax::Syntax,
 };
 
@@ -74,9 +72,7 @@ impl<'a> TryFrom<&'a String> for File<TokenStream<'a>> {
         let (script, input) = File::parse(input)?;
 
         if !input.is_empty() {
-            return Err(ControlFlow::Fatal(LangError::Unparsed(
-                input.as_span().unwrap(),
-            )));
+            return Err(ControlFlow::Fatal(LangError::Unparsed(input.to_span())));
         }
 
         Ok(script)

@@ -1,9 +1,10 @@
 //! The types for parsing meta-data(comments or attrs).
 
 use parserc::{
-    inputs::{SpanJoin, lang::LangInput},
+    lang::LangInput,
     parser::{Parser, take_till, take_until},
-    syntax::{AsSpan, Punctuated, Syntax},
+    span::ToSpan,
+    syntax::{Punctuated, Syntax},
 };
 
 use crate::lang::{errors::LangError, lit::Lit, token::*};
@@ -60,14 +61,12 @@ where
     }
 }
 
-impl<I> AsSpan for OuterLineDoc<I>
+impl<I> ToSpan<usize> for OuterLineDoc<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.delimiter_start
-            .as_span()
-            .join(self.delimiter_end.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.delimiter_start.to_span() ^ self.delimiter_end.to_span()
     }
 }
 
@@ -86,14 +85,12 @@ where
     pub delimiter_end: Option<TokenNewLine<I>>,
 }
 
-impl<I> AsSpan for InlineComment<I>
+impl<I> ToSpan<usize> for InlineComment<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.delimiter_start
-            .as_span()
-            .join(self.delimiter_end.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.delimiter_start.to_span() ^ self.delimiter_end.to_span()
     }
 }
 
@@ -133,14 +130,12 @@ where
     pub delimiter_end: TokenBlockEnd<I>,
 }
 
-impl<I> AsSpan for OuterBlockDoc<I>
+impl<I> ToSpan<usize> for OuterBlockDoc<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.delimiter_start
-            .as_span()
-            .join(self.delimiter_end.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.delimiter_start.to_span() ^ self.delimiter_end.to_span()
     }
 }
 
@@ -180,14 +175,12 @@ where
     pub delimiter_end: TokenBlockEnd<I>,
 }
 
-impl<I> AsSpan for BlockComment<I>
+impl<I> ToSpan<usize> for BlockComment<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.delimiter_start
-            .as_span()
-            .join(self.delimiter_end.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.delimiter_start.to_span() ^ self.delimiter_end.to_span()
     }
 }
 
@@ -249,7 +242,7 @@ pub type MetaList<I> = Vec<Meta<I>>;
 #[cfg(test)]
 mod tests {
 
-    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
+    use parserc::{lang::TokenStream, syntax::Delimiter};
 
     use crate::lang::lit::LitStr;
 

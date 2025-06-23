@@ -1,8 +1,9 @@
 use parserc::{
     errors::ControlFlow,
-    inputs::{Span, lang::LangInput},
+    lang::LangInput,
     parser::{Parser, next, take_till},
-    syntax::{AsSpan, Syntax},
+    span::ToSpan,
+    syntax::Syntax,
 };
 
 use crate::lang::errors::{LangError, SyntaxKind};
@@ -12,15 +13,13 @@ use crate::lang::errors::{LangError, SyntaxKind};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LitStr<I>(pub I);
 
-impl<I> AsSpan for LitStr<I>
+impl<I> ToSpan<usize> for LitStr<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span().map(|span| Span {
-            offset: span.offset - 1,
-            len: span.len + 2,
-        })
+    fn to_span(&self) -> parserc::lang::Span {
+        // Safety: `TokenStream` ensure the returns `span` is in the valid range.
+        self.0.to_span().map(|start, end| (start - 1, end + 1))
     }
 }
 
@@ -49,7 +48,7 @@ where
         }
 
         if let Some('"') = input.as_str().chars().next() {
-            content.split_off(input.start().unwrap() - content.start().unwrap());
+            content.split_off(input.start() - content.start());
 
             input.split_to(1);
 
@@ -57,7 +56,7 @@ where
         } else {
             Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::Token("\""),
-                input.as_span().unwrap(),
+                input.to_span(),
             )))
         }
     }
@@ -66,7 +65,7 @@ where
 #[cfg(test)]
 mod tests {
 
-    use parserc::inputs::{Span, lang::TokenStream};
+    use parserc::lang::{Span, TokenStream};
 
     use super::*;
 
@@ -76,7 +75,7 @@ mod tests {
             LitStr::parse(TokenStream::from(r#""hello"#)),
             Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::Token("\""),
-                Span { offset: 6, len: 0 }
+                Span::Some { start: 6, end: 6 }
             )))
         );
     }

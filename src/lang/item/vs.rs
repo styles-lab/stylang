@@ -1,4 +1,4 @@
-use parserc::{inputs::lang::LangInput, syntax::Syntax};
+use parserc::{lang::LangInput, syntax::Syntax};
 
 use crate::lang::{errors::LangError, token::*};
 
@@ -41,7 +41,7 @@ where
 mod tests {
     use parserc::{
         errors::ControlFlow,
-        inputs::{Span, lang::TokenStream},
+        lang::{Span, TokenStream},
         syntax::Delimiter,
     };
 
@@ -169,7 +169,7 @@ mod tests {
             Visibility::parse(TokenStream::from("pub")),
             Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::S,
-                Span { offset: 3, len: 0 }
+                Span::Some { start: 3, end: 3 }
             )))
         );
     }

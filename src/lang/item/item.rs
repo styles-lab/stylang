@@ -1,7 +1,8 @@
 use parserc::{
-    inputs::lang::LangInput,
+    lang::LangInput,
     parser::Parser,
-    syntax::{AsSpan, Punctuated, Syntax},
+    span::ToSpan,
+    syntax::{Punctuated, Syntax},
 };
 
 use crate::lang::{
@@ -244,7 +245,7 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let span = input.as_span().unwrap();
+        let span = input.to_span();
         ItemClass::into_parser()
             .map(|v| Self::Class(v))
             .map_err(|err| LangError::from((err, ItemKind::Class(span))))
@@ -268,19 +269,19 @@ where
     }
 }
 
-impl<I> AsSpan for Item<I>
+impl<I> ToSpan<usize> for Item<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
+    fn to_span(&self) -> parserc::lang::Span {
         match self {
-            Item::Class(item_class) => item_class.as_span(),
-            Item::Data(item_data) => item_data.as_span(),
-            Item::Enum(item_enum) => item_enum.as_span(),
-            Item::Fn(item_fn) => item_fn.as_span(),
-            Item::Mod(item_mod) => item_mod.as_span(),
-            Item::Use(item_use) => item_use.as_span(),
-            Item::MetaList(metas) => metas.as_span(),
+            Item::Class(item_class) => item_class.to_span(),
+            Item::Data(item_data) => item_data.to_span(),
+            Item::Enum(item_enum) => item_enum.to_span(),
+            Item::Fn(item_fn) => item_fn.to_span(),
+            Item::Mod(item_mod) => item_mod.to_span(),
+            Item::Use(item_use) => item_use.to_span(),
+            Item::MetaList(metas) => metas.to_span(),
         }
     }
 }
@@ -289,7 +290,7 @@ where
 mod tests {
     use parserc::{
         errors::ControlFlow,
-        inputs::{Span, lang::TokenStream},
+        lang::{Span, TokenStream},
         syntax::Delimiter,
     };
 
@@ -1020,8 +1021,8 @@ mod tests {
             Item::parse(TokenStream::from("pub use a")),
             Err(ControlFlow::Fatal(LangError::Expect {
                 kind: SyntaxKind::Token(";"),
-                span: Span { offset: 9, len: 0 },
-                item: Some(ItemKind::Use(Span { offset: 0, len: 9 }))
+                span: Span::Some { start: 9, end: 9 },
+                item: Some(ItemKind::Use(Span::Some { start: 0, end: 9 }))
             }))
         );
     }

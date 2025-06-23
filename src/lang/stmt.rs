@@ -1,13 +1,15 @@
 use parserc::{
-    inputs::lang::LangInput,
-    syntax::{AsSpan, Syntax},
+    lang::LangInput,
+    parser::Parser,
+    span::ToSpan,
+    syntax::{PartialSyntax, Syntax},
 };
 
 use crate::lang::{
     errors::LangError,
     expr::Expr,
     item::Item,
-    token::{Brace, S, TokenSemiColon},
+    token::{Brace, S, TokenLeftBrace, TokenSemiColon},
 };
 
 /// A statement, usually ending in a semicolon.
@@ -36,12 +38,12 @@ pub struct Stmts<I>(pub Vec<Stmt<I>>)
 where
     I: LangInput;
 
-impl<I> AsSpan for Stmts<I>
+impl<I> ToSpan<usize> for Stmts<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -78,10 +80,29 @@ pub struct Block<I>(pub Brace<I, Stmts<I>>)
 where
     I: LangInput;
 
+impl<I> PartialSyntax<I, LangError, TokenLeftBrace<I>> for Block<I>
+where
+    I: LangInput,
+{
+    fn parse_with_prefix(
+        prefix: TokenLeftBrace<I>,
+        input: I,
+    ) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+
+        let (s, input) = S::into_parser().ok().parse(input)?;
+        let start = (None, prefix, s);
+        let (body, input) = input.parse()?;
+        let (end, input) = input.parse()?;
+
+        Ok((Self(Brace { start, end, body }), input))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::{
-        inputs::lang::TokenStream,
+        lang::TokenStream,
         syntax::{Delimiter, Syntax},
     };
 

@@ -1,7 +1,8 @@
 use parserc::{
-    inputs::{SpanJoin, lang::LangInput},
+    lang::LangInput,
     parser::Parser,
-    syntax::{AsSpan, Punctuated, Syntax},
+    span::ToSpan,
+    syntax::{Punctuated, Syntax},
 };
 
 use crate::lang::{
@@ -83,12 +84,12 @@ where
     pub rest: Vec<(Option<S<I>>, TokenOr<I>, Option<S<I>>, Patt<I>)>,
 }
 
-impl<I> AsSpan for PattOr<I>
+impl<I> ToSpan<usize> for PattOr<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.first.as_span().join(self.rest.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.first.to_span() ^ self.rest.to_span()
     }
 }
 
@@ -169,23 +170,23 @@ where
     Or(PattOr<I>),
 }
 
-impl<I> AsSpan for Patt<I>
+impl<I> ToSpan<usize> for Patt<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
+    fn to_span(&self) -> parserc::lang::Span {
         match self {
-            Patt::Lit(lit) => lit.as_span(),
-            Patt::Rest(patt_rest) => patt_rest.as_span(),
-            Patt::Range(patt_range) => patt_range.as_span(),
-            Patt::Wild(patt_wild) => patt_wild.as_span(),
-            Patt::Type(patt_type) => patt_type.as_span(),
-            Patt::Slice(patt_slice) => patt_slice.as_span(),
-            Patt::Tuple(patt_tuple) => patt_tuple.as_span(),
-            Patt::TupleStruct(patt_tuple_struct) => patt_tuple_struct.as_span(),
-            Patt::Struct(patt_struct) => patt_struct.as_span(),
-            Patt::Path(type_path) => type_path.as_span(),
-            Patt::Or(patt_or) => patt_or.as_span(),
+            Patt::Lit(lit) => lit.to_span(),
+            Patt::Rest(patt_rest) => patt_rest.to_span(),
+            Patt::Range(patt_range) => patt_range.to_span(),
+            Patt::Wild(patt_wild) => patt_wild.to_span(),
+            Patt::Type(patt_type) => patt_type.to_span(),
+            Patt::Slice(patt_slice) => patt_slice.to_span(),
+            Patt::Tuple(patt_tuple) => patt_tuple.to_span(),
+            Patt::TupleStruct(patt_tuple_struct) => patt_tuple_struct.to_span(),
+            Patt::Struct(patt_struct) => patt_struct.to_span(),
+            Patt::Path(type_path) => type_path.to_span(),
+            Patt::Or(patt_or) => patt_or.to_span(),
         }
     }
 }
@@ -223,7 +224,7 @@ where
             (rhs, input) = PattUnary::into_parser()
                 .map(|v| Self::from(v))
                 .map_err(|_: LangError| {
-                    LangError::expect(SyntaxKind::RightOperand, input.as_span().unwrap())
+                    LangError::expect(SyntaxKind::RightOperand, input.to_span())
                 })
                 .parse(input.clone())?;
 
@@ -247,7 +248,7 @@ where
 #[cfg(test)]
 mod tests {
 
-    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
+    use parserc::{lang::TokenStream, syntax::Delimiter};
 
     use crate::lang::ty::Type;
 

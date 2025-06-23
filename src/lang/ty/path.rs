@@ -1,4 +1,4 @@
-use parserc::{inputs::lang::LangInput, syntax::Syntax};
+use parserc::{lang::LangInput, syntax::Syntax};
 
 use crate::lang::{errors::LangError, token::*};
 
@@ -19,7 +19,7 @@ where
 #[cfg(test)]
 mod tests {
 
-    use parserc::inputs::lang::TokenStream;
+    use parserc::lang::TokenStream;
 
     use super::*;
 

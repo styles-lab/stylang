@@ -2,8 +2,9 @@
 //!
 
 use parserc::parser::{Parser, keyword, next_if, take_while};
-use parserc::syntax::{AsSpan, Delimiter, Syntax, tokens};
-use parserc::{errors::ControlFlow, inputs::lang::LangInput};
+use parserc::span::ToSpan;
+use parserc::syntax::{Delimiter, Syntax, tokens};
+use parserc::{errors::ControlFlow, lang::LangInput};
 
 use crate::lang::errors::{LangError, SyntaxKind};
 
@@ -22,7 +23,7 @@ where
         if s.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::S,
-                input.as_span().unwrap(),
+                input.to_span(),
             )));
         }
 
@@ -30,12 +31,12 @@ where
     }
 }
 
-impl<I> AsSpan for S<I>
+impl<I> ToSpan<usize> for S<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -50,28 +51,25 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let mut content = input.clone();
-        let start = input.start().unwrap();
+        let start = input.start();
 
-        let span = input.as_span().unwrap();
+        let span = input.to_span();
         let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
             .map_err(|_: LangError| LangError::expect(SyntaxKind::Ident, span))
             .parse(input)?;
 
         let (_, input) = take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_').parse(input)?;
 
-        Ok((
-            Self(content.split_to(input.start().unwrap() - start)),
-            input,
-        ))
+        Ok((Self(content.split_to(input.start() - start)), input))
     }
 }
 
-impl<I> AsSpan for Ident<I>
+impl<I> ToSpan<usize> for Ident<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -86,30 +84,25 @@ where
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let mut content = input.clone();
-        let start = input.start().unwrap();
+        let start = input.start();
 
         let (_, input) = next_if(|c: u8| c.is_ascii_alphabetic() || c == b'_')
-            .map_err(|_: LangError| {
-                LangError::expect(SyntaxKind::XmlIdent, input.as_span().unwrap())
-            })
+            .map_err(|_: LangError| LangError::expect(SyntaxKind::XmlIdent, input.to_span()))
             .parse(input.clone())?;
 
         let (_, input) =
             take_while(|c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-').parse(input)?;
 
-        Ok((
-            Self(content.split_to(input.start().unwrap() - start)),
-            input,
-        ))
+        Ok((Self(content.split_to(input.start() - start)), input))
     }
 }
 
-impl<I> AsSpan for XmlIdent<I>
+impl<I> ToSpan<usize> for XmlIdent<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -128,7 +121,7 @@ where
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Digits,
-                input.as_span().unwrap(),
+                input.to_span(),
             )));
         }
 
@@ -136,12 +129,12 @@ where
     }
 }
 
-impl<I> AsSpan for Digits<I>
+impl<I> ToSpan<usize> for Digits<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -160,7 +153,7 @@ where
         if digits.is_empty() {
             return Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::HexDigits,
-                input.as_span().unwrap(),
+                input.to_span(),
             )));
         }
 
@@ -168,12 +161,12 @@ where
     }
 }
 
-impl<I> AsSpan for HexDigits<I>
+impl<I> ToSpan<usize> for HexDigits<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -187,7 +180,7 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let span = input.as_span().unwrap();
+        let span = input.to_span();
 
         keyword("E")
             .or(keyword("e"))
@@ -197,12 +190,12 @@ where
     }
 }
 
-impl<I> AsSpan for TokenExp<I>
+impl<I> ToSpan<usize> for TokenExp<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.0.as_span()
+    fn to_span(&self) -> parserc::lang::Span {
+        self.0.to_span()
     }
 }
 
@@ -366,7 +359,7 @@ pub type Paren<I, T> = Delimiter<
 #[cfg(test)]
 mod tests {
 
-    use parserc::inputs::{Span, lang::TokenStream};
+    use parserc::lang::{Span, TokenStream};
 
     use super::*;
 
@@ -381,7 +374,7 @@ mod tests {
             TokenColon::parse(TokenStream::from("::a")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token(":"),
-                Span { offset: 0, len: 3 }
+                Span::Some { start: 0, end: 3 }
             )))
         );
 
@@ -389,7 +382,7 @@ mod tests {
             TokenMinus::parse(TokenStream::from("->")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token("-"),
-                Span { offset: 0, len: 2 }
+                Span::Some { start: 0, end: 2 }
             )))
         );
 
@@ -397,7 +390,7 @@ mod tests {
             TokenMinus::parse(TokenStream::from("-=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token("-"),
-                Span { offset: 0, len: 2 }
+                Span::Some { start: 0, end: 2 }
             )))
         );
 
@@ -405,7 +398,7 @@ mod tests {
             TokenEq::parse(TokenStream::from("==")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token("="),
-                Span { offset: 0, len: 2 }
+                Span::Some { start: 0, end: 2 }
             )))
         );
 
@@ -413,7 +406,7 @@ mod tests {
             TokenNot::parse(TokenStream::from("!=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token("!"),
-                Span { offset: 0, len: 2 }
+                Span::Some { start: 0, end: 2 }
             )))
         );
 
@@ -421,7 +414,7 @@ mod tests {
             TokenLt::parse(TokenStream::from("<=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token("<"),
-                Span { offset: 0, len: 2 }
+                Span::Some { start: 0, end: 2 }
             )))
         );
 
@@ -429,7 +422,7 @@ mod tests {
             TokenGt::parse(TokenStream::from(">=")),
             Err(ControlFlow::Recovable(LangError::expect(
                 SyntaxKind::Token(">"),
-                Span { offset: 0, len: 2 }
+                Span::Some { start: 0, end: 2 }
             )))
         );
     }

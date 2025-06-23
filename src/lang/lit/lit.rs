@@ -1,4 +1,4 @@
-use parserc::{inputs::lang::LangInput, syntax::Syntax};
+use parserc::{lang::LangInput, syntax::Syntax};
 
 use crate::lang::{errors::LangError, token::TokenNone};
 

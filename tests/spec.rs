@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use parserc::inputs::lang::TokenStream;
+use parserc::lang::TokenStream;
 use stylang::lang::file::File;
 
 fn files(path: impl AsRef<Path>) -> Vec<PathBuf> {

@@ -1,9 +1,4 @@
-use parserc::{
-    errors::ControlFlow,
-    inputs::{SpanJoin, lang::LangInput},
-    parser::Parser,
-    syntax::{AsSpan, Syntax},
-};
+use parserc::{errors::ControlFlow, lang::LangInput, parser::Parser, span::ToSpan, syntax::Syntax};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
@@ -84,18 +79,17 @@ where
     pub unit: Option<Unit<I>>,
 }
 
-impl<I> AsSpan for LitNum<I>
+impl<I> ToSpan<usize> for LitNum<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.sign
-            .as_span()
-            .join(self.trunc.as_span())
-            .join(self.dot.as_span())
-            .join(self.fract.as_span())
-            .join(self.exp.as_span())
-            .join(self.unit.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.sign.to_span()
+            ^ self.trunc.to_span()
+            ^ self.dot.to_span()
+            ^ self.fract.to_span()
+            ^ self.exp.to_span()
+            ^ self.unit.to_span()
     }
 }
 
@@ -112,9 +106,7 @@ where
         let (trunc, dot, fract, input) = match (trunc, dot) {
             (trunc, Some(dot)) => {
                 let (fract, input) = Digits::into_parser()
-                    .map_err(|_: LangError| {
-                        LangError::expect(SyntaxKind::Digits, input.as_span().unwrap())
-                    })
+                    .map_err(|_: LangError| LangError::expect(SyntaxKind::Digits, input.to_span()))
                     .parse(input.clone())?;
 
                 (trunc, Some(dot), Some(fract), input)
@@ -122,7 +114,7 @@ where
             (None, None) => {
                 return Err(ControlFlow::Recovable(LangError::expect(
                     SyntaxKind::Digits,
-                    input.as_span().unwrap(),
+                    input.to_span(),
                 )));
             }
             (trunc, _) => (trunc, None, None, input),
@@ -163,7 +155,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::inputs::lang::TokenStream;
+
+    use parserc::lang::TokenStream;
 
     use super::*;
 

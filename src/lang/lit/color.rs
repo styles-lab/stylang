@@ -1,9 +1,4 @@
-use parserc::{
-    errors::ControlFlow,
-    inputs::{SpanJoin, lang::LangInput},
-    parser::Parser,
-    syntax::{AsSpan, Syntax},
-};
+use parserc::{errors::ControlFlow, lang::LangInput, parser::Parser, span::ToSpan, syntax::Syntax};
 
 use crate::lang::{
     errors::{LangError, SyntaxKind},
@@ -21,12 +16,12 @@ where
     pub digits: HexDigits<I>,
 }
 
-impl<I> AsSpan for HexColor<I>
+impl<I> ToSpan<usize> for HexColor<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.num_sign_token.as_span().join(self.digits.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.num_sign_token.to_span() ^ self.digits.to_span()
     }
 }
 
@@ -44,7 +39,7 @@ where
             _ => {
                 return Err(ControlFlow::Fatal(LangError::invalid(
                     SyntaxKind::HexColor,
-                    digits.0.as_span().unwrap(),
+                    digits.0.to_span(),
                 )));
             }
         }
@@ -80,12 +75,12 @@ where
     pub delimiter_end: (Option<S<I>>, TokenRightParen<I>, Option<S<I>>),
 }
 
-impl<I> AsSpan for RgbColor<I>
+impl<I> ToSpan<usize> for RgbColor<I>
 where
     I: LangInput,
 {
-    fn as_span(&self) -> Option<parserc::inputs::Span> {
-        self.rgb_token.as_span().join(self.delimiter_end.as_span())
+    fn to_span(&self) -> parserc::lang::Span {
+        self.rgb_token.to_span() ^ self.delimiter_end.to_span()
     }
 }
 
@@ -97,11 +92,11 @@ where
         match usize::from_str_radix(digits.as_str(), 10) {
             Ok(v) if v > 255 => Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                digits.as_span().unwrap(),
+                digits.to_span(),
             ))),
             Err(_) => Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                digits.as_span().unwrap(),
+                digits.to_span(),
             ))),
             Ok(_) => Ok(()),
         }
@@ -162,7 +157,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::inputs::{Span, lang::TokenStream};
+
+    use parserc::lang::{Span, TokenStream};
 
     use super::*;
 
@@ -197,7 +193,7 @@ mod tests {
             HexColor::parse(TokenStream::from("#ff")),
             Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::HexColor,
-                Span { offset: 1, len: 2 }
+                Span::Some { start: 1, end: 3 }
             )))
         );
 
@@ -205,7 +201,7 @@ mod tests {
             HexColor::parse(TokenStream::from("#ffff")),
             Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::HexColor,
-                Span { offset: 1, len: 4 }
+                Span::Some { start: 1, end: 5 }
             )))
         );
 
@@ -213,7 +209,7 @@ mod tests {
             HexColor::parse(TokenStream::from("#fffffff")),
             Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::HexColor,
-                Span { offset: 1, len: 7 }
+                Span::Some { start: 1, end: 8 }
             )))
         );
     }
@@ -252,7 +248,7 @@ mod tests {
             RgbColor::parse(TokenStream::from("rgb(1000,1,1)")),
             Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                Span { offset: 4, len: 4 }
+                Span::Some { start: 4, end: 8 }
             )))
         );
 
@@ -260,7 +256,7 @@ mod tests {
             RgbColor::parse(TokenStream::from("rgb(1,256,1)")),
             Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                Span { offset: 6, len: 3 }
+                Span::Some { start: 6, end: 9 }
             )))
         );
 
@@ -268,7 +264,7 @@ mod tests {
             RgbColor::parse(TokenStream::from("rgb(1,255,256)")),
             Err(ControlFlow::Fatal(LangError::invalid(
                 SyntaxKind::RgbDigits,
-                Span { offset: 10, len: 3 }
+                Span::Some { start: 10, end: 13 }
             )))
         );
     }
@@ -279,7 +275,7 @@ mod tests {
             RgbColor::parse(TokenStream::from("rgb(1,255,255")),
             Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::Token(")"),
-                Span { offset: 13, len: 0 }
+                Span::Some { start: 13, end: 13 }
             )))
         );
 
@@ -287,7 +283,7 @@ mod tests {
             RgbColor::parse(TokenStream::from("rgb(1,255)")),
             Err(ControlFlow::Fatal(LangError::expect(
                 SyntaxKind::Token(","),
-                Span { offset: 9, len: 1 }
+                Span::Some { start: 9, end: 10 }
             )))
         );
     }

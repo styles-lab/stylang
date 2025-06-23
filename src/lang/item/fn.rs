@@ -1,5 +1,5 @@
 use parserc::{
-    inputs::lang::LangInput,
+    lang::LangInput,
     syntax::{Punctuated, Syntax},
 };
 
@@ -80,7 +80,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use parserc::{inputs::lang::TokenStream, syntax::Delimiter};
+    use parserc::{lang::TokenStream, syntax::Delimiter};
 
     use crate::lang::{
         meta::{Attr, Comment, Meta, OuterLineDoc},
