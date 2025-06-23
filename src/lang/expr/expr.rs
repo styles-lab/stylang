@@ -7,7 +7,7 @@ use parserc::{
 
 use crate::lang::{
     errors::LangError,
-    expr::{ExprSlice, ExprTuple, ExprUnary, UnOp},
+    expr::{ExprLoop, ExprSlice, ExprTuple, ExprUnary, UnOp},
     lit::Lit,
     meta::MetaList,
     stmt::Block,
@@ -66,6 +66,8 @@ where
     Slice(ExprSlice<I>),
     /// A unary expression: `-expr` or `!expr`
     Unary(ExprUnary<I>),
+    /// A loop expression: `loop {...}`
+    Loop(ExprLoop<I>),
 }
 
 impl<I> ToSpan<usize> for Expr<I>
@@ -81,6 +83,7 @@ where
             Expr::TypePath(metas, ty) => metas.to_span() ^ ty.to_span(),
             Expr::Slice(expr) => expr.to_span(),
             Expr::Unary(expr) => expr.to_span(),
+            Expr::Loop(expr) => expr.to_span(),
         }
     }
 }
@@ -111,6 +114,10 @@ where
                     .map(|expr| Expr::Tuple(expr))
                     .parse(input)?
             }
+            Lookahead::Loop(keyword) => ExprLoop::into_parser_with_prefix((meta_list, keyword))
+                .fatal()
+                .map(|expr| Expr::Loop(expr))
+                .parse(input)?,
             Lookahead::UnOp(un_op) => ExprUnary::into_parser_with_prefix((meta_list, un_op))
                 .fatal()
                 .map(|expr| Expr::Unary(expr))

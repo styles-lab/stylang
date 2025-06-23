@@ -1,9 +1,15 @@
 use parserc::{
     lang::LangInput,
+    parser::Parser,
     syntax::{PartialSyntax, Syntax},
 };
 
-use crate::lang::{errors::LangError, lit::Exp, meta::MetaList, token::*};
+use crate::lang::{
+    errors::{LangError, SyntaxKind},
+    expr::Expr,
+    meta::MetaList,
+    token::*,
+};
 
 /// Unary ops: `!` or `-`
 #[derive(Debug, PartialEq, Clone, Syntax)]
@@ -30,7 +36,7 @@ where
     /// leading unary op
     pub op: (UnOp<I>, Option<S<I>>),
     /// The right-operand of unary expression.
-    pub operand: Box<Exp<I>>,
+    pub operand: Box<Expr<I>>,
 }
 
 impl<I> PartialSyntax<I, LangError, (MetaList<I>, UnOp<I>)> for ExprUnary<I>
@@ -45,7 +51,11 @@ where
 
         let (s, input) = input.parse()?;
         let op = (op, s);
-        let (operand, input) = input.ensure_parse()?;
+        let (operand, input) = Expr::into_parser()
+            .boxed()
+            .map_err(|_| LangError::expect(SyntaxKind::RightOperand, input.to_span()))
+            .fatal()
+            .parse(input.clone())?;
 
         Ok((
             Self {
@@ -55,5 +65,58 @@ where
             },
             input,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use parserc::{
+        errors::ControlFlow,
+        lang::{Span, TokenStream},
+        syntax::Syntax,
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_unary() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("-value")),
+            Ok((
+                Expr::Unary(ExprUnary {
+                    meta_list: vec![],
+                    op: (
+                        UnOp::Neg(TokenMinus(TokenStream {
+                            offset: 0,
+                            value: "-"
+                        })),
+                        None
+                    ),
+                    operand: Box::new(Expr::Ident(
+                        vec![],
+                        Ident(TokenStream {
+                            offset: 1,
+                            value: "value"
+                        })
+                    ))
+                }),
+                TokenStream {
+                    offset: 6,
+                    value: ""
+                }
+            ))
+        );
+    }
+
+    #[test]
+    fn unary_error_detect() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("!")),
+            Err(ControlFlow::Fatal(LangError::Expect {
+                kind: SyntaxKind::RightOperand,
+                span: Span::Some { start: 1, end: 1 },
+                item: None
+            }))
+        );
     }
 }
