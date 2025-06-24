@@ -7,7 +7,7 @@ use parserc::{
 
 use crate::lang::{
     errors::LangError,
-    expr::{ExprLoop, ExprSlice, ExprTuple, ExprUnary, UnOp},
+    expr::{ExprIf, ExprLoop, ExprSlice, ExprTuple, ExprUnary, ExprWhile, UnOp},
     lit::Lit,
     meta::MetaList,
     stmt::Block,
@@ -68,6 +68,10 @@ where
     Unary(ExprUnary<I>),
     /// A loop expression: `loop {...}`
     Loop(ExprLoop<I>),
+    /// A while expression: `while $cond {...}`
+    While(ExprWhile<I>),
+    /// A if expression: `if $cond {...} else ...`
+    If(ExprIf<I>),
 }
 
 impl<I> ToSpan<usize> for Expr<I>
@@ -76,14 +80,16 @@ where
 {
     fn to_span(&self) -> parserc::lang::Span {
         match self {
-            Expr::Ident(metas, ident) => metas.to_span() ^ ident.to_span(),
             Expr::Lit(metas, lit) => metas.to_span() ^ lit.to_span(),
+            Expr::Ident(metas, ident) => metas.to_span() ^ ident.to_span(),
             Expr::Block(metas, block) => metas.to_span() ^ block.to_span(),
             Expr::Tuple(expr_tuple) => expr_tuple.to_span(),
             Expr::TypePath(metas, ty) => metas.to_span() ^ ty.to_span(),
             Expr::Slice(expr) => expr.to_span(),
             Expr::Unary(expr) => expr.to_span(),
             Expr::Loop(expr) => expr.to_span(),
+            Expr::While(expr) => expr.to_span(),
+            Expr::If(expr) => expr.to_span(),
         }
     }
 }
@@ -117,6 +123,14 @@ where
             Lookahead::Loop(keyword) => ExprLoop::into_parser_with_prefix((meta_list, keyword))
                 .fatal()
                 .map(|expr| Expr::Loop(expr))
+                .parse(input)?,
+            Lookahead::While(keyword) => ExprWhile::into_parser_with_prefix((meta_list, keyword))
+                .fatal()
+                .map(|expr| Expr::While(expr))
+                .parse(input)?,
+            Lookahead::If(keyword) => ExprIf::into_parser_with_prefix((meta_list, keyword))
+                .fatal()
+                .map(|expr| Expr::If(expr))
                 .parse(input)?,
             Lookahead::UnOp(un_op) => ExprUnary::into_parser_with_prefix((meta_list, un_op))
                 .fatal()

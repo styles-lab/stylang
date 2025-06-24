@@ -209,4 +209,6 @@ pub enum SyntaxKind {
     Item,
     #[error("`slice init expr`")]
     ExprSlice,
+    #[error("`else ...`")]
+    ElseBranch,
 }
