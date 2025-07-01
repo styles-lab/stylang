@@ -22,8 +22,20 @@ pub enum XmlValue<I>
 where
     I: LangInput,
 {
-    Lit(Lit<I>),
-    Block(Block<I>),
+    Lit(MetaList<I>, Lit<I>),
+    Block(MetaList<I>, Block<I>),
+}
+
+impl<I> From<XmlValue<I>> for Box<Expr<I>>
+where
+    I: LangInput,
+{
+    fn from(value: XmlValue<I>) -> Self {
+        match value {
+            XmlValue::Lit(metas, lit) => Box::new(Expr::Lit(metas, lit)),
+            XmlValue::Block(metas, block) => Box::new(Expr::Block(metas, block)),
+        }
+    }
 }
 
 ///  Xml attr/value pair parser.
@@ -35,13 +47,14 @@ where
     I: LangInput,
 {
     /// required tag name.
-    pub ident: (S<I>, XmlIdent<I>),
+    pub ident: (Option<S<I>>, XmlIdent<I>),
     /// eq token: `=`
     #[fatal]
     pub eq_token: (Option<S<I>>, TokenEq<I>, Option<S<I>>),
     /// Value expr.
     #[fatal]
-    pub value: XmlValue<I>,
+    #[from(XmlValue)]
+    pub value: Box<Expr<I>>,
 }
 
 /// Xml start tag: `<a xxx="..." ...>`
@@ -163,6 +176,7 @@ where
             match node {
                 Expr::Xml(_) | Expr::If(_) => {}
                 _ => {
+                    println!("{:?}", children);
                     return Err(ControlFlow::Fatal(LangError::invalid(
                         SyntaxKind::XmlNode,
                         node.to_span(),
@@ -247,10 +261,10 @@ mod tests {
                         }),
                         values: vec![XmlAttr {
                             ident: (
-                                S(TokenStream {
+                                Some(S(TokenStream {
                                     offset: 19,
                                     value: "\n                    "
-                                }),
+                                })),
                                 XmlIdent(TokenStream {
                                     offset: 40,
                                     value: "hello"
@@ -264,10 +278,13 @@ mod tests {
                                 }),
                                 None
                             ),
-                            value: XmlValue::Lit(Lit::String(LitStr(TokenStream {
-                                offset: 47,
-                                value: "world"
-                            })))
+                            value: Box::new(Expr::Lit(
+                                vec![],
+                                Lit::String(LitStr(TokenStream {
+                                    offset: 47,
+                                    value: "world"
+                                }))
+                            ))
                         }],
                         delimiter_end: (
                             Some(S(TokenStream {

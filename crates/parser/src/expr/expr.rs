@@ -1,3 +1,5 @@
+use std::vec;
+
 use parserc::{
     lang::LangInput,
     parser::Parser,
@@ -6,8 +8,12 @@ use parserc::{
 };
 
 use crate::{
-    errors::LangError,
-    expr::{ExprIf, ExprLoop, ExprSlice, ExprTuple, ExprUnary, ExprWhile, ExprXml, UnOp},
+    errors::{LangError, SyntaxKind},
+    expr::{
+        AssignOp, BitsOp, BoolOp, CompOp, ExprAssign, ExprBits, ExprBool, ExprComp, ExprFactor,
+        ExprIf, ExprLet, ExprLoop, ExprPath, ExprSlice, ExprTerm, ExprTuple, ExprUnary, ExprWhile,
+        ExprXml, FactorOp, PathSegment, TermOp, UnOp,
+    },
     lit::Lit,
     meta::MetaList,
     stmt::Block,
@@ -33,6 +39,8 @@ where
     Lt(TokenLt<I>),
     /// A lookahead keyword `if`, corresponding syntax `ExprIf`.
     If(KeywordIf<I>),
+    /// A lookahead keyword `let`, corresponding syntax `ExprLet`.
+    Let(KeywordLet<I>),
     /// A lookahead keyword `while`, corresponding syntax `ExprWhile`.
     While(KeywordWhile<I>),
     /// A lookahead keyword `loop`, corresponding syntax `ExprLoop`.
@@ -43,6 +51,83 @@ where
     Lit(Lit<I>),
     /// A lookahead syntax [`TypePath`], corresponding syntax `ExprPath`.
     TypePath(TypePath<I>),
+}
+
+/// A lookahead parser for `Expr` parsing.
+#[derive(Debug, PartialEq, Clone, Syntax)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[error(LangError)]
+enum Infix<I>
+where
+    I: LangInput,
+{
+    /// See [`AssignOp`]
+    Assign(AssignOp<I>),
+    /// See [`BoolOp`]
+    Bool(BoolOp<I>),
+    /// See [`CompOp`]
+    Comp(CompOp<I>),
+    /// See [`BitsOp`]
+    Bits(BitsOp<I>),
+    /// See [`TermOp`]
+    Term(TermOp<I>),
+    /// See [`FactorOp`]
+    Factor(FactorOp<I>),
+    /// See [`PathSegment`]
+    PathSegment(PathSegment<I>),
+}
+
+impl<I> Infix<I>
+where
+    I: LangInput,
+{
+    fn priority(&self) -> usize {
+        match self {
+            Infix::Assign(_) => 0,
+            Infix::Bool(_) => 1,
+            Infix::Comp(_) => 2,
+            Infix::Bits(_) => 3,
+            Infix::Term(_) => 4,
+            Infix::Factor(_) => 5,
+            Infix::PathSegment(_) => 6,
+        }
+    }
+
+    fn merge(self, left: Expr<I>, right: Expr<I>) -> Expr<I> {
+        match self {
+            Infix::Assign(op) => Expr::Assign(ExprAssign {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            }),
+            Infix::Bool(op) => Expr::Bool(ExprBool {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            }),
+            Infix::Comp(op) => Expr::Comp(ExprComp {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            }),
+            Infix::Bits(op) => Expr::Bits(ExprBits {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            }),
+            Infix::Term(op) => Expr::Term(ExprTerm {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            }),
+            Infix::Factor(op) => Expr::Factor(ExprFactor {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+            }),
+            Infix::PathSegment(_) => unreachable!(),
+        }
+    }
 }
 
 /// In `stylang`, everything is expression.
@@ -74,6 +159,17 @@ where
     If(ExprIf<I>),
     /// A xml expression: `<a>...</a>`
     Xml(ExprXml<I>),
+    /// A path expression: `std::font::create()`
+    Path(ExprPath<I>),
+    // A let expression: `let xxx = ...`
+    Let(ExprLet<I>),
+
+    Assign(ExprAssign<I>),
+    Bool(ExprBool<I>),
+    Comp(ExprComp<I>),
+    Bits(ExprBits<I>),
+    Term(ExprTerm<I>),
+    Factor(ExprFactor<I>),
 }
 
 impl<I> ToSpan<usize> for Expr<I>
@@ -93,15 +189,23 @@ where
             Expr::While(expr) => expr.to_span(),
             Expr::If(expr) => expr.to_span(),
             Expr::Xml(expr) => expr.to_span(),
+            Expr::Path(expr) => expr.to_span(),
+            Expr::Let(expr) => expr.to_span(),
+            Expr::Assign(expr) => expr.to_span(),
+            Expr::Bool(expr) => expr.to_span(),
+            Expr::Bits(expr) => expr.to_span(),
+            Expr::Comp(expr) => expr.to_span(),
+            Expr::Term(expr) => expr.to_span(),
+            Expr::Factor(expr) => expr.to_span(),
         }
     }
 }
 
-impl<I> Syntax<I, LangError> for Expr<I>
+impl<I> Expr<I>
 where
     I: LangInput,
 {
-    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+    fn parse_simple_expr(input: I) -> parserc::errors::Result<Self, I, LangError> {
         let ((meta_list, lookahead), input) = <(MetaList<_>, Lookahead<_>)>::parse(input)?;
 
         let (expr, input) = match lookahead {
@@ -152,7 +256,79 @@ where
                 .fatal()
                 .map(|expr| Expr::Xml(expr))
                 .parse(input)?,
+            Lookahead::Let(keyword_let) => {
+                ExprLet::into_parser_with_prefix((meta_list, keyword_let))
+                    .fatal()
+                    .map(|expr| Expr::Let(expr))
+                    .parse(input)?
+            }
         };
+
+        Ok((expr, input))
+    }
+}
+
+impl<I> Syntax<I, LangError> for Expr<I>
+where
+    I: LangInput,
+{
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        let (mut expr, mut input) = Self::parse_simple_expr(input)?;
+
+        if let Expr::Loop(_) | Expr::Unary(_) | Expr::Let(_) | Expr::Xml(_) = expr {
+            return Ok((expr, input));
+        }
+
+        let mut cached: Vec<(Infix<I>, Expr<I>)> = vec![];
+
+        loop {
+            let infix;
+            (infix, input) = Infix::into_parser().ok().parse(input)?;
+
+            let Some(infix) = infix else {
+                break;
+            };
+
+            if let Infix::PathSegment(segment) = infix {
+                if let Some((infix, expr)) = cached.pop() {
+                    cached.push((
+                        infix,
+                        Expr::Path(ExprPath {
+                            expr: Box::new(expr),
+                            segment,
+                        }),
+                    ));
+                } else {
+                    expr = Expr::Path(ExprPath {
+                        expr: Box::new(expr),
+                        segment,
+                    });
+                }
+
+                continue;
+            }
+
+            let expand;
+            (expand, input) = Self::parse_simple_expr
+                .map_err(|_| LangError::expect(SyntaxKind::RightOperand, input.to_span()))
+                .fatal()
+                .parse(input.clone())?;
+
+            match cached.last() {
+                Some((last_infix, _)) if last_infix.priority() < infix.priority() => {
+                    let (last_infix, last_expr) = cached.pop().unwrap();
+
+                    cached.push((last_infix, infix.merge(last_expr, expand)));
+                }
+                _ => {
+                    cached.push((infix, expand));
+                }
+            }
+        }
+
+        for (infix, right) in cached {
+            expr = infix.merge(expr, right);
+        }
 
         Ok((expr, input))
     }

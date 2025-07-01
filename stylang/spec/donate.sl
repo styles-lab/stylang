@@ -7,11 +7,11 @@ fn main() -> view {
         <center>
             <column>
                 // core mod `web3`.
-                if web3::is_connected() {
-                    <label class="header" text="Sponsor styles-lab"/>
-                } else {
-                    <label class="header" text="Connect to Etherwallet to start donating"/>
-                }
+                // if web3::is_connected() {
+                //     <label class="header" text="Sponsor styles-lab"/>
+                // } else {
+                //     <label class="header" text="Connect to Etherwallet to start donating"/>
+                // }
 
                 <row>
                     <text-field text={value} prompt="Donate via ethereum network with a minimum donation of 0.1eth."/>
