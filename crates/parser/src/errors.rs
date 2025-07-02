@@ -217,8 +217,8 @@ pub enum SyntaxKind {
     Else,
     #[error("`if-branch`")]
     If,
-    #[error("`arm-expr`")]
-    ArmExpr,
+    #[error("`arm-patt`")]
+    ArmPatt,
     #[error("`arm-body`")]
     ArmBody,
     #[error("`match-expr`")]

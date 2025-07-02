@@ -196,7 +196,7 @@ where
     }
 }
 
-/// One arm of a match expression: 0..=10 => { return true; }.
+/// One arm of a match expression: `0..=10 => { return true; }`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[syntax(error = LangError)]
@@ -204,9 +204,10 @@ pub struct Arm<I>
 where
     I: LangInput,
 {
-    /// leading meta-data list.
+    /// meta-data list.
     pub meta_list: MetaList<I>,
     /// arm pattern.
+    #[try_filter(check_arm_patt)]
     pub patt: Patt<I>,
     /// token `=>`
     pub fat_arrow_token: (Option<S<I>>, TokenFatArrow<I>, Option<S<I>>),
@@ -216,6 +217,19 @@ where
     pub body: Box<Expr<I>>,
     /// optional comma separator.
     pub comma: Option<SepComma<I>>,
+}
+
+fn check_arm_patt<I>(patt: Patt<I>) -> Result<Patt<I>, ControlFlow<LangError>>
+where
+    I: LangInput,
+{
+    match &patt {
+        Patt::Type(_) | Patt::Path(_) => Err(ControlFlow::Fatal(LangError::unexpect(
+            SyntaxKind::ArmPatt,
+            patt.to_span(),
+        ))),
+        _ => Ok(patt),
+    }
 }
 
 /// expression `match $cond { $case => .., $case => ...} `
@@ -269,7 +283,7 @@ mod tests {
     };
 
     use crate::{
-        lit::{Lit, LitBool},
+        lit::{Lit, LitBool, LitStr},
         stmt::{Stmt, Stmts},
         token::{Ident, TokenLeftBrace, TokenRightBrace, TokenTrue},
     };
@@ -723,6 +737,105 @@ mod tests {
 
     #[test]
     fn test_match() {
-        println!("{:?}", Expr::parse(TokenStream::from(r#"match a { "a" }"#)));
+        assert_eq!(
+            Expr::parse(TokenStream::from(r#"match a { "a" => {} }"#)),
+            Ok((
+                Expr::Match(ExprMatch {
+                    meta_list: vec![],
+                    keyword: (
+                        KeywordMatch(TokenStream {
+                            offset: 0,
+                            value: "match"
+                        }),
+                        S(TokenStream {
+                            offset: 5,
+                            value: " "
+                        })
+                    ),
+                    expr: Box::new(Expr::Ident(
+                        vec![],
+                        Ident(TokenStream {
+                            offset: 6,
+                            value: "a"
+                        })
+                    )),
+                    arms: Delimiter {
+                        start: (
+                            Some(S(TokenStream {
+                                offset: 7,
+                                value: " "
+                            })),
+                            TokenLeftBrace(TokenStream {
+                                offset: 8,
+                                value: "{"
+                            }),
+                            Some(S(TokenStream {
+                                offset: 9,
+                                value: " "
+                            }))
+                        ),
+                        end: (
+                            None,
+                            TokenRightBrace(TokenStream {
+                                offset: 20,
+                                value: "}"
+                            }),
+                            None
+                        ),
+                        body: vec![Arm {
+                            meta_list: vec![],
+                            patt: Patt::Lit(Lit::String(LitStr(TokenStream {
+                                offset: 11,
+                                value: "a"
+                            }))),
+                            fat_arrow_token: (
+                                Some(S(TokenStream {
+                                    offset: 13,
+                                    value: " "
+                                })),
+                                TokenFatArrow(TokenStream {
+                                    offset: 14,
+                                    value: "=>"
+                                }),
+                                Some(S(TokenStream {
+                                    offset: 16,
+                                    value: " "
+                                }))
+                            ),
+                            body: Box::new(Expr::Block(
+                                vec![],
+                                Block(Delimiter {
+                                    start: (
+                                        None,
+                                        TokenLeftBrace(TokenStream {
+                                            offset: 17,
+                                            value: "{"
+                                        }),
+                                        None
+                                    ),
+                                    end: (
+                                        None,
+                                        TokenRightBrace(TokenStream {
+                                            offset: 18,
+                                            value: "}"
+                                        }),
+                                        Some(S(TokenStream {
+                                            offset: 19,
+                                            value: " "
+                                        }))
+                                    ),
+                                    body: Stmts(vec![])
+                                })
+                            )),
+                            comma: None
+                        }]
+                    }
+                }),
+                TokenStream {
+                    offset: 21,
+                    value: ""
+                }
+            ))
+        );
     }
 }
