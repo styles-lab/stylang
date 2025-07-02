@@ -196,6 +196,19 @@ where
     }
 }
 
+fn check_arm_patt<I>(patt: Patt<I>) -> Result<Patt<I>, ControlFlow<LangError>>
+where
+    I: LangInput,
+{
+    match &patt {
+        Patt::Type(_) | Patt::Path(_) => Err(ControlFlow::Fatal(LangError::unexpect(
+            SyntaxKind::ArmPatt,
+            patt.to_span(),
+        ))),
+        _ => Ok(patt),
+    }
+}
+
 /// One arm of a match expression: `0..=10 => { return true; }`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -217,19 +230,6 @@ where
     pub body: Box<Expr<I>>,
     /// optional comma separator.
     pub comma: Option<SepComma<I>>,
-}
-
-fn check_arm_patt<I>(patt: Patt<I>) -> Result<Patt<I>, ControlFlow<LangError>>
-where
-    I: LangInput,
-{
-    match &patt {
-        Patt::Type(_) | Patt::Path(_) => Err(ControlFlow::Fatal(LangError::unexpect(
-            SyntaxKind::ArmPatt,
-            patt.to_span(),
-        ))),
-        _ => Ok(patt),
-    }
 }
 
 /// expression `match $cond { $case => .., $case => ...} `

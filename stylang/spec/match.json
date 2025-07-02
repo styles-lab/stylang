@@ -60,11 +60,11 @@
           "end": [
             null,
             {
-              "offset": 50,
+              "offset": 89,
               "value": "}"
             },
             {
-              "offset": 51,
+              "offset": 90,
               "value": "\n"
             }
           ],
@@ -111,11 +111,11 @@
                       "end": [
                         null,
                         {
-                          "offset": 48,
+                          "offset": 87,
                           "value": "}"
                         },
                         {
-                          "offset": 49,
+                          "offset": 88,
                           "value": "\n"
                         }
                       ],
@@ -164,6 +164,116 @@
                                   },
                                   {
                                     "offset": 43,
+                                    "value": "\n        "
+                                  }
+                                ],
+                                "body": []
+                              }
+                            ]
+                          },
+                          "comma": null
+                        },
+                        {
+                          "meta_list": [],
+                          "patt": {
+                            "Lit": {
+                              "Bool": {
+                                "True": {
+                                  "offset": 52,
+                                  "value": "true"
+                                }
+                              }
+                            }
+                          },
+                          "fat_arrow_token": [
+                            {
+                              "offset": 56,
+                              "value": " "
+                            },
+                            {
+                              "offset": 57,
+                              "value": "=>"
+                            },
+                            {
+                              "offset": 59,
+                              "value": " "
+                            }
+                          ],
+                          "body": {
+                            "Block": [
+                              [],
+                              {
+                                "start": [
+                                  null,
+                                  {
+                                    "offset": 60,
+                                    "value": "{"
+                                  },
+                                  null
+                                ],
+                                "end": [
+                                  null,
+                                  {
+                                    "offset": 61,
+                                    "value": "}"
+                                  },
+                                  {
+                                    "offset": 62,
+                                    "value": "\n        "
+                                  }
+                                ],
+                                "body": []
+                              }
+                            ]
+                          },
+                          "comma": null
+                        },
+                        {
+                          "meta_list": [],
+                          "patt": {
+                            "Lit": {
+                              "Bool": {
+                                "False": {
+                                  "offset": 71,
+                                  "value": "false"
+                                }
+                              }
+                            }
+                          },
+                          "fat_arrow_token": [
+                            {
+                              "offset": 76,
+                              "value": " "
+                            },
+                            {
+                              "offset": 77,
+                              "value": "=>"
+                            },
+                            {
+                              "offset": 79,
+                              "value": " "
+                            }
+                          ],
+                          "body": {
+                            "Block": [
+                              [],
+                              {
+                                "start": [
+                                  null,
+                                  {
+                                    "offset": 80,
+                                    "value": "{"
+                                  },
+                                  null
+                                ],
+                                "end": [
+                                  null,
+                                  {
+                                    "offset": 81,
+                                    "value": "}"
+                                  },
+                                  {
+                                    "offset": 82,
                                     "value": "\n    "
                                   }
                                 ],
