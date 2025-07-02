@@ -2,6 +2,7 @@ use parserc::{
     errors::ControlFlow,
     lang::LangInput,
     parser::Parser,
+    span::{Span, ToSpan},
     syntax::{PartialSyntax, Syntax},
 };
 
@@ -9,8 +10,12 @@ use crate::{
     errors::{LangError, SyntaxKind},
     expr::Expr,
     meta::MetaList,
+    patt::Patt,
     stmt::Block,
-    token::{KeywordElse, KeywordIf, KeywordLoop, KeywordWhile, S},
+    token::{
+        Brace, KeywordElse, KeywordIf, KeywordLoop, KeywordMatch, KeywordWhile, S, SepComma,
+        TokenFatArrow,
+    },
 };
 
 /// expression `loop {...}`
@@ -197,6 +202,111 @@ where
     }
 }
 
+/// One arm of a match expression: 0..=10 => { return true; }.
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Arm<I>
+where
+    I: LangInput,
+{
+    /// leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// arm pattern.
+    pub patt: Patt<I>,
+    /// token `=>`
+    pub fat_arrow_token: (Option<S<I>>, TokenFatArrow<I>, Option<S<I>>),
+    /// arm body,
+    pub body: Box<Expr<I>>,
+    /// optional comma separator.
+    pub comma: Option<SepComma<I>>,
+}
+
+impl<I> ToSpan<usize> for Arm<I>
+where
+    I: LangInput,
+{
+    fn to_span(&self) -> Span<usize> {
+        self.meta_list.to_span() ^ self.patt.to_span() ^ self.body.to_span() ^ self.comma.to_span()
+    }
+}
+
+impl<I> Syntax<I, LangError> for Arm<I>
+where
+    I: LangInput,
+{
+    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+        let (meta_list, input) = MetaList::parse(input)?;
+        let (patt, input) = Patt::parse(input)?;
+        let (fat_arrow_token, input) = input.parse()?;
+
+        let span = input.to_span();
+
+        let (body, input) = Expr::into_parser()
+            .map_err(|_| LangError::expect(SyntaxKind::ArmBody, span))
+            .fatal()
+            .boxed()
+            .parse(input)?;
+
+        let (comma, input) = input.parse()?;
+
+        Ok((
+            Self {
+                meta_list,
+                patt,
+                fat_arrow_token,
+                body,
+                comma,
+            },
+            input,
+        ))
+    }
+}
+
+/// expression `match $cond { $case => .., $case => ...} `
+#[derive(Debug, PartialEq, Clone, Syntax)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[error(LangError)]
+pub struct ExprMatch<I>
+where
+    I: LangInput,
+{
+    /// optional leading meta-data list.
+    pub meta_list: MetaList<I>,
+    /// keyword `if`
+    pub keyword: (KeywordMatch<I>, S<I>),
+    /// condition expression: `a < b`,...
+    pub expr: Box<Expr<I>>,
+    /// arms delimited by a group of braces: `{ xxx => xxx, ...}`
+    pub arms: Brace<I, Vec<Arm<I>>>,
+}
+
+impl<I> PartialSyntax<I, LangError, (MetaList<I>, KeywordMatch<I>)> for ExprMatch<I>
+where
+    I: LangInput,
+{
+    fn parse_with_prefix(
+        (meta_list, keyword): (MetaList<I>, KeywordMatch<I>),
+        input: I,
+    ) -> parserc::errors::Result<Self, I, LangError> {
+        use parserc::syntax::SyntaxEx;
+        let (s, input) = input.ensure_parse()?;
+        let keyword = (keyword, s);
+        let (expr, input) = input.ensure_parse()?;
+        let (arms, input) = input.ensure_parse()?;
+
+        Ok((
+            Self {
+                meta_list,
+                keyword,
+                expr,
+                arms,
+            },
+            input,
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use parserc::{
@@ -221,6 +331,160 @@ mod tests {
                 span: Span::Some { start: 13, end: 14 },
                 item: None
             }))
+        );
+    }
+
+    #[test]
+    fn nest_if() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("if if a { b } else {c} {}")),
+            Ok((
+                Expr::If(ExprIf {
+                    meta_list: vec![],
+                    keyword: (
+                        KeywordIf(TokenStream {
+                            offset: 0,
+                            value: "if"
+                        }),
+                        S(TokenStream {
+                            offset: 2,
+                            value: " "
+                        })
+                    ),
+                    expr: Box::new(Expr::If(ExprIf {
+                        meta_list: vec![],
+                        keyword: (
+                            KeywordIf(TokenStream {
+                                offset: 3,
+                                value: "if"
+                            }),
+                            S(TokenStream {
+                                offset: 5,
+                                value: " "
+                            })
+                        ),
+                        expr: Box::new(Expr::Ident(
+                            vec![],
+                            Ident(TokenStream {
+                                offset: 6,
+                                value: "a"
+                            })
+                        )),
+                        if_branch: Block(Delimiter {
+                            start: (
+                                Some(S(TokenStream {
+                                    offset: 7,
+                                    value: " "
+                                })),
+                                TokenLeftBrace(TokenStream {
+                                    offset: 8,
+                                    value: "{"
+                                }),
+                                Some(S(TokenStream {
+                                    offset: 9,
+                                    value: " "
+                                }))
+                            ),
+                            end: (
+                                None,
+                                TokenRightBrace(TokenStream {
+                                    offset: 12,
+                                    value: "}"
+                                }),
+                                Some(S(TokenStream {
+                                    offset: 13,
+                                    value: " "
+                                }))
+                            ),
+                            body: Stmts(vec![Stmt::Expr(
+                                Expr::Ident(
+                                    vec![],
+                                    Ident(TokenStream {
+                                        offset: 10,
+                                        value: "b"
+                                    })
+                                ),
+                                Some(S(TokenStream {
+                                    offset: 11,
+                                    value: " "
+                                })),
+                                None,
+                                None
+                            )])
+                        }),
+                        else_branch: Some((
+                            KeywordElse(TokenStream {
+                                offset: 14,
+                                value: "else"
+                            }),
+                            S(TokenStream {
+                                offset: 18,
+                                value: " "
+                            }),
+                            Box::new(Expr::Block(
+                                vec![],
+                                Block(Delimiter {
+                                    start: (
+                                        None,
+                                        TokenLeftBrace(TokenStream {
+                                            offset: 19,
+                                            value: "{"
+                                        }),
+                                        None
+                                    ),
+                                    end: (
+                                        None,
+                                        TokenRightBrace(TokenStream {
+                                            offset: 21,
+                                            value: "}"
+                                        }),
+                                        Some(S(TokenStream {
+                                            offset: 22,
+                                            value: " "
+                                        }))
+                                    ),
+                                    body: Stmts(vec![Stmt::Expr(
+                                        Expr::Ident(
+                                            vec![],
+                                            Ident(TokenStream {
+                                                offset: 20,
+                                                value: "c"
+                                            })
+                                        ),
+                                        None,
+                                        None,
+                                        None
+                                    )])
+                                })
+                            ))
+                        ))
+                    })),
+                    if_branch: Block(Delimiter {
+                        start: (
+                            None,
+                            TokenLeftBrace(TokenStream {
+                                offset: 23,
+                                value: "{"
+                            }),
+                            None
+                        ),
+                        end: (
+                            None,
+                            TokenRightBrace(TokenStream {
+                                offset: 24,
+                                value: "}"
+                            }),
+                            None
+                        ),
+                        body: Stmts(vec![])
+                    }),
+                    else_branch: None
+                }),
+                TokenStream {
+                    offset: 25,
+                    value: ""
+                }
+            ))
         );
     }
 
@@ -501,5 +765,10 @@ mod tests {
                 }
             ))
         );
+    }
+
+    #[test]
+    fn test_match() {
+        println!("{:?}", Expr::parse(TokenStream::from(r#"match a { "a" }"#)));
     }
 }

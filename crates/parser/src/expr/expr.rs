@@ -11,8 +11,8 @@ use crate::{
     errors::{LangError, SyntaxKind},
     expr::{
         AssignOp, BitsOp, BoolOp, CompOp, ExprAssign, ExprBits, ExprBool, ExprComp, ExprFactor,
-        ExprIf, ExprLet, ExprLoop, ExprPath, ExprSlice, ExprTerm, ExprTuple, ExprUnary, ExprWhile,
-        ExprXml, FactorOp, PathSegment, TermOp, UnOp,
+        ExprIf, ExprLet, ExprLoop, ExprMatch, ExprPath, ExprSlice, ExprTerm, ExprTuple, ExprUnary,
+        ExprWhile, ExprXml, FactorOp, PathSegment, TermOp, UnOp,
     },
     lit::Lit,
     meta::MetaList,
@@ -45,6 +45,8 @@ where
     While(KeywordWhile<I>),
     /// A lookahead keyword `loop`, corresponding syntax `ExprLoop`.
     Loop(KeywordLoop<I>),
+    /// A lookahead keyword `match` corresponding syntax `ExprMatch`.
+    Match(KeywordMatch<I>),
     /// A lookahead token `!` or `-`, corresponding syntax `ExprUnary`.
     UnOp(UnOp<I>),
     /// A lookahead syntax [`Lit`], corresponding syntax `ExprPath`.
@@ -163,13 +165,20 @@ where
     Path(ExprPath<I>),
     // A let expression: `let xxx = ...`
     Let(ExprLet<I>),
-
+    /// A assign expression.
     Assign(ExprAssign<I>),
+    /// A bool expression: `a && b` or `a || b`
     Bool(ExprBool<I>),
+    /// A compare expression: `a > b`,...
     Comp(ExprComp<I>),
+    /// A bits expression: `a ^ b`,...
     Bits(ExprBits<I>),
+    /// A term expression: `a + b`,...
     Term(ExprTerm<I>),
+    /// A factor expression: `a * b`,...
     Factor(ExprFactor<I>),
+    /// A match expression: `match ...`
+    Match(ExprMatch<I>),
 }
 
 impl<I> ToSpan<usize> for Expr<I>
@@ -197,6 +206,7 @@ where
             Expr::Comp(expr) => expr.to_span(),
             Expr::Term(expr) => expr.to_span(),
             Expr::Factor(expr) => expr.to_span(),
+            Expr::Match(expr) => expr.to_span(),
         }
     }
 }
@@ -260,6 +270,12 @@ where
                 ExprLet::into_parser_with_prefix((meta_list, keyword_let))
                     .fatal()
                     .map(|expr| Expr::Let(expr))
+                    .parse(input)?
+            }
+            Lookahead::Match(keyword_match) => {
+                ExprMatch::into_parser_with_prefix((meta_list, keyword_match))
+                    .fatal()
+                    .map(|expr| Expr::Match(expr))
                     .parse(input)?
             }
         };

@@ -337,6 +337,18 @@ mod tests {
     }
 
     #[test]
+    fn binary_errors() {
+        assert_eq!(
+            Expr::parse(TokenStream::from("a - ")),
+            Err(ControlFlow::Fatal(LangError::Expect {
+                kind: SyntaxKind::RightOperand,
+                span: Span::Some { start: 4, end: 4 },
+                item: None
+            }))
+        );
+    }
+
+    #[test]
     fn test_binary() {
         assert_eq!(
             Expr::parse(TokenStream::from("a + b * c / 3 + 4")),

@@ -1,0 +1,190 @@
+[
+  {
+    "Fn": {
+      "meta_list": [],
+      "extern_keyword": null,
+      "vs": null,
+      "fn_keyword": [
+        {
+          "offset": 0,
+          "value": "fn"
+        },
+        {
+          "offset": 2,
+          "value": " "
+        }
+      ],
+      "ident": {
+        "offset": 3,
+        "value": "main"
+      },
+      "params": {
+        "start": [
+          null,
+          {
+            "offset": 7,
+            "value": "("
+          },
+          null
+        ],
+        "end": [
+          null,
+          {
+            "offset": 8,
+            "value": ")"
+          },
+          {
+            "offset": 9,
+            "value": " "
+          }
+        ],
+        "body": {
+          "pairs": [],
+          "tail": null
+        }
+      },
+      "return_ty": null,
+      "body": {
+        "Block": {
+          "start": [
+            null,
+            {
+              "offset": 10,
+              "value": "{"
+            },
+            {
+              "offset": 11,
+              "value": "\n    "
+            }
+          ],
+          "end": [
+            null,
+            {
+              "offset": 50,
+              "value": "}"
+            },
+            {
+              "offset": 51,
+              "value": "\n"
+            }
+          ],
+          "body": [
+            {
+              "Expr": [
+                {
+                  "Match": {
+                    "meta_list": [],
+                    "keyword": [
+                      {
+                        "offset": 16,
+                        "value": "match"
+                      },
+                      {
+                        "offset": 21,
+                        "value": " "
+                      }
+                    ],
+                    "expr": {
+                      "Ident": [
+                        [],
+                        {
+                          "offset": 22,
+                          "value": "a"
+                        }
+                      ]
+                    },
+                    "arms": {
+                      "start": [
+                        {
+                          "offset": 23,
+                          "value": " "
+                        },
+                        {
+                          "offset": 24,
+                          "value": "{"
+                        },
+                        {
+                          "offset": 25,
+                          "value": "\n        "
+                        }
+                      ],
+                      "end": [
+                        null,
+                        {
+                          "offset": 48,
+                          "value": "}"
+                        },
+                        {
+                          "offset": 49,
+                          "value": "\n"
+                        }
+                      ],
+                      "body": [
+                        {
+                          "meta_list": [],
+                          "patt": {
+                            "Lit": {
+                              "String": {
+                                "offset": 35,
+                                "value": "a"
+                              }
+                            }
+                          },
+                          "fat_arrow_token": [
+                            {
+                              "offset": 37,
+                              "value": " "
+                            },
+                            {
+                              "offset": 38,
+                              "value": "=>"
+                            },
+                            {
+                              "offset": 40,
+                              "value": " "
+                            }
+                          ],
+                          "body": {
+                            "Block": [
+                              [],
+                              {
+                                "start": [
+                                  null,
+                                  {
+                                    "offset": 41,
+                                    "value": "{"
+                                  },
+                                  null
+                                ],
+                                "end": [
+                                  null,
+                                  {
+                                    "offset": 42,
+                                    "value": "}"
+                                  },
+                                  {
+                                    "offset": 43,
+                                    "value": "\n    "
+                                  }
+                                ],
+                                "body": []
+                              }
+                            ]
+                          },
+                          "comma": null
+                        }
+                      ]
+                    }
+                  }
+                },
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+]
