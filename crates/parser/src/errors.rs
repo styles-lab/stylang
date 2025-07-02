@@ -1,6 +1,6 @@
 //! Types associated with error reporting by this module.
 
-use parserc::{errors::ErrorKind, lang::Span};
+use parserc::{errors::ErrorKind, lang::Span, span::ToSpan};
 
 /// Error variants return by compiler frontend.
 #[derive(Debug, thiserror::Error, PartialEq)]
@@ -116,6 +116,30 @@ impl From<(LangError, ItemKind)> for LangError {
                 item: Some(value.1),
             },
             parserc => parserc,
+        }
+    }
+}
+
+impl ToSpan<usize> for LangError {
+    fn to_span(&self) -> parserc::span::Span<usize> {
+        match self {
+            LangError::Fallback(error_kind) => error_kind.to_span(),
+            LangError::Unexpect {
+                kind: _,
+                span,
+                item: _,
+            } => span.clone(),
+            LangError::Expect {
+                kind: _,
+                span,
+                item: _,
+            } => span.clone(),
+            LangError::Invalid {
+                kind: _,
+                span,
+                item: _,
+            } => span.clone(),
+            LangError::Unparsed(span) => span.clone(),
         }
     }
 }

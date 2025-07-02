@@ -2,7 +2,7 @@ use parserc::{
     errors::{ControlFlow, MapFatal as _},
     lang::LangInput,
     parser::Parser,
-    span::{Span, ToSpan},
+    span::ToSpan,
     syntax::{PartialSyntax, Syntax},
 };
 
@@ -197,8 +197,9 @@ where
 }
 
 /// One arm of a match expression: 0..=10 => { return true; }.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[syntax(error = LangError)]
 pub struct Arm<I>
 where
     I: LangInput,
@@ -210,50 +211,11 @@ where
     /// token `=>`
     pub fat_arrow_token: (Option<S<I>>, TokenFatArrow<I>, Option<S<I>>),
     /// arm body,
+    #[fatal]
+    #[map_err(|err: LangError| LangError::expect(SyntaxKind::ArmBody, err.to_span()))]
     pub body: Box<Expr<I>>,
     /// optional comma separator.
     pub comma: Option<SepComma<I>>,
-}
-
-impl<I> ToSpan<usize> for Arm<I>
-where
-    I: LangInput,
-{
-    fn to_span(&self) -> Span<usize> {
-        self.meta_list.to_span() ^ self.patt.to_span() ^ self.body.to_span() ^ self.comma.to_span()
-    }
-}
-
-impl<I> Syntax<I, LangError> for Arm<I>
-where
-    I: LangInput,
-{
-    fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        let (meta_list, input) = MetaList::parse(input)?;
-        let (patt, input) = Patt::parse(input)?;
-        let (fat_arrow_token, input) = input.parse()?;
-
-        let span = input.to_span();
-
-        let (body, input) = Expr::into_parser()
-            .map_err(|_| LangError::expect(SyntaxKind::ArmBody, span))
-            .fatal()
-            .boxed()
-            .parse(input)?;
-
-        let (comma, input) = input.parse()?;
-
-        Ok((
-            Self {
-                meta_list,
-                patt,
-                fat_arrow_token,
-                body,
-                comma,
-            },
-            input,
-        ))
-    }
 }
 
 /// expression `match $cond { $case => .., $case => ...} `
