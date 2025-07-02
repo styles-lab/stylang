@@ -1,5 +1,5 @@
 use parserc::{
-    errors::ControlFlow,
+    errors::{ControlFlow, MapFatal as _},
     lang::LangInput,
     parser::Parser,
     span::{Span, ToSpan},
@@ -21,7 +21,7 @@ use crate::{
 /// expression `loop {...}`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprLoop<I>
 where
     I: LangInput,
@@ -42,8 +42,6 @@ where
         (meta_list, keyword): (MetaList<I>, KeywordLoop<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (s, input) = input.parse()?;
         let keyword = (keyword, s);
         let (body, input) = Block::into_parser()
@@ -65,7 +63,7 @@ where
 /// expression `loop {...}`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprWhile<I>
 where
     I: LangInput,
@@ -88,8 +86,6 @@ where
         (meta_list, keyword): (MetaList<I>, KeywordWhile<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (s, input) = input.parse()?;
         let keyword = (keyword, s);
         let (expr, input) = Expr::into_parser()
@@ -118,7 +114,7 @@ where
 /// expression `if $cond {...} else ...`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprIf<I>
 where
     I: LangInput,
@@ -143,9 +139,7 @@ where
         (meta_list, keyword): (MetaList<I>, KeywordIf<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
-        let (s, input) = input.ensure_parse()?;
+        let (s, input) = input.parse().fatal()?;
         let keyword = (keyword, s);
         let (expr, input) = Expr::into_parser()
             .boxed()
@@ -173,7 +167,7 @@ where
             ));
         };
 
-        let (s, input) = input.ensure_parse()?;
+        let (s, input) = input.parse().fatal()?;
 
         let span = input.to_span();
 
@@ -235,7 +229,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
         let (meta_list, input) = MetaList::parse(input)?;
         let (patt, input) = Patt::parse(input)?;
         let (fat_arrow_token, input) = input.parse()?;
@@ -266,7 +259,7 @@ where
 /// expression `match $cond { $case => .., $case => ...} `
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprMatch<I>
 where
     I: LangInput,
@@ -289,11 +282,10 @@ where
         (meta_list, keyword): (MetaList<I>, KeywordMatch<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-        let (s, input) = input.ensure_parse()?;
+        let (s, input) = input.parse().fatal()?;
         let keyword = (keyword, s);
-        let (expr, input) = input.ensure_parse()?;
-        let (arms, input) = input.ensure_parse()?;
+        let (expr, input) = input.parse().fatal()?;
+        let (arms, input) = input.parse().fatal()?;
 
         Ok((
             Self {

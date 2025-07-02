@@ -22,7 +22,7 @@ pub type PattPath<I> = TypePath<I>;
 /// A tuple pattern: (a, b),(a | b),...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattTuple<I>(pub Paren<I, Punctuated<Patt<I>, SepComma<I>>>)
 where
     I: LangInput;
@@ -30,7 +30,7 @@ where
 /// A dynamically sized slice pattern: [a, b,.., y, z].
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattSlice<I>(Bracket<I, Punctuated<Patt<I>, SepComma<I>>>)
 where
     I: LangInput;
@@ -38,7 +38,7 @@ where
 /// A pattern that matches any value: `_`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattWild<I>(pub TokenUnderscore<I>)
 where
     I: LangInput;
@@ -46,7 +46,7 @@ where
 /// A tuple struct or tuple variant pattern: $path(x, y, .., z).
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattTupleStruct<I>
 where
     I: LangInput,
@@ -60,7 +60,7 @@ where
 /// A tuple struct or tuple variant pattern: $path { x, y, .., z}.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattStruct<I>
 where
     I: LangInput,
@@ -95,7 +95,7 @@ where
 
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub(super) enum PattUnary<I>
 where
     I: LangInput,

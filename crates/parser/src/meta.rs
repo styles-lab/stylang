@@ -12,7 +12,7 @@ use crate::{errors::LangError, lit::Lit, token::*};
 /// Parsing attribute metadata: `@platform`, `@sol("./erc20.json")`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct Attr<I>
 where
     I: LangInput,
@@ -45,7 +45,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
         let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_till(|c| c == b'\n').parse(input)?;
         let (delimiter_end, input) = TokenNewLine::into_parser().ok().parse(input)?;
@@ -99,7 +98,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
         let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_till(|c| c == b'\n').parse(input)?;
         let (delimiter_end, input) = TokenNewLine::into_parser().ok().parse(input)?;
@@ -144,7 +142,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
         let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_until("*/").parse(input)?;
         let (delimiter_end, input) = TokenBlockEnd::into_parser().fatal().parse(input)?;
@@ -189,8 +186,6 @@ where
     I: LangInput,
 {
     fn parse(input: I) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (delimiter_start, input) = input.parse()?;
         let (inline, input) = take_until("*/").parse(input)?;
         let (delimiter_end, input) = TokenBlockEnd::into_parser().fatal().parse(input)?;
@@ -209,7 +204,7 @@ where
 /// Parser for comments and docs.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Comment<I>
 where
     I: LangInput,
@@ -226,7 +221,7 @@ pub type Comments<I> = Vec<Comment<I>>;
 /// Metadata parser for comment/doc/attr/...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Meta<I>
 where
     I: LangInput,

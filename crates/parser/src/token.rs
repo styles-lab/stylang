@@ -202,8 +202,7 @@ where
 /// Limit types of a range, inclusive or exclusive.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[input(I)]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum RangeLimits<I>
 where
     I: LangInput,

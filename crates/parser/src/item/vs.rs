@@ -5,7 +5,7 @@ use crate::{errors::LangError, token::*};
 /// Optional scope for visibility level `pub`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Scope<I>
 where
     I: LangInput,
@@ -17,7 +17,7 @@ where
 /// The visibility level of an item: `pub`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Visibility<I>
 where
     I: LangInput,

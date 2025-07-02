@@ -8,7 +8,7 @@ use crate::{errors::LangError, expr::Expr, meta::MetaList, token::*};
 /// A tuple expression parser: `(expr)`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprTuple<I>
 where
     I: LangInput,
@@ -28,8 +28,6 @@ where
         (meta_list, token_left_paren): (MetaList<I>, TokenLeftParen<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (s, input) = input.parse()?;
         let start = (None, token_left_paren, s);
         let (body, input) = input.parse()?;

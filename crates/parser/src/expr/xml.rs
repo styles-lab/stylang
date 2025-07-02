@@ -1,5 +1,5 @@
 use parserc::{
-    errors::ControlFlow,
+    errors::{ControlFlow, MapFatal as _},
     lang::LangInput,
     span::ToSpan,
     syntax::{Or, PartialSyntax, Syntax},
@@ -17,7 +17,7 @@ use crate::{
 /// Xml attribute value parser.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum XmlValue<I>
 where
     I: LangInput,
@@ -41,7 +41,7 @@ where
 ///  Xml attr/value pair parser.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct XmlAttr<I>
 where
     I: LangInput,
@@ -53,14 +53,14 @@ where
     pub eq_token: (Option<S<I>>, TokenEq<I>, Option<S<I>>),
     /// Value expr.
     #[fatal]
-    #[from(XmlValue)]
+    #[from(XmlValue<_>)]
     pub value: Box<Expr<I>>,
 }
 
 /// Xml start tag: `<a xxx="..." ...>`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct XmlStart<I>
 where
     I: LangInput,
@@ -85,13 +85,11 @@ where
         delimiter_start: TokenLt<I>,
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (s, input) = input.parse()?;
         let delimiter_start = (delimiter_start, s);
         let (ident, input) = input.parse()?;
         let (values, input) = input.parse()?;
-        let (delimiter_end, input) = input.ensure_parse()?;
+        let (delimiter_end, input) = input.parse().fatal()?;
 
         Ok((
             Self {
@@ -108,7 +106,7 @@ where
 /// Xml end tag: `</xxx>`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct XmlEnd<I>
 where
     I: LangInput,
@@ -155,8 +153,6 @@ where
         (meta_list, token_lt): (MetaList<I>, TokenLt<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (start, input) = XmlStart::parse_with_prefix(token_lt, input)?;
 
         if let Or::First(_) = &start.delimiter_end.1 {
@@ -170,7 +166,7 @@ where
             ));
         }
 
-        let (children, input): (Vec<Expr<I>>, I) = input.ensure_parse()?;
+        let (children, input): (Vec<Expr<I>>, I) = input.parse().fatal()?;
 
         for node in children.iter() {
             match node {
@@ -186,7 +182,7 @@ where
         }
 
         let span = input.to_span();
-        let (end, input): (XmlEnd<I>, I) = input.ensure_parse()?;
+        let (end, input): (XmlEnd<I>, I) = input.parse().fatal()?;
 
         if end.ident.0.as_str() != start.ident.0.as_str() {
             return Err(ControlFlow::Fatal(LangError::expect(

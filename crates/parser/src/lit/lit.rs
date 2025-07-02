@@ -7,7 +7,7 @@ use super::*;
 /// A literial value.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Lit<I>
 where
     I: LangInput,

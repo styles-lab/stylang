@@ -11,7 +11,7 @@ use crate::{
 /// Formal parameter for [`ItemFn`]
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct Param<I>
 where
     I: LangInput,
@@ -25,7 +25,7 @@ where
 /// Body block for [`ItemFn`]
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Body<I>
 where
     I: LangInput,
@@ -39,7 +39,7 @@ where
 /// Item parser for `free function` item.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ReturnType<I>
 where
     I: LangInput,
@@ -52,7 +52,7 @@ where
 /// Item parser for `free function` item.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ItemFn<I>
 where
     I: LangInput,

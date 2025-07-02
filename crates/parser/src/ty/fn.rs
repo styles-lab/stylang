@@ -8,8 +8,7 @@ use crate::{errors::LangError, token::*, ty::Type};
 /// The parser for num types: `i32`,`f32`,`i128`,..
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[input(I)]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct TypeFn<I>
 where
     I: LangInput,

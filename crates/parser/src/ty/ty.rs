@@ -9,7 +9,7 @@ use crate::{
 /// The parser of array type: [ty;N]
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct TypeArray<I>(
     Bracket<
         I,
@@ -28,7 +28,7 @@ where
 /// The parser of slice type: [ty]
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct TypeSlice<I>(Bracket<I, Box<Type<I>>>)
 where
     I: LangInput;
@@ -36,7 +36,7 @@ where
 /// The parser for `stylang` types.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Type<I>
 where
     I: LangInput,

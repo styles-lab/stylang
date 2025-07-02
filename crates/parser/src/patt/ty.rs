@@ -9,7 +9,7 @@ use crate::{
 /// A type ascription pattern: foo: f64.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattType<I>
 where
     I: LangInput,

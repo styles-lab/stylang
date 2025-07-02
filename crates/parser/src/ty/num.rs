@@ -5,8 +5,7 @@ use crate::{errors::LangError, token::*};
 /// The parser for num types: `i32`,`f32`,`i128`,..
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[input(I)]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum TypeNum<I>
 where
     I: LangInput,

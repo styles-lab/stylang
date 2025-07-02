@@ -1,4 +1,5 @@
 use parserc::{
+    errors::MapFatal as _,
     lang::LangInput,
     syntax::{PartialSyntax, Syntax},
 };
@@ -14,7 +15,7 @@ use crate::{
 /// expression `let xxx=xxx`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprLet<I>
 where
     I: LangInput,
@@ -41,13 +42,12 @@ where
         (meta_list, keyword): (MetaList<I>, KeywordLet<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-        let (s, input) = input.ensure_parse()?;
+        let (s, input) = input.parse().fatal()?;
         let keyword = (keyword, s);
-        let (patt_meta_list, input) = input.ensure_parse()?;
-        let (patt, input) = input.ensure_parse()?;
-        let (eq_token, input) = input.ensure_parse()?;
-        let (expr, input) = input.ensure_parse()?;
+        let (patt_meta_list, input) = input.parse().fatal()?;
+        let (patt, input) = input.parse().fatal()?;
+        let (eq_token, input) = input.parse().fatal()?;
+        let (expr, input) = input.parse().fatal()?;
 
         Ok((
             Self {

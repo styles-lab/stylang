@@ -17,7 +17,7 @@ use crate::{
 /// Name field for `class` or `data`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct NameField<I>
 where
     I: LangInput,
@@ -31,7 +31,7 @@ where
 /// Uname field for `class` or `data`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct UnameField<I>
 where
     I: LangInput,
@@ -45,7 +45,7 @@ where
 /// Name field for `class` or `data`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Fields<I>
 where
     I: LangInput,
@@ -60,7 +60,7 @@ where
 /// Item `class`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ItemClass<I>
 where
     I: LangInput,
@@ -82,7 +82,7 @@ where
 /// Item `data`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ItemData<I>
 where
     I: LangInput,
@@ -104,7 +104,7 @@ where
 /// Name field for `class` or `data`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum VariantFields<I>
 where
     I: LangInput,
@@ -116,7 +116,7 @@ where
 /// Field for [`ItemEnum`]
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct Variant<I>
 where
     I: LangInput,
@@ -132,7 +132,7 @@ where
 /// Item `enum`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ItemEnum<I>
 where
     I: LangInput,
@@ -154,7 +154,7 @@ where
 /// Item `mod`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ItemMod<I>
 where
     I: LangInput,
@@ -176,7 +176,7 @@ where
 /// Path used by `ItemUse`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct UsePath<I>
 where
     I: LangInput,
@@ -193,7 +193,7 @@ where
 
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum UseSegment<I>
 where
     I: LangInput,
@@ -206,7 +206,7 @@ where
 /// Item `use`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ItemUse<I>
 where
     I: LangInput,

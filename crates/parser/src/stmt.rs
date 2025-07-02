@@ -15,7 +15,7 @@ use crate::{
 /// A statement, usually ending in a semicolon.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Stmt<I>
 where
     I: LangInput,
@@ -75,7 +75,7 @@ where
 /// stmts group by `{..}`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct Block<I>(pub Brace<I, Stmts<I>>)
 where
     I: LangInput;
@@ -88,8 +88,6 @@ where
         prefix: TokenLeftBrace<I>,
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (s, input) = S::into_parser().ok().parse(input)?;
         let start = (None, prefix, s);
         let (body, input) = input.parse()?;

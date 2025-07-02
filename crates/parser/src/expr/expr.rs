@@ -24,7 +24,7 @@ use crate::{
 /// A lookahead parser for `Expr` parsing.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 enum Lookahead<I>
 where
     I: LangInput,
@@ -58,7 +58,7 @@ where
 /// A lookahead parser for `Expr` parsing.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 enum Infix<I>
 where
     I: LangInput,

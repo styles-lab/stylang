@@ -14,7 +14,7 @@ use crate::{
 /// Unary ops: `!` or `-`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum UnOp<I>
 where
     I: LangInput,
@@ -26,7 +26,7 @@ where
 /// Unary ops.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprUnary<I>
 where
     I: LangInput,
@@ -47,8 +47,6 @@ where
         (meta_list, op): (MetaList<I>, UnOp<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
-
         let (s, input) = input.parse()?;
         let op = (op, s);
         let (operand, input) = Expr::into_parser()
@@ -71,7 +69,7 @@ where
 /// Ops: `&=`,`=`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum AssignOp<I>
 where
     I: LangInput,
@@ -103,7 +101,7 @@ where
 /// assign expression.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprAssign<I>
 where
     I: LangInput,
@@ -119,7 +117,7 @@ where
 /// Ops: `||`,`&&`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum BoolOp<I>
 where
     I: LangInput,
@@ -133,7 +131,7 @@ where
 /// bool expression.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprBool<I>
 where
     I: LangInput,
@@ -149,7 +147,7 @@ where
 /// compare ops: `==`,`<`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum CompOp<I>
 where
     I: LangInput,
@@ -171,7 +169,7 @@ where
 /// compare expression.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprComp<I>
 where
     I: LangInput,
@@ -187,7 +185,7 @@ where
 /// Ops: `^`,`<<`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum BitsOp<I>
 where
     I: LangInput,
@@ -207,7 +205,7 @@ where
 /// expr `a ^ b`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprBits<I>
 where
     I: LangInput,
@@ -223,7 +221,7 @@ where
 /// ops: `+`,`-`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum TermOp<I>
 where
     I: LangInput,
@@ -237,7 +235,7 @@ where
 /// expr `a + b`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprTerm<I>
 where
     I: LangInput,
@@ -253,7 +251,7 @@ where
 /// ops: `*`,`/`,`%`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum FactorOp<I>
 where
     I: LangInput,
@@ -269,7 +267,7 @@ where
 /// expr `a * b`,...
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprFactor<I>
 where
     I: LangInput,

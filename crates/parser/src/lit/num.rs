@@ -9,7 +9,7 @@ use crate::{
 /// Number sign.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Sign<I>
 where
     I: LangInput,
@@ -23,7 +23,7 @@ where
 /// Exponent part of literial number.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct Exp<I>
 where
     I: LangInput,
@@ -39,7 +39,7 @@ where
 /// Unit part of literial number.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum Unit<I>
 where
     I: LangInput,
@@ -140,7 +140,7 @@ where
 /// literial hex integer num: `0x[0-9a-fA-F]+`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct LitHexNum<I>
 where
     I: LangInput,

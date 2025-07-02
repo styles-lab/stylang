@@ -8,7 +8,7 @@ use crate::{errors::LangError, expr::Expr, token::*};
 /// `Path` call segement parser.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PathCall<I>(pub Paren<I, Punctuated<Expr<I>, SepComma<I>>>)
 where
     I: LangInput;
@@ -16,7 +16,7 @@ where
 /// index parser for `Path` expr.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PathIndex<I>(pub Bracket<I, Punctuated<Expr<I>, SepComma<I>>>)
 where
     I: LangInput;
@@ -24,7 +24,7 @@ where
 /// `Path` field index parser.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum PathField<I>
 where
     I: LangInput,
@@ -46,7 +46,7 @@ where
 /// The rest element parser for expr `Path`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum PathSegment<I>
 where
     I: LangInput,
@@ -59,7 +59,7 @@ where
 /// The rest element parser for expr `Path`.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct ExprPath<I>
 where
     I: LangInput,

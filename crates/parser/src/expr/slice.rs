@@ -1,5 +1,5 @@
 use parserc::{
-    errors::ControlFlow,
+    errors::{ControlFlow, MapFatal as _},
     lang::LangInput,
     parser::{Parser, take_till},
     span::ToSpan,
@@ -16,7 +16,7 @@ use crate::{
 /// A slice initialization expression: `[expr:num]` or `[expr1,expr2,..]`
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub enum ExprSlice<I>
 where
     I: LangInput,
@@ -44,7 +44,6 @@ where
         (meta_list, token_left_bracket): (MetaList<I>, TokenLeftBracket<I>),
         input: I,
     ) -> parserc::errors::Result<Self, I, LangError> {
-        use parserc::syntax::SyntaxEx;
         let (s, input) = S::into_parser().ok().parse(input)?;
         let start = (None, token_left_bracket.clone(), s);
 
@@ -52,8 +51,8 @@ where
 
         match lookahead.iter().next() {
             Some(b';') => {
-                let (body, input) = input.ensure_parse()?;
-                let (end, input) = input.ensure_parse()?;
+                let (body, input) = input.parse().fatal()?;
+                let (end, input) = input.parse().fatal()?;
                 Ok((
                     Self::Repeat {
                         meta_list,
@@ -63,8 +62,8 @@ where
                 ))
             }
             Some(b',') => {
-                let (body, input) = input.ensure_parse()?;
-                let (end, input) = input.ensure_parse()?;
+                let (body, input) = input.parse().fatal()?;
+                let (end, input) = input.parse().fatal()?;
                 Ok((
                     Self::InitList {
                         meta_list,

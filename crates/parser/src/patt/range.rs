@@ -5,7 +5,7 @@ use crate::{errors::LangError, lit::Lit, token::*};
 /// A range expression: 1..2, 1.., ..2, 1..=2, ..=2.
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattRange<I>
 where
     I: LangInput,
@@ -21,7 +21,7 @@ where
 /// The dots in a tuple or slice pattern: [0, 1, ..].
 #[derive(Debug, PartialEq, Clone, Syntax)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[error(LangError)]
+#[syntax(error = LangError)]
 pub struct PattRest<I>(pub TokenDotDot<I>)
 where
     I: LangInput;
